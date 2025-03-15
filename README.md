@@ -35,15 +35,3 @@ This extension contributes the following settings:
 ## 🥁 Known Issues
 
 - Initial dev version - getting ready to shred, but some features might hit a wrong note
-
-## 👁️ Style Guide
-
-For official KoЯnelius UI guidance, check the [style guide](docs/styleguide.md).
-
-## 🎶 Release Notes
-
-See the [CHANGELOG.md](CHANGELOG.md) for what's new in each release.
-
-### 0.1.0
-
-Initial release - turn it up and get creating!
