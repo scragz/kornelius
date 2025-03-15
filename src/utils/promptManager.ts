@@ -14,7 +14,7 @@ export class PromptManager {
 
   constructor() {
     // Get extension context using the publisher.name format from package.json
-    const extensionId = 'kornelius.kornelius';
+    const extensionId = 'scragz.kornelius';
     DebugLogger.log(`Looking for extension with ID: ${extensionId}`);
 
     const extension = vscode.extensions.getExtension(extensionId);

@@ -7,13 +7,13 @@ suite('Extension Test Suite', () => {
 
   test('Extension should be present', () => {
     assert.notStrictEqual(
-      vscode.extensions.getExtension('kornelius.kornelius'),
+      vscode.extensions.getExtension('scragz.kornelius'),
       undefined
     );
   });
 
   test('Extension should activate', async () => {
-    const extension = vscode.extensions.getExtension('kornelius.kornelius');
+    const extension = vscode.extensions.getExtension('scragz.kornelius');
     if (!extension) {
       assert.fail('Extension not found');
     }

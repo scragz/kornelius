@@ -29,10 +29,10 @@ const promptManager_1 = require("../../utils/promptManager");
 suite('Extension Test Suite', () => {
     vscode.window.showInformationMessage('Starting test suite');
     test('Extension should be present', () => {
-        assert.notStrictEqual(vscode.extensions.getExtension('kornelius.kornelius'), undefined);
+        assert.notStrictEqual(vscode.extensions.getExtension('scragz.kornelius'), undefined);
     });
     test('Extension should activate', async () => {
-        const extension = vscode.extensions.getExtension('kornelius.kornelius');
+        const extension = vscode.extensions.getExtension('scragz.kornelius');
         if (!extension) {
             assert.fail('Extension not found');
         }
