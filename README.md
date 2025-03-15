@@ -21,7 +21,7 @@ A VS Code extension that provides a guided flow for AI-based prompt creation wit
 
 ## 🎧 Usage
 
-1. Open the KoЯnelius sidebar
+1. Click the barbed wire icon in the VS Code activity bar to open KoЯnelius
 2. Navigate through the steps with the PREV/NEXT buttons
 3. Fill in your details at each stage
 4. In the REVIEW step, generate your final prompt

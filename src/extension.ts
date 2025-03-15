@@ -22,6 +22,14 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 
+  // Make sure the activity bar icon is visible on activation
+  vscode.commands.executeCommand('setContext', 'korneliusVisible', true);
+
+  // Register command to focus sidebar
+  const focusCmd = vscode.commands.registerCommand('kornelius.focus', () => {
+    vscode.commands.executeCommand('workbench.view.extension.kornelius-activity');
+  });
+
   // Register browse prompts command
   const browsePromptsCmd = vscode.commands.registerCommand('kornelius.browsePrompts', async () => {
     return await browsePrompts();
@@ -29,8 +37,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register generate prompt command
   const generatePromptCmd = vscode.commands.registerCommand('kornelius.generatePrompt',
-    async (templateContent: string, userInputs: any) => {
-      return await generatePrompt(templateContent, userInputs);
+    async (step: string, userInputs: any) => {
+      return await generatePrompt(step, userInputs);
     }
   );
 
@@ -72,7 +80,8 @@ export function activate(context: vscode.ExtensionContext) {
     savePromptCmd,
     copyToClipboardCmd,
     selectTemplateCmd,
-    getTemplateContentCmd
+    getTemplateContentCmd,
+    focusCmd
   );
 
   // Add initial configuration if not already present

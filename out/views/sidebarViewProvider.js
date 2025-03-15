@@ -39,15 +39,29 @@ class SidebarViewProvider {
         };
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
         // Handle messages from the webview
-        webviewView.webview.onDidReceiveMessage((message) => {
+        webviewView.webview.onDidReceiveMessage(async (message) => {
             switch (message.command) {
                 case 'stepChange':
                     // Handle step change
                     console.log(`Changed to step: ${message.step}`);
                     break;
                 case 'generatePrompt':
-                    // Handle prompt generation
-                    console.log('Generating prompt with data:', message.data);
+                    // Handle prompt generation based on the step
+                    try {
+                        console.log(`Generating prompt for step ${message.step} with data:`, message.data);
+                        // Call the command to generate the prompt
+                        const generatedPrompt = await vscode.commands.executeCommand('kornelius.generatePrompt', message.step, message.data);
+                        // Send the generated prompt back to the webview
+                        webviewView.webview.postMessage({
+                            command: 'promptGenerated',
+                            step: message.step,
+                            content: generatedPrompt
+                        });
+                    }
+                    catch (error) {
+                        console.error('Error generating prompt:', error);
+                        vscode.window.showErrorMessage(`Failed to generate prompt: ${error instanceof Error ? error.message : String(error)}`);
+                    }
                     break;
                 case 'copyToClipboard':
                     // Handle copy to clipboard
@@ -99,6 +113,14 @@ class SidebarViewProvider {
           <h2>REQUEST</h2>
           <p>Drop your initial request or idea:</p>
           <textarea id="request-input" rows="10" placeholder="Enter your request here..."></textarea>
+          <div class="prompt-preview" id="request-preview" style="display: none;">
+            <h3>Generated Prompt</h3>
+            <div class="preview-content"></div>
+          </div>
+          <div class="button-group">
+            <button id="generate-request">GENERATE PROMPT</button>
+            <button id="copy-request" disabled>COPY TO CLIPBOARD</button>
+          </div>
         </div>
 
         <!-- Step 2: Spec -->
@@ -106,6 +128,14 @@ class SidebarViewProvider {
           <h2>SPEC</h2>
           <p>Define the specifications for your request:</p>
           <textarea id="spec-input" rows="10" placeholder="Enter specifications here..."></textarea>
+          <div class="prompt-preview" id="spec-preview" style="display: none;">
+            <h3>Generated Prompt</h3>
+            <div class="preview-content"></div>
+          </div>
+          <div class="button-group">
+            <button id="generate-spec">GENERATE PROMPT</button>
+            <button id="copy-spec" disabled>COPY TO CLIPBOARD</button>
+          </div>
         </div>
 
         <!-- Step 3: Planner -->
@@ -113,6 +143,14 @@ class SidebarViewProvider {
           <h2>PLANNER</h2>
           <p>Map out the implementation approach:</p>
           <textarea id="planner-input" rows="10" placeholder="Enter planning details here..."></textarea>
+          <div class="prompt-preview" id="planner-preview" style="display: none;">
+            <h3>Generated Prompt</h3>
+            <div class="preview-content"></div>
+          </div>
+          <div class="button-group">
+            <button id="generate-planner">GENERATE PROMPT</button>
+            <button id="copy-planner" disabled>COPY TO CLIPBOARD</button>
+          </div>
         </div>
 
         <!-- Step 4: Codegen -->
@@ -120,18 +158,28 @@ class SidebarViewProvider {
           <h2>CODEGEN</h2>
           <p>Specify coding requirements or samples:</p>
           <textarea id="codegen-input" rows="10" placeholder="Enter code generation requirements here..."></textarea>
+          <div class="prompt-preview" id="codegen-preview" style="display: none;">
+            <h3>Generated Prompt</h3>
+            <div class="preview-content"></div>
+          </div>
+          <div class="button-group">
+            <button id="generate-codegen">GENERATE PROMPT</button>
+            <button id="copy-codegen" disabled>COPY TO CLIPBOARD</button>
+          </div>
         </div>
 
         <!-- Step 5: Review -->
         <div class="step" id="step-review" data-step="5" style="display: none;">
           <h2>REVIEW</h2>
-          <p>Review and drop the final prompt:</p>
-          <div id="prompt-preview" class="preview-box">
-            <p class="placeholder">Hit all the steps to see your prompt take shape...</p>
+          <p>Review the implementation and provide feedback:</p>
+          <textarea id="review-input" rows="10" placeholder="Enter review feedback here..."></textarea>
+          <div class="prompt-preview" id="review-preview" style="display: none;">
+            <h3>Generated Prompt</h3>
+            <div class="preview-content"></div>
           </div>
           <div class="button-group">
-            <button id="generate-prompt">GENERATE PROMPT</button>
-            <button id="copy-prompt" disabled>COPY TO CLIPBOARD</button>
+            <button id="generate-review">GENERATE PROMPT</button>
+            <button id="copy-review" disabled>COPY TO CLIPBOARD</button>
           </div>
         </div>
       </div>
@@ -140,13 +188,12 @@ class SidebarViewProvider {
         // Current step tracking
         let currentStep = 1;
         const totalSteps = 5;
+        const stepTypes = ['request', 'spec', 'planner', 'codegen', 'review'];
 
         // Get UI elements
         const prevButton = document.getElementById('prev-step');
         const nextButton = document.getElementById('next-step');
         const stepIndicator = document.getElementById('step-indicator');
-        const generateButton = document.getElementById('generate-prompt');
-        const copyButton = document.getElementById('copy-prompt');
 
         // Step elements
         const steps = document.querySelectorAll('.step');
@@ -190,89 +237,94 @@ class SidebarViewProvider {
           }
         });
 
-        // Generate prompt
-        generateButton.addEventListener('click', () => {
-          const data = {
-            request: document.getElementById('request-input').value,
-            spec: document.getElementById('spec-input').value,
-            planner: document.getElementById('planner-input').value,
-            codegen: document.getElementById('codegen-input').value
-          };
+        // Setup generate and copy buttons for each step
+        stepTypes.forEach((stepType, index) => {
+          const generateButton = document.getElementById(\`generate-\${stepType}\`);
+          const copyButton = document.getElementById(\`copy-\${stepType}\`);
+          const previewDiv = document.getElementById(\`\${stepType}-preview\`);
 
-          // Simple validation
-          if (!data.request) {
-            alert('Oops, you dropped your pick! Request step is required.');
-            updateStep(1);
-            return;
+          if (generateButton && copyButton && previewDiv) {
+            // Generate prompt for this step
+            generateButton.addEventListener('click', () => {
+              // Get the current data (focusing just on the current step's input)
+              const inputData = {};
+
+              // For each step, we'll collect the inputs from previous steps
+              for (let i = 0; i <= index; i++) {
+                const prevStepType = stepTypes[i];
+                const inputElement = document.getElementById(\`\${prevStepType}-input\`);
+                if (inputElement) {
+                  inputData[prevStepType] = inputElement.value || '';
+                }
+              }
+
+              // Simple validation for the current step
+              if (!inputData[stepType]) {
+                alert(\`Oops, you need to fill in the \${stepType.charAt(0).toUpperCase() + stepType.slice(1)} field!\`);
+                return;
+              }
+
+              // Show preview container
+              previewDiv.style.display = 'block';
+
+              // Send message to extension to generate prompt for this specific step
+              const vscode = acquireVsCodeApi();
+              vscode.postMessage({
+                command: 'generatePrompt',
+                step: stepType,
+                data: inputData
+              });
+
+              // Enable copy button
+              copyButton.disabled = false;
+            });
+
+            // Copy to clipboard for this step
+            copyButton.addEventListener('click', () => {
+              // Get the generated prompt text from the preview
+              const previewContent = previewDiv.querySelector('.preview-content');
+              if (previewContent) {
+                const promptText = previewContent.textContent || '';
+
+                // Send message to extension
+                const vscode = acquireVsCodeApi();
+                vscode.postMessage({
+                  command: 'copyToClipboard',
+                  text: promptText
+                });
+
+                // Add pulse animation to button
+                copyButton.classList.add('pulse');
+                setTimeout(() => {
+                  copyButton.classList.remove('pulse');
+                }, 300);
+              }
+            });
           }
-
-          // Generate a preview prompt
-          const promptPreview = document.getElementById('prompt-preview');
-          promptPreview.innerHTML = \`
-            <h3>Your Generated Prompt</h3>
-            <div class="barbed-divider"></div>
-            <div class="prompt-section">
-              <h4>Request:</h4>
-              <p>\${data.request || 'N/A'}</p>
-            </div>
-            <div class="prompt-section">
-              <h4>Specifications:</h4>
-              <p>\${data.spec || 'N/A'}</p>
-            </div>
-            <div class="prompt-section">
-              <h4>Planning:</h4>
-              <p>\${data.planner || 'N/A'}</p>
-            </div>
-            <div class="prompt-section">
-              <h4>Code Generation:</h4>
-              <p>\${data.codegen || 'N/A'}</p>
-            </div>
-          \`;
-
-          // Add pulse animation
-          promptPreview.classList.add('pulse');
-          setTimeout(() => {
-            promptPreview.classList.remove('pulse');
-          }, 300);
-
-          // Enable copy button
-          copyButton.disabled = false;
-
-          // Send message to extension
-          const vscode = acquireVsCodeApi();
-          vscode.postMessage({
-            command: 'generatePrompt',
-            data: data
-          });
         });
 
-        // Copy to clipboard
-        copyButton.addEventListener('click', () => {
-          const promptText = [
-            'Request:',
-            document.getElementById('request-input').value,
-            '',
-            'Specifications:',
-            document.getElementById('spec-input').value,
-            '',
-            'Planning:',
-            document.getElementById('planner-input').value,
-            '',
-            'Code Generation:',
-            document.getElementById('codegen-input').value
-          ].join('\\n');
+        // Handle messages from the extension
+        window.addEventListener('message', event => {
+          const message = event.data;
 
-          const vscode = acquireVsCodeApi();
-          vscode.postMessage({
-            command: 'copyToClipboard',
-            text: promptText
-          });
+          // Handle prompt generation response
+          if (message.command === 'promptGenerated') {
+            const { step, content } = message;
+            const previewDiv = document.getElementById(\`\${step}-preview\`);
 
-          // Add pulse animation to button
-          copyButton.classList.add('pulse');
-          setTimeout(() => {
-            copyButton.classList.remove('pulse');
-          }, 300);
+            if (previewDiv) {
+              const contentDiv = previewDiv.querySelector('.preview-content');
+              if (contentDiv) {
+                contentDiv.textContent = content;
+
+                // Add pulse animation
+                previewDiv.classList.add('pulse');
+                setTimeout(() => {
+                  previewDiv.classList.remove('pulse');
+                }, 300);
+              }
+            }
+          }
         });
 
         // Initialize first step
@@ -284,6 +336,7 @@ class SidebarViewProvider {
 }
 exports.SidebarViewProvider = SidebarViewProvider;
 SidebarViewProvider.viewType = 'kornelius-sidebar';
+SidebarViewProvider.viewId = 'kornelius-sidebar';
 function getNonce() {
     let text = '';
     const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';

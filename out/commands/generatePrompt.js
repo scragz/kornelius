@@ -27,20 +27,60 @@ exports.saveGeneratedPrompt = exports.generatePrompt = void 0;
 const vscode = __importStar(require("vscode"));
 const promptManager_1 = require("../utils/promptManager");
 /**
- * Command to generate a prompt from a template and user inputs
+ * Command to generate a prompt for a specific step from a template and user inputs
  */
-async function generatePrompt(templateContent, userInputs) {
+async function generatePrompt(step, userInputs) {
     try {
         const promptManager = new promptManager_1.PromptManager();
+        // Get all templates
+        const templates = await promptManager.getPromptTemplates();
+        // Find the template that matches the current step
+        const matchingTemplate = templates.find(template => template.type === step);
+        if (!matchingTemplate) {
+            throw new Error(`No template found for step: ${step}`);
+        }
+        // Get the template content
+        const templateContent = await promptManager.getPromptContent(matchingTemplate.fullPath);
         // Convert the structured user inputs to a flat record of key-value pairs
-        const placeholderMap = {
-            // Map each type of input to a placeholder in the template
-            'request': userInputs.request || '',
-            'spec': userInputs.spec || '',
-            'planner': userInputs.planner || '',
-            'codegen': userInputs.codegen || '',
-            // Add additional mappings as needed for more complex templates
-        };
+        const placeholderMap = {};
+        // Map appropriate values based on the current step
+        switch (step) {
+            case 'request':
+                placeholderMap['IDEA'] = userInputs.request || '';
+                break;
+            case 'spec':
+                placeholderMap['insert_request_here'] = userInputs.request || '';
+                placeholderMap['insert_rules_here'] = ''; // This would come from a rules file
+                placeholderMap['insert_template_here'] = ''; // This would come from a template
+                break;
+            case 'planner':
+                placeholderMap['PROJECT_REQUEST'] = userInputs.request || '';
+                placeholderMap['PROJECT_RULES'] = ''; // Optional
+                placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.spec || '';
+                placeholderMap['STARTER_TEMPLATE'] = ''; // Optional
+                break;
+            case 'codegen':
+                placeholderMap['PROJECT_REQUEST'] = userInputs.request || '';
+                placeholderMap['PROJECT_RULES'] = ''; // Optional
+                placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.spec || '';
+                placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.planner || '';
+                placeholderMap['YOUR_CODE'] = ''; // This would be the user's existing code
+                break;
+            case 'review':
+                placeholderMap['PROJECT_REQUEST'] = userInputs.request || '';
+                placeholderMap['PROJECT_RULES'] = ''; // Optional
+                placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.spec || '';
+                placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.planner || '';
+                placeholderMap['EXISTING_CODE'] = userInputs.codegen || '';
+                break;
+            default:
+                // For unknown steps, just map all inputs
+                placeholderMap['request'] = userInputs.request || '';
+                placeholderMap['spec'] = userInputs.spec || '';
+                placeholderMap['planner'] = userInputs.planner || '';
+                placeholderMap['codegen'] = userInputs.codegen || '';
+                placeholderMap['review'] = userInputs.review || '';
+        }
         // Generate the prompt using the template and user inputs
         const generatedPrompt = promptManager.generatePrompt(templateContent, placeholderMap);
         // Return the generated prompt

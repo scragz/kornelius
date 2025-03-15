@@ -39,13 +39,19 @@ function activate(context) {
     // Register the sidebar provider
     const sidebarProvider = new sidebarViewProvider_1.SidebarViewProvider(context.extensionUri);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(sidebarViewProvider_1.SidebarViewProvider.viewType, sidebarProvider));
+    // Make sure the activity bar icon is visible on activation
+    vscode.commands.executeCommand('setContext', 'korneliusVisible', true);
+    // Register command to focus sidebar
+    const focusCmd = vscode.commands.registerCommand('kornelius.focus', () => {
+        vscode.commands.executeCommand('workbench.view.extension.kornelius-activity');
+    });
     // Register browse prompts command
     const browsePromptsCmd = vscode.commands.registerCommand('kornelius.browsePrompts', async () => {
         return await (0, browsePrompts_1.browsePrompts)();
     });
     // Register generate prompt command
-    const generatePromptCmd = vscode.commands.registerCommand('kornelius.generatePrompt', async (templateContent, userInputs) => {
-        return await (0, generatePrompt_1.generatePrompt)(templateContent, userInputs);
+    const generatePromptCmd = vscode.commands.registerCommand('kornelius.generatePrompt', async (step, userInputs) => {
+        return await (0, generatePrompt_1.generatePrompt)(step, userInputs);
     });
     // Register save prompt command
     const savePromptCmd = vscode.commands.registerCommand('kornelius.savePrompt', async (content) => {
@@ -66,7 +72,7 @@ function activate(context) {
         return await (0, browsePrompts_1.getTemplateContent)(templatePath);
     });
     // Add all commands to subscriptions
-    context.subscriptions.push(browsePromptsCmd, generatePromptCmd, savePromptCmd, copyToClipboardCmd, selectTemplateCmd, getTemplateContentCmd);
+    context.subscriptions.push(browsePromptsCmd, generatePromptCmd, savePromptCmd, copyToClipboardCmd, selectTemplateCmd, getTemplateContentCmd, focusCmd);
     // Add initial configuration if not already present
     const config = vscode.workspace.getConfiguration('kornelius');
     if (config.get('enableJinaIntegration') === undefined) {

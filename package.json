@@ -11,7 +11,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:kornelius-sidebar"
+    "onView:kornelius-sidebar",
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -23,15 +24,29 @@
       {
         "command": "kornelius.fetchMarkdown",
         "title": "KoЯnelius: Fetch Markdown from URL (Jina.ai)"
+      },
+      {
+        "command": "kornelius.focus",
+        "title": "KoЯnelius: Focus Sidebar",
+        "icon": "media/barbed-wire.svg"
       }
     ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "kornelius-activity",
+          "title": "KoЯnelius",
+          "icon": "media/barbed-wire.svg"
+        }
+      ]
+    },
     "views": {
-      "explorer": [
+      "kornelius-activity": [
         {
           "id": "kornelius-sidebar",
-          "name": "Kornelius",
+          "name": "KoЯnelius",
           "icon": "media/barbed-wire.svg",
-          "contextualTitle": "KoЯnelius"
+          "type": "webview"
         }
       ]
     },

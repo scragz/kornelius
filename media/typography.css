@@ -1,0 +1,139 @@
+/* KoЯnelius - Typography Styles */
+
+/* Typography with myspace/nu-metal style */
+h1 {
+  font-family: 'Anton', sans-serif;
+  font-size: 2em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  transform: rotate(-2deg) skew(-3deg);
+  background: linear-gradient(90deg,
+    var(--keyword-color) 0%,
+    var(--function-color) 50%,
+    var(--type-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  text-shadow:
+    3px 3px 0px var(--vscode-editor-background),
+    5px 5px 4px rgba(0, 0, 0, 0.4);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+  position: relative;
+}
+
+h1::after {
+  content: "Kornelius";
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  opacity: 0.2;
+  z-index: -1;
+  transform: skew(10deg);
+  -webkit-text-fill-color: var(--comment-color);
+}
+
+h2 {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.4em;
+  font-weight: bold;
+  margin: 15px 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transform: skewX(-5deg);
+  color: var(--function-color);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  border-bottom: 2px dashed var(--comment-color);
+  display: inline-block;
+  padding-right: 20px;
+  position: relative;
+  /* Create a cool blink effect */
+  animation: textflicker 8s infinite alternate;
+}
+
+h3 {
+  font-family: 'Permanent Marker', cursive;
+  font-size: 1.2em;
+  margin: 10px 0;
+  transform: rotate(-1.5deg);
+  color: var(--keyword-color);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+  padding-left: 5px;
+  position: relative;
+}
+
+h3::before {
+  content: "✧";
+  position: absolute;
+  left: -10px;
+  top: 0;
+  color: var(--type-color);
+  font-size: 0.9em;
+}
+
+h3::after {
+  content: "✧";
+  position: absolute;
+  right: -10px;
+  top: 0;
+  color: var(--type-color);
+  font-size: 0.9em;
+}
+
+h4 {
+  font-family: 'Permanent Marker', cursive;
+  font-size: 1em;
+  margin: 8px 0;
+  color: var(--string-color);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+h4::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right,
+    var(--keyword-color),
+    var(--string-color),
+    var(--type-color),
+    transparent);
+}
+
+p {
+  margin: 5px 0 15px;
+  line-height: 1.4;
+  color: var(--string-color);
+}
+
+.tagline {
+  font-family: 'Permanent Marker', cursive;
+  font-size: 0.9em;
+  opacity: 0.8;
+  transform: rotate(-0.5deg);
+  margin-bottom: 20px;
+  color: var(--comment-color);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+  padding-left: 20px;
+  position: relative;
+}
+
+.tagline::before {
+  content: "// ";
+  position: absolute;
+  left: 0;
+  color: var(--comment-color);
+}
+
+.placeholder {
+  font-style: italic;
+  color: var(--vscode-input-placeholderForeground);
+  font-family: 'Permanent Marker', cursive;
+  opacity: 0.7;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
+}
