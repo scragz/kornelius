@@ -139,8 +139,8 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
           <h2>REQUEST</h2>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="request-idea">Your idea or request:</label>
-              <textarea id="request-idea" class="main-input" rows="8" placeholder="Enter your request here..."></textarea>
+              <label for="request-idea">Your initial idea:</label>
+              <textarea id="request-idea" class="main-input" rows="8" placeholder="Enter your initial idea here..."></textarea>
             </div>
           </div>
           <div class="button-group">
@@ -181,16 +181,16 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
           <h2>PLANNER</h2>
           <div class="multi-input-container">
             <div class="input-group">
+              <label for="planner-spec">Technical Specification:</label>
+              <textarea id="planner-spec" rows="3" placeholder="Paste the results from the spec step..."></textarea>
+            </div>
+            <div class="input-group">
               <label for="planner-request">Project Request:</label>
               <textarea id="planner-request" rows="3" placeholder="Paste the project request..."></textarea>
             </div>
             <div class="input-group">
               <label for="planner-rules">Project Rules (optional):</label>
               <textarea id="planner-rules" rows="3" placeholder="Enter project rules..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="planner-spec">Technical Specification:</label>
-              <textarea id="planner-spec" rows="3" placeholder="Paste the results from the spec step..."></textarea>
             </div>
             <div class="input-group">
               <label for="planner-template">Starter Template (optional):</label>
@@ -210,24 +210,24 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
           <h2>CODEGEN</h2>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="codegen-request">Project Request:</label>
-              <textarea id="codegen-request" rows="3" placeholder="Paste the project request..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="codegen-rules">Project Rules (optional):</label>
-              <textarea id="codegen-rules" rows="3" placeholder="Enter project rules..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="codegen-spec">Technical Specification:</label>
-              <textarea id="codegen-spec" rows="3" placeholder="Paste the specification..."></textarea>
-            </div>
-            <div class="input-group">
               <label for="codegen-plan">Implementation Plan:</label>
               <textarea id="codegen-plan" rows="3" placeholder="Paste the implementation plan..."></textarea>
             </div>
             <div class="input-group">
               <label for="codegen-code">Your Code (optional):</label>
               <textarea id="codegen-code" rows="3" placeholder="Enter existing code..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="codegen-request">Project Request:</label>
+              <textarea id="codegen-request" rows="3" placeholder="Paste the project request..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="codegen-spec">Technical Specification:</label>
+              <textarea id="codegen-spec" rows="3" placeholder="Paste the specification..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="codegen-rules">Project Rules (optional):</label>
+              <textarea id="codegen-rules" rows="3" placeholder="Enter project rules..."></textarea>
             </div>
           </div>
           <div class="button-group">
@@ -243,12 +243,12 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
           <h2>REVIEW</h2>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="review-request">Project Request:</label>
-              <textarea id="review-request" rows="3" placeholder="Paste the project request..."></textarea>
+              <label for="review-code">Existing Code:</label>
+              <textarea id="review-code" rows="3" placeholder="Paste the code to review..."></textarea>
             </div>
             <div class="input-group">
-              <label for="review-rules">Project Rules (optional):</label>
-              <textarea id="review-rules" rows="3" placeholder="Enter project rules..."></textarea>
+              <label for="review-request">Project Request:</label>
+              <textarea id="review-request" rows="3" placeholder="Paste the project request..."></textarea>
             </div>
             <div class="input-group">
               <label for="review-spec">Technical Specification:</label>
@@ -259,8 +259,8 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
               <textarea id="review-plan" rows="3" placeholder="Paste the implementation plan..."></textarea>
             </div>
             <div class="input-group">
-              <label for="review-code">Existing Code:</label>
-              <textarea id="review-code" rows="3" placeholder="Paste the code to review..."></textarea>
+              <label for="review-rules">Project Rules (optional):</label>
+              <textarea id="review-rules" rows="3" placeholder="Enter project rules..."></textarea>
             </div>
           </div>
           <div class="button-group">
@@ -359,6 +359,37 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         const totalSteps = 5;
         const stepTypes = ['request', 'spec', 'planner', 'codegen', 'review'];
 
+        // Helper function to sync values across steps
+        function syncValueAcrossSteps(sourceId, targetIds) {
+          const sourceElement = document.getElementById(sourceId);
+          if (!sourceElement) return;
+
+          sourceElement.addEventListener('input', () => {
+            const value = sourceElement.value;
+            targetIds.forEach(targetId => {
+              const targetElement = document.getElementById(targetId);
+              if (targetElement) {
+                targetElement.value = value;
+              }
+            });
+          });
+        }
+
+        // Sync project request across steps 2-5
+        syncValueAcrossSteps('spec-request', ['planner-request', 'codegen-request', 'review-request']);
+
+        // Sync rules across steps
+        syncValueAcrossSteps('spec-rules', ['planner-rules', 'codegen-rules', 'review-rules']);
+
+        // Sync template across steps
+        syncValueAcrossSteps('spec-template', ['planner-template']);
+
+        // Sync technical specification across steps
+        syncValueAcrossSteps('planner-spec', ['codegen-spec', 'review-spec']);
+
+        // Sync implementation plan across steps
+        syncValueAcrossSteps('codegen-plan', ['review-plan']);
+
         // Get UI elements
         const prevButton = document.getElementById('prev-step');
         const nextButton = document.getElementById('next-step');
@@ -424,15 +455,15 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
                   case 'request':
                     const requestIdeaEl = document.getElementById('request-idea');
                     if (!requestIdeaEl?.value.trim()) {
-                      throw new Error('Please enter your request or idea first.');
+                      throw new Error('Please enter your initial idea first.');
                     }
-                    inputData.PROJECT_REQUEST = requestIdeaEl.value.trim();
+                    inputData.INITIAL_IDEA = requestIdeaEl.value.trim();
                     break;
 
                   case 'spec':
                     const specRequestEl = document.getElementById('spec-request');
                     if (!specRequestEl?.value.trim()) {
-                      throw new Error('Please paste in the project request first.');
+                      throw new Error('Please enter the project request first.');
                     }
                     inputData.PROJECT_REQUEST = specRequestEl.value.trim();
                     inputData.PROJECT_RULES = document.getElementById('spec-rules')?.value.trim() || '';

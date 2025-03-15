@@ -88,8 +88,8 @@ function processPromptWithPlaceholders(step, templateContent, userInputs) {
     // Map appropriate values based on the current step
     switch (step) {
         case 'request':
-            // For request step, just use the PROJECT_REQUEST placeholder
-            placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';
+            // For request step, use INITIAL_IDEA instead of PROJECT_REQUEST
+            placeholderMap['PROJECT_REQUEST'] = userInputs.INITIAL_IDEA || '';
             break;
         case 'spec':
             // For spec step, use previous step's input plus any spec-specific input
