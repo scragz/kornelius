@@ -280,7 +280,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
     <!-- Jina Integration Section (Placed below the steps) -->
     <div id="jina-section" class="jina-section" style="display: none; margin-top: 20px;">
-      <h3>Jina Integration</h3>
+      <h3>Jina</h3>
       <div class="multi-input-container">
         <div class="input-group">
           <label for="jinaUrls">URLs (one per line):</label>
@@ -580,7 +580,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
     function initJinaFunctionality() {
       const jinaUrlsInput = document.getElementById('jinaUrls');
       const fetchJinaBtn = document.getElementById('fetchJinaBtn');
-      
+
       if (!jinaUrlsInput || !fetchJinaBtn) return;
 
       // Disable button initially
