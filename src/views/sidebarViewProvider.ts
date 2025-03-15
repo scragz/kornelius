@@ -127,7 +127,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         <div class="logo">
           <h1>Ko<span class="reversed">Я</span>nelius</h1>
         </div>
-        <p class="tagline">Your nu-code companion</p>
+        <p class="tagline">Your vibe coding companion</p>
 
         <div class="step-navigation">
           <button id="prev-step" disabled>◀ PREV</button>

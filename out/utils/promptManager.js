@@ -127,11 +127,19 @@ class PromptManager {
         debugLogger_1.DebugLogger.log('PromptManager.generatePrompt - User inputs:', userInputs);
         let result = templateContent;
         // Replace all placeholders in the template with user inputs
+        // Handle both single and double curly brace formats
         for (const [key, value] of Object.entries(userInputs)) {
-            const placeholder = `{{${key}}}`;
-            result = result.replace(new RegExp(placeholder, 'g'), value || '');
+            const doubleBracePlaceholder = `{{${key}}}`;
+            // Replace double curly brace format
+            result = result.replace(new RegExp(this.escapeRegExp(doubleBracePlaceholder), 'g'), value || '');
         }
         return result;
+    }
+    /**
+     * Escape special characters in string for use in RegExp
+     */
+    escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
     }
 }
 exports.PromptManager = PromptManager;

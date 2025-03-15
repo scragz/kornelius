@@ -63,7 +63,7 @@ This ensures you iterate toward a final, clear “Project Request” doc.
 ## **Context**
 
 <project_request>
-{PROJECT_REQUEST}
+{{PROJECT_REQUEST}}
 </project_request>
 
 ---
