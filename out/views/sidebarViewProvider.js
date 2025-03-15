@@ -141,7 +141,7 @@ class SidebarViewProvider {
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-request" class="generate-copy-btn">GET PROMPT</button>
+            <button id="generate-copy-request" class="generate-copy-btn" disabled>GET PROMPT</button>
           </div>
           <div class="munky-tip">
             <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
@@ -166,7 +166,7 @@ class SidebarViewProvider {
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-spec" class="generate-copy-btn">GET PROMPT</button>
+            <button id="generate-copy-spec" class="generate-copy-btn" disabled>GET PROMPT</button>
           </div>
           <div class="munky-tip">
             <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
@@ -195,7 +195,7 @@ class SidebarViewProvider {
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-planner" class="generate-copy-btn">GET PROMPT</button>
+            <button id="generate-copy-planner" class="generate-copy-btn" disabled>GET PROMPT</button>
           </div>
           <div class="munky-tip">
             <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
@@ -228,7 +228,7 @@ class SidebarViewProvider {
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-codegen" class="generate-copy-btn">GET PROMPT</button>
+            <button id="generate-copy-codegen" class="generate-copy-btn" disabled>GET PROMPT</button>
           </div>
           <div class="munky-tip">
             <p>Use a <span class="model-badge coding-model">coding model</span> like <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.</p>
@@ -261,7 +261,7 @@ class SidebarViewProvider {
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-review" class="generate-copy-btn">GET PROMPT</button>
+            <button id="generate-copy-review" class="generate-copy-btn" disabled>GET PROMPT</button>
           </div>
           <div class="munky-tip">
             <p>Use a <span class="model-badge coding-model">coding model</span> like <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.</p>
@@ -327,6 +327,7 @@ class SidebarViewProvider {
                     isResetting = true;
                     generateButton.textContent = "GET PROMPT";
                     generateButton.disabled = false;
+                    validateStep(step); // Re-check validation after reset
                     generateButton.classList.remove('pulse');
                     isResetting = false;
                   }
@@ -341,7 +342,7 @@ class SidebarViewProvider {
                 errorButton.textContent = "ERROR - TRY AGAIN";
                 setTimeout(() => {
                   errorButton.textContent = "GET PROMPT";
-                  errorButton.disabled = false;
+                  validateStep(message.step); // Re-check validation
                 }, 2000);
               }
               break;
@@ -356,6 +357,32 @@ class SidebarViewProvider {
         const totalSteps = 5;
         const stepTypes = ['request', 'spec', 'planner', 'codegen', 'review'];
 
+        // Validation configuration for each step
+        const stepValidation = {
+          'request': ['request-idea'],
+          'spec': ['spec-request'],
+          'planner': ['planner-request', 'planner-spec'],
+          'codegen': ['codegen-request', 'codegen-spec', 'codegen-plan'],
+          'review': ['review-request', 'review-spec', 'review-plan', 'review-code']
+        };
+
+        // Function to validate a specific step and update button state
+        function validateStep(stepType) {
+          const generateButton = document.getElementById('generate-copy-' + stepType);
+          if (!generateButton) return;
+
+          // If the button has a temporary state, don't validate yet
+          if (generateButton.textContent !== "GET PROMPT") return;
+
+          const requiredFields = stepValidation[stepType] || [];
+          const isValid = requiredFields.every(fieldId => {
+            const field = document.getElementById(fieldId);
+            return field && field.value.trim() !== '';
+          });
+
+          generateButton.disabled = !isValid;
+        }
+
         // Helper function to sync values across steps
         function syncValueAcrossSteps(sourceId, targetIds) {
           const sourceElement = document.getElementById(sourceId);
@@ -367,8 +394,29 @@ class SidebarViewProvider {
               const targetElement = document.getElementById(targetId);
               if (targetElement) {
                 targetElement.value = value;
+
+                // Trigger validation for the step containing the target element
+                for (const stepType in stepValidation) {
+                  if (stepValidation[stepType].includes(targetId)) {
+                    validateStep(stepType);
+                    break;
+                  }
+                }
               }
             });
+          });
+        }
+
+        // Add input event listeners to all required fields for validation
+        for (const stepType in stepValidation) {
+          const fields = stepValidation[stepType];
+          fields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+              field.addEventListener('input', () => {
+                validateStep(stepType);
+              });
+            }
           });
         }
 
@@ -402,6 +450,9 @@ class SidebarViewProvider {
             nextButton.disabled = newStep === totalSteps;
 
             currentStep = newStep;
+
+            // Update validation for the newly displayed step
+            validateStep(stepTypes[newStep - 1]);
 
             // Notify extension of step change
             vscode.postMessage({
@@ -537,9 +588,11 @@ class SidebarViewProvider {
           }
         });
 
-        // Initialize first step
+        // Initialize first step and validation
         try {
           updateStep(1);
+          // Initialize validation for all steps
+          stepTypes.forEach(validateStep);
         } catch (error) {
           logToExtension('Error initializing first step: ' + error, 'error');
         }

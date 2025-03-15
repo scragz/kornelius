@@ -1,4 +1,4 @@
-<img src="media/munky.png" width="200" height="200" align="center" alt="Munky playing guitar" />
+<img src="media/munky.png" width="200" height="200" alt="Munky playing guitar" />
 
 # KoЯnelius
 
