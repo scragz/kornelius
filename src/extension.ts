@@ -108,7 +108,11 @@ export function activate(context: vscode.ExtensionContext) {
     selectTemplateCmd,
     getTemplateContentCmd,
     focusCmd,
-    debugCommand
+    debugCommand,
+    // Add a command to handle log messages from webview
+    vscode.commands.registerCommand('kornelius.log', (message: string) => {
+      DebugLogger.log(message);
+    })
   );
 
   // Add initial configuration if not already present

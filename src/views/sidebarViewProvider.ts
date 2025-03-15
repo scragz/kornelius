@@ -64,12 +64,20 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
           case 'copyToClipboard':
             // Handle copy to clipboard
             vscode.env.clipboard.writeText(message.text);
-            vscode.window.showInformationMessage('Prompt copied to clipboard!');
+            // vscode.window.showInformationMessage('Prompt copied to clipboard!');
             break;
           case 'logError':
             // Handle error logging from webview
-            DebugLogger.error(`Error in webview: ${message.error}`);
-            vscode.window.showErrorMessage(`Webview error: ${message.error}`);
+            DebugLogger.error(`Error in webview: ${message.message}`);
+            // Only show error message for actual errors, not debug messages
+            if (message.message.startsWith('Error posting message') ||
+                message.message.startsWith('Error preparing inputs')) {
+              vscode.window.showErrorMessage(`Webview error: ${message.message}`);
+            }
+            break;
+          case 'log':
+            // Handle regular logging from webview
+            DebugLogger.log(`Webview log: ${message.message}`);
             break;
         }
       } catch (error) {
@@ -268,23 +276,23 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         // Initialize VS Code API once and store the reference
         const vscode = acquireVsCodeApi();
 
-        // Function to log errors to extension
-        function logToExtension(error) {
+        // Function to log messages to extension with level
+        function logToExtension(message, level = 'log') {
           vscode.postMessage({
-            command: 'logError',
-            error: typeof error === 'object' ? JSON.stringify(error) : String(error)
+            command: level,
+            message: typeof message === 'object' ? JSON.stringify(message) : String(message)
           });
         }
 
         // Set global error handler
         window.onerror = function(message, source, lineno, colno, error) {
-          logToExtension(\`\${message} at \${source}:\${lineno}:\${colno}\`);
+          logToExtension(message + ' at ' + source + ':' + lineno + ':' + colno, 'error');
           return true;
         };
 
         // Unhandled promise rejection handler
         window.addEventListener('unhandledrejection', event => {
-          logToExtension(\`Unhandled Promise rejection: \${event.reason}\`);
+          logToExtension('Unhandled Promise rejection: ' + event.reason, 'error');
         });
 
         // Message handler for extension responses
@@ -302,8 +310,8 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
                 return;
               }
 
-              console.log(\`Successfully generated prompt for \${step}\`);
-              const generateButton = document.getElementById(\`generate-copy-\${step}\`);
+              console.log('Successfully generated prompt for ' + step);
+              const generateButton = document.getElementById('generate-copy-' + step);
               if (generateButton) {
                 // Copy content to clipboard
                 vscode.postMessage({
@@ -314,17 +322,24 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
                 generateButton.textContent = "COPIED TO CLIPBOARD!";
                 generateButton.classList.add('pulse');
 
+                // Use a flag to prevent regeneration during the disabled state
+                let isResetting = false;
+
                 setTimeout(() => {
-                  generateButton.textContent = "GET PROMPT";
-                  generateButton.disabled = false;
-                  generateButton.classList.remove('pulse');
+                  if (!isResetting) {
+                    isResetting = true;
+                    generateButton.textContent = "GET PROMPT";
+                    generateButton.disabled = false;
+                    generateButton.classList.remove('pulse');
+                    isResetting = false;
+                  }
                 }, 2000);
               }
               break;
 
             case 'promptError':
-              logToExtension(\`Error generating prompt: \${message.error}\`);
-              const errorButton = document.getElementById(\`generate-copy-\${message.step}\`);
+              logToExtension('Error generating prompt: ' + message.error, 'error');
+              const errorButton = document.getElementById('generate-copy-' + message.step);
               if (errorButton) {
                 errorButton.textContent = "ERROR - TRY AGAIN";
                 setTimeout(() => {
@@ -353,7 +368,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         function updateStep(newStep) {
           try {
             steps.forEach(step => step.style.display = 'none');
-            document.querySelector(\`[data-step="\${newStep}"]\`).style.display = 'block';
+            document.querySelector('[data-step="' + newStep + '"]').style.display = 'block';
 
             prevButton.disabled = newStep === 1;
             nextButton.disabled = newStep === totalSteps;
@@ -366,7 +381,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
               step: currentStep
             });
           } catch (error) {
-            logToExtension(error);
+            logToExtension('Error initializing first step: ' + error, 'error');
           }
         }
 
@@ -385,10 +400,19 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
         // Setup generate-and-copy buttons for each step
         stepTypes.forEach((stepType) => {
-          const generateCopyButton = document.getElementById(\`generate-copy-\${stepType}\`);
+          const generateCopyButton = document.getElementById('generate-copy-' + stepType);
           if (generateCopyButton) {
+            // Add a processing flag to prevent duplicate operations
+            let isProcessing = false;
+
             generateCopyButton.addEventListener('click', async () => {
+              // Prevent multiple clicks and duplicate processing
+              if (generateCopyButton.disabled || isProcessing) {
+                return;
+              }
+
               const inputData = {};
+              isProcessing = true;
 
               // Show loading state
               generateCopyButton.textContent = "GENERATING...";
@@ -461,7 +485,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
                     throw new Error('Unknown step type');
                 }
 
-                logToExtension(\`Sending generatePrompt request for \${stepType}\`);
+                logToExtension('Generating prompt for ' + stepType);
 
                 // Send message to extension
                 vscode.postMessage({
@@ -471,10 +495,15 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
                 });
 
               } catch (error) {
-                logToExtension(\`Error preparing inputs: \${error.message || String(error)}\`);
+                logToExtension('Error preparing inputs: ' + (error.message || String(error)), 'error');
                 alert(error.message || 'Failed to prepare inputs');
                 generateCopyButton.textContent = "ERROR - TRY AGAIN";
                 generateCopyButton.disabled = false;
+              } finally {
+                // Reset the processing flag after a short delay
+                setTimeout(() => {
+                  isProcessing = false;
+                }, 2100); // Slightly longer than the button reset timeout
               }
             });
           }
@@ -484,7 +513,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         try {
           updateStep(1);
         } catch (error) {
-          logToExtension(\`Error initializing first step: \${error}\`);
+          logToExtension('Error initializing first step: ' + error, 'error');
         }
       </script>
     </body>

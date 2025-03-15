@@ -39,13 +39,11 @@ async function generatePrompt(step, userInputs) {
         debugLogger_1.DebugLogger.log(`generatePrompt called for step: ${step}`);
         debugLogger_1.DebugLogger.log('User inputs:', userInputs);
         // Show message to user for debugging
-        vscode.window.showInformationMessage(`Generating prompt for: ${step}`);
+        // vscode.window.showInformationMessage(`Generating prompt for: ${step}`);
         // Create prompt manager - no need to calculate paths manually now
         const promptManager = new promptManager_1.PromptManager();
         // Get all templates
         const templates = await promptManager.getPromptTemplates();
-        debugLogger_1.DebugLogger.log(`Found ${templates.length} templates:`, templates.map(t => t.name).join(', '));
-        // Find the template that matches the current step
         const matchingTemplate = templates.find(template => template.type === step);
         if (!matchingTemplate) {
             // Try a more direct approach to find the prompt file
@@ -90,12 +88,12 @@ function processPromptWithPlaceholders(step, templateContent, userInputs) {
     // Map appropriate values based on the current step
     switch (step) {
         case 'request':
-            // For request step, just use the IDEA placeholder
-            placeholderMap['PROJECT_REQUEST'] = userInputs.request || '';
+            // For request step, just use the PROJECT_REQUEST placeholder
+            placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';
             break;
         case 'spec':
             // For spec step, use previous step's input plus any spec-specific input
-            placeholderMap['PROJECT_REQUEST'] = userInputs.REQUEST || '';
+            placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || ''; // Fixed: Use PROJECT_REQUEST instead of REQUEST
             placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
             placeholderMap['STARTER_TEMPLATE'] = userInputs.STARTER_TEMPLATE || '';
             break;
@@ -103,7 +101,7 @@ function processPromptWithPlaceholders(step, templateContent, userInputs) {
             // For planner step, use request and spec inputs
             placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';
             placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
-            placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.spec || '';
+            placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.TECHNICAL_SPECIFICATION || ''; // Fixed: Use TECHNICAL_SPECIFICATION instead of spec
             placeholderMap['STARTER_TEMPLATE'] = userInputs.STARTER_TEMPLATE || '';
             break;
         case 'codegen':

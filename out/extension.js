@@ -100,7 +100,11 @@ function activate(context) {
         return await (0, browsePrompts_1.getTemplateContent)(templatePath);
     });
     // Add all commands to subscriptions
-    context.subscriptions.push(browsePromptsCmd, generatePromptCmd, copyToClipboardCmd, selectTemplateCmd, getTemplateContentCmd, focusCmd, debugCommand);
+    context.subscriptions.push(browsePromptsCmd, generatePromptCmd, copyToClipboardCmd, selectTemplateCmd, getTemplateContentCmd, focusCmd, debugCommand, 
+    // Add a command to handle log messages from webview
+    vscode.commands.registerCommand('kornelius.log', (message) => {
+        debugLogger_1.DebugLogger.log(message);
+    }));
     // Add initial configuration if not already present
     const config = vscode.workspace.getConfiguration('kornelius');
     if (config.get('enableJinaIntegration') === undefined) {
