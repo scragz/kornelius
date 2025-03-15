@@ -5,7 +5,18 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'kornelius-sidebar';
   public static readonly viewId = 'kornelius-sidebar';
 
+  private _jinaMessageHandler?: (message: any, webviewView: vscode.WebviewView) => Promise<void>;
+
   constructor(private readonly _extensionUri: vscode.Uri) {}
+
+  /**
+   * Set a handler for Jina-related messages from the webview.
+   */
+  public setJinaMessageHandler(
+    handler: (message: any, webviewView: vscode.WebviewView) => Promise<void>
+  ): void {
+    this._jinaMessageHandler = handler;
+  }
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -13,37 +24,50 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
     _token: vscode.CancellationToken
   ) {
     webviewView.webview.options = {
-      // Enable JavaScript in the webview
       enableScripts: true,
-      // Restrict the webview to only load resources from the extension's directory
       localResourceRoots: [this._extensionUri],
     };
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    // Handle messages from the webview
     webviewView.webview.onDidReceiveMessage(async (message) => {
       try {
+        // Handle Jina-related messages first
+        if (message.command === 'checkJinaEnabled') {
+          const config = vscode.workspace.getConfiguration('kornelius');
+          const enabled = config.get<boolean>('enableJinaIntegration') || false;
+          webviewView.webview.postMessage({
+            command: 'jinaStatus',
+            enabled: enabled
+          });
+          return;
+        } else if (message.command === 'fetchJina') {
+          if (this._jinaMessageHandler) {
+            await this._jinaMessageHandler(message, webviewView);
+          } else {
+            DebugLogger.error('No Jina message handler registered, but received a Jina message');
+            webviewView.webview.postMessage({
+              command: 'fetchJinaError',
+              error: 'Jina integration is not properly configured'
+            });
+          }
+          return;
+        }
+
+        // Handle other messages (step navigation, prompt generation, etc.)
         switch (message.command) {
           case 'stepChange':
-            // Handle step change
             DebugLogger.log(`Changed to step: ${message.step}`);
             break;
           case 'generatePrompt':
-            // Handle prompt generation based on the step
             try {
               DebugLogger.log(`Sidebar: Received generatePrompt request for step ${message.step} with data:`, message.data);
-
-              // Call the command to generate the prompt
               const generatedPrompt = await vscode.commands.executeCommand(
                 'kornelius.generatePrompt',
                 message.step,
                 message.data
               );
-
               DebugLogger.log(`Sidebar: Successfully generated prompt for step ${message.step}, sending back to webview`);
-
-              // Send the generated prompt back to the webview
               webviewView.webview.postMessage({
                 command: 'promptGenerated',
                 step: message.step,
@@ -52,8 +76,6 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
             } catch (error) {
               DebugLogger.error(`Sidebar: Error generating prompt for step ${message.step}:`, error);
               vscode.window.showErrorMessage(`Failed to generate prompt: ${error instanceof Error ? error.message : String(error)}`);
-
-              // Send error back to webview
               webviewView.webview.postMessage({
                 command: 'promptError',
                 step: message.step,
@@ -62,23 +84,20 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
             }
             break;
           case 'copyToClipboard':
-            // Handle copy to clipboard
             vscode.env.clipboard.writeText(message.text);
-            // vscode.window.showInformationMessage('Prompt copied to clipboard!');
             break;
           case 'logError':
-            // Handle error logging from webview
             DebugLogger.error(`Error in webview: ${message.message}`);
-            // Only show error message for actual errors, not debug messages
             if (message.message.startsWith('Error posting message') ||
                 message.message.startsWith('Error preparing inputs')) {
               vscode.window.showErrorMessage(`Webview error: ${message.message}`);
             }
             break;
           case 'log':
-            // Handle regular logging from webview
             DebugLogger.log(`Webview log: ${message.message}`);
             break;
+          default:
+            DebugLogger.log(`Unknown message command: ${message.command}`);
         }
       } catch (error) {
         DebugLogger.error('Error handling webview message:', error);
@@ -88,520 +107,520 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
   }
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
-    // Get the local path to script and css resources
-    const styleResetUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css')
-    );
+    // Get URIs for CSS resources
+    const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'));
+    const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css'));
+    const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.css'));
 
-    const styleVSCodeUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css')
-    );
-
-    const styleMainUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'main.css')
-    );
-
-    // Keep reference to script URI for future external script support
-    // @ts-ignore
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'media', 'main.js')
-    );
-
-    // Use a nonce to only allow a specific script to be run
     const nonce = getNonce();
 
+    // The HTML includes:
+    // • Five step sections (only the first is visible)
+    // • A dedicated Jina integration section below the steps
     return `<!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <!-- Use a content security policy to only allow specific script execution -->
-      <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Kornelius</title>
-      <link href="${styleResetUri}" rel="stylesheet">
-      <link href="${styleVSCodeUri}" rel="stylesheet">
-      <link href="${styleMainUri}" rel="stylesheet">
-    </head>
-    <body>
-      <div class="container">
-        <div class="logo">
-          <h1>Ko<span class="reversed">Я</span>nelius</h1>
-        </div>
-        <p class="tagline">Your vibe coding companion</p>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- CSP: allow styles from the extension and scripts with the matching nonce -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kornelius</title>
+  <link href="${styleResetUri}" rel="stylesheet">
+  <link href="${styleVSCodeUri}" rel="stylesheet">
+  <link href="${styleMainUri}" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <div class="logo">
+      <h1>Ko<span class="reversed">Я</span>nelius</h1>
+    </div>
+    <p class="tagline">Your vibe coding companion</p>
 
-        <div class="step-navigation">
-          <button id="prev-step" disabled>◀ PREV</button>
-          <button id="next-step">NEXT ▶</button>
-        </div>
+    <div class="step-navigation">
+      <button id="prev-step" disabled>◀ PREV</button>
+      <button id="next-step">NEXT ▶</button>
+    </div>
 
-        <!-- Step 1: Request -->
-        <div class="step" id="step-request" data-step="1">
-          <h2>REQUEST</h2>
-          <div class="multi-input-container">
-            <div class="input-group">
-              <label for="request-idea">Your initial idea:</label>
-              <textarea id="request-idea" class="main-input" rows="8" placeholder="Enter your initial idea here..."></textarea>
-            </div>
-          </div>
-          <div class="button-group">
-            <button id="generate-copy-request" class="generate-copy-btn" disabled>GET PROMPT</button>
-          </div>
-          <div class="munky-tip">
-            <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
-          </div>
-        </div>
-
-        <!-- Step 2: Spec -->
-        <div class="step" id="step-spec" data-step="2" style="display: none;">
-          <h2>SPEC</h2>
-          <div class="multi-input-container">
-            <div class="input-group">
-              <label for="spec-request">Project Request:</label>
-              <textarea id="spec-request" rows="3" placeholder="Paste the results from the previous step..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="spec-rules">Project Rules (optional):</label>
-              <textarea id="spec-rules" rows="3" placeholder="Enter any project rules..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="spec-template">Starter Template (optional):</label>
-              <textarea id="spec-template" rows="3" placeholder="Enter any starter template..."></textarea>
-            </div>
-          </div>
-          <div class="button-group">
-            <button id="generate-copy-spec" class="generate-copy-btn" disabled>GET PROMPT</button>
-          </div>
-          <div class="munky-tip">
-            <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
-          </div>
-        </div>
-
-        <!-- Step 3: Planner -->
-        <div class="step" id="step-planner" data-step="3" style="display: none;">
-          <h2>PLANNER</h2>
-          <div class="multi-input-container">
-            <div class="input-group">
-              <label for="planner-spec">Technical Specification:</label>
-              <textarea id="planner-spec" rows="3" placeholder="Paste the results from the spec step..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="planner-request">Project Request:</label>
-              <textarea id="planner-request" rows="3" placeholder="Paste the project request..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="planner-rules">Project Rules (optional):</label>
-              <textarea id="planner-rules" rows="3" placeholder="Enter project rules..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="planner-template">Starter Template (optional):</label>
-              <textarea id="planner-template" rows="3" placeholder="Enter starter template..."></textarea>
-            </div>
-          </div>
-          <div class="button-group">
-            <button id="generate-copy-planner" class="generate-copy-btn" disabled>GET PROMPT</button>
-          </div>
-          <div class="munky-tip">
-            <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
-          </div>
-        </div>
-
-        <!-- Step 4: Codegen -->
-        <div class="step" id="step-codegen" data-step="4" style="display: none;">
-          <h2>CODEGEN</h2>
-          <div class="multi-input-container">
-            <div class="input-group">
-              <label for="codegen-plan">Implementation Plan:</label>
-              <textarea id="codegen-plan" rows="3" placeholder="Paste the implementation plan..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="codegen-code">Your Code (optional):</label>
-              <textarea id="codegen-code" rows="3" placeholder="Enter existing code..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="codegen-request">Project Request:</label>
-              <textarea id="codegen-request" rows="3" placeholder="Paste the project request..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="codegen-spec">Technical Specification:</label>
-              <textarea id="codegen-spec" rows="3" placeholder="Paste the specification..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="codegen-rules">Project Rules (optional):</label>
-              <textarea id="codegen-rules" rows="3" placeholder="Enter project rules..."></textarea>
-            </div>
-          </div>
-          <div class="button-group">
-            <button id="generate-copy-codegen" class="generate-copy-btn" disabled>GET PROMPT</button>
-          </div>
-          <div class="munky-tip">
-            <p>Use a <span class="model-badge coding-model">coding model</span> like <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.</p>
-          </div>
-        </div>
-
-        <!-- Step 5: Review -->
-        <div class="step" id="step-review" data-step="5" style="display: none;">
-          <h2>REVIEW</h2>
-          <div class="multi-input-container">
-            <div class="input-group">
-              <label for="review-code">Existing Code:</label>
-              <textarea id="review-code" rows="3" placeholder="Paste the code to review..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="review-request">Project Request:</label>
-              <textarea id="review-request" rows="3" placeholder="Paste the project request..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="review-spec">Technical Specification:</label>
-              <textarea id="review-spec" rows="3" placeholder="Paste the specification..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="review-plan">Implementation Plan:</label>
-              <textarea id="review-plan" rows="3" placeholder="Paste the implementation plan..."></textarea>
-            </div>
-            <div class="input-group">
-              <label for="review-rules">Project Rules (optional):</label>
-              <textarea id="review-rules" rows="3" placeholder="Enter project rules..."></textarea>
-            </div>
-          </div>
-          <div class="button-group">
-            <button id="generate-copy-review" class="generate-copy-btn" disabled>GET PROMPT</button>
-          </div>
-          <div class="munky-tip">
-            <p>Use a <span class="model-badge coding-model">coding model</span> like <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.</p>
-          </div>
+    <!-- Step 1: Request -->
+    <div class="step" id="step-request" data-step="1">
+      <h2>REQUEST</h2>
+      <div class="multi-input-container">
+        <div class="input-group">
+          <label for="request-idea">Your initial idea:</label>
+          <textarea id="request-idea" class="main-input" rows="8" placeholder="Enter your initial idea here..."></textarea>
         </div>
       </div>
+      <div class="button-group">
+        <button id="generate-copy-request" class="generate-copy-btn" disabled>GET PROMPT</button>
+      </div>
+      <div class="munky-tip">
+        <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
+      </div>
+    </div>
 
-      <script nonce="${nonce}">
-        // Initialize VS Code API once and store the reference
-        const vscode = acquireVsCodeApi();
+    <!-- Step 2: Spec -->
+    <div class="step" id="step-spec" data-step="2" style="display: none;">
+      <h2>SPEC</h2>
+      <div class="multi-input-container">
+        <div class="input-group">
+          <label for="spec-request">Project Request:</label>
+          <textarea id="spec-request" rows="3" placeholder="Paste the results from the previous step..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="spec-rules">Project Rules (optional):</label>
+          <textarea id="spec-rules" rows="3" placeholder="Enter any project rules..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="spec-template">Starter Template (optional):</label>
+          <textarea id="spec-template" rows="3" placeholder="Enter any starter template..."></textarea>
+        </div>
+      </div>
+      <div class="button-group">
+        <button id="generate-copy-spec" class="generate-copy-btn" disabled>GET PROMPT</button>
+      </div>
+      <div class="munky-tip">
+        <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
+      </div>
+    </div>
 
-        // Function to log messages to extension with level
-        function logToExtension(message, level = 'log') {
-          vscode.postMessage({
-            command: level,
-            message: typeof message === 'object' ? JSON.stringify(message) : String(message)
-          });
-        }
+    <!-- Step 3: Planner -->
+    <div class="step" id="step-planner" data-step="3" style="display: none;">
+      <h2>PLANNER</h2>
+      <div class="multi-input-container">
+        <div class="input-group">
+          <label for="planner-spec">Technical Specification:</label>
+          <textarea id="planner-spec" rows="3" placeholder="Paste the results from the spec step..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="planner-request">Project Request:</label>
+          <textarea id="planner-request" rows="3" placeholder="Paste the project request..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="planner-rules">Project Rules (optional):</label>
+          <textarea id="planner-rules" rows="3" placeholder="Enter project rules..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="planner-template">Starter Template (optional):</label>
+          <textarea id="planner-template" rows="3" placeholder="Enter starter template..."></textarea>
+        </div>
+      </div>
+      <div class="button-group">
+        <button id="generate-copy-planner" class="generate-copy-btn" disabled>GET PROMPT</button>
+      </div>
+      <div class="munky-tip">
+        <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
+      </div>
+    </div>
 
-        // Set global error handler
-        window.onerror = function(message, source, lineno, colno, error) {
-          logToExtension(message + ' at ' + source + ':' + lineno + ':' + colno, 'error');
-          return true;
-        };
+    <!-- Step 4: Codegen -->
+    <div class="step" id="step-codegen" data-step="4" style="display: none;">
+      <h2>CODEGEN</h2>
+      <div class="multi-input-container">
+        <div class="input-group">
+          <label for="codegen-plan">Implementation Plan:</label>
+          <textarea id="codegen-plan" rows="3" placeholder="Paste the implementation plan..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="codegen-code">Your Code (optional):</label>
+          <textarea id="codegen-code" rows="3" placeholder="Enter existing code..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="codegen-request">Project Request:</label>
+          <textarea id="codegen-request" rows="3" placeholder="Paste the project request..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="codegen-spec">Technical Specification:</label>
+          <textarea id="codegen-spec" rows="3" placeholder="Paste the specification..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="codegen-rules">Project Rules (optional):</label>
+          <textarea id="codegen-rules" rows="3" placeholder="Enter project rules..."></textarea>
+        </div>
+      </div>
+      <div class="button-group">
+        <button id="generate-copy-codegen" class="generate-copy-btn" disabled>GET PROMPT</button>
+      </div>
+      <div class="munky-tip">
+        <p>Use a <span class="model-badge coding-model">coding model</span> like <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.</p>
+      </div>
+    </div>
 
-        // Unhandled promise rejection handler
-        window.addEventListener('unhandledrejection', event => {
-          logToExtension('Unhandled Promise rejection: ' + event.reason, 'error');
-        });
+    <!-- Step 5: Review -->
+    <div class="step" id="step-review" data-step="5" style="display: none;">
+      <h2>REVIEW</h2>
+      <div class="multi-input-container">
+        <div class="input-group">
+          <label for="review-code">Existing Code:</label>
+          <textarea id="review-code" rows="3" placeholder="Paste the code to review..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="review-request">Project Request:</label>
+          <textarea id="review-request" rows="3" placeholder="Paste the project request..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="review-spec">Technical Specification:</label>
+          <textarea id="review-spec" rows="3" placeholder="Paste the specification..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="review-plan">Implementation Plan:</label>
+          <textarea id="review-plan" rows="3" placeholder="Paste the implementation plan..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="review-rules">Project Rules (optional):</label>
+          <textarea id="review-rules" rows="3" placeholder="Enter project rules..."></textarea>
+        </div>
+      </div>
+      <div class="button-group">
+        <button id="generate-copy-review" class="generate-copy-btn" disabled>GET PROMPT</button>
+      </div>
+      <div class="munky-tip">
+        <p>Use a <span class="model-badge coding-model">coding model</span> like <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.</p>
+      </div>
+    </div>
 
-        // Message handler for extension responses
-        window.addEventListener('message', event => {
-          const message = event.data;
+    <!-- Jina Integration Section (Placed below the steps) -->
+    <div id="jina-section" class="jina-section" style="display: none; margin-top: 20px;">
+      <h3>Jina Integration</h3>
+      <div class="multi-input-container">
+        <div class="input-group">
+          <label for="jinaUrls">URLs (one per line):</label>
+          <textarea id="jinaUrls" rows="4" placeholder="Enter URLs to fetch markdown from..."></textarea>
+        </div>
+      </div>
+      <div class="button-group">
+        <button id="fetchJinaBtn" class="generate-copy-btn">FETCH FROM JINA</button>
+      </div>
+    </div>
+  </div>
 
-          // Log message receipt at debug level
-          console.log('Received message:', message);
+  <script nonce="${nonce}">
+    const vscode = acquireVsCodeApi();
 
-          switch (message.command) {
-            case 'promptGenerated':
-              const { step, content } = message;
-              if (!content) {
-                logToExtension('Received empty content in promptGenerated message');
-                return;
-              }
+    function logToExtension(message, level = 'log') {
+      vscode.postMessage({
+        command: level,
+        message: typeof message === 'object' ? JSON.stringify(message) : String(message)
+      });
+    }
 
-              console.log('Successfully generated prompt for ' + step);
-              const generateButton = document.getElementById('generate-copy-' + step);
-              if (generateButton) {
-                // Copy content to clipboard
-                vscode.postMessage({
-                  command: 'copyToClipboard',
-                  text: content
-                });
+    window.onerror = function(message, source, lineno, colno, error) {
+      logToExtension(message + ' at ' + source + ':' + lineno + ':' + colno, 'error');
+      return true;
+    };
 
-                generateButton.textContent = "COPIED TO CLIPBOARD!";
-                generateButton.classList.add('pulse');
+    window.addEventListener('unhandledrejection', event => {
+      logToExtension('Unhandled Promise rejection: ' + event.reason, 'error');
+    });
 
-                // Use a flag to prevent regeneration during the disabled state
-                let isResetting = false;
-
-                setTimeout(() => {
-                  if (!isResetting) {
-                    isResetting = true;
-                    generateButton.textContent = "GET PROMPT";
-                    generateButton.disabled = false;
-                    validateStep(step); // Re-check validation after reset
-                    generateButton.classList.remove('pulse');
-                    isResetting = false;
-                  }
-                }, 2000);
-              }
-              break;
-
-            case 'promptError':
-              logToExtension('Error generating prompt: ' + message.error, 'error');
-              const errorButton = document.getElementById('generate-copy-' + message.step);
-              if (errorButton) {
-                errorButton.textContent = "ERROR - TRY AGAIN";
-                setTimeout(() => {
-                  errorButton.textContent = "GET PROMPT";
-                  validateStep(message.step); // Re-check validation
-                }, 2000);
-              }
-              break;
-
-            default:
-              console.log('Received unknown message type:', message.command);
+    window.addEventListener('message', event => {
+      const message = event.data;
+      console.log('Received message:', message);
+      switch (message.command) {
+        case 'promptGenerated': {
+          const { step, content } = message;
+          if (!content) {
+            logToExtension('Received empty content in promptGenerated message');
+            return;
           }
-        });
-
-        // Current step tracking
-        let currentStep = 1;
-        const totalSteps = 5;
-        const stepTypes = ['request', 'spec', 'planner', 'codegen', 'review'];
-
-        // Validation configuration for each step
-        const stepValidation = {
-          'request': ['request-idea'],
-          'spec': ['spec-request'],
-          'planner': ['planner-request', 'planner-spec'],
-          'codegen': ['codegen-request', 'codegen-spec', 'codegen-plan'],
-          'review': ['review-request', 'review-spec', 'review-plan', 'review-code']
-        };
-
-        // Function to validate a specific step and update button state
-        function validateStep(stepType) {
-          const generateButton = document.getElementById('generate-copy-' + stepType);
-          if (!generateButton) return;
-
-          // If the button has a temporary state, don't validate yet
-          if (generateButton.textContent !== "GET PROMPT") return;
-
-          const requiredFields = stepValidation[stepType] || [];
-          const isValid = requiredFields.every(fieldId => {
-            const field = document.getElementById(fieldId);
-            return field && field.value.trim() !== '';
-          });
-
-          generateButton.disabled = !isValid;
+          const generateButton = document.getElementById('generate-copy-' + step);
+          if (generateButton) {
+            vscode.postMessage({ command: 'copyToClipboard', text: content });
+            generateButton.textContent = "COPIED TO CLIPBOARD!";
+            generateButton.classList.add('pulse');
+            setTimeout(() => {
+              generateButton.textContent = "GET PROMPT";
+              generateButton.disabled = false;
+              validateStep(step);
+              generateButton.classList.remove('pulse');
+            }, 2000);
+          }
+          break;
         }
-
-        // Helper function to sync values across steps
-        function syncValueAcrossSteps(sourceId, targetIds) {
-          const sourceElement = document.getElementById(sourceId);
-          if (!sourceElement) return;
-
-          sourceElement.addEventListener('input', () => {
-            const value = sourceElement.value;
-            targetIds.forEach(targetId => {
-              const targetElement = document.getElementById(targetId);
-              if (targetElement) {
-                targetElement.value = value;
-
-                // Trigger validation for the step containing the target element
-                for (const stepType in stepValidation) {
-                  if (stepValidation[stepType].includes(targetId)) {
-                    validateStep(stepType);
-                    break;
-                  }
-                }
-              }
-            });
-          });
+        case 'promptError': {
+          logToExtension('Error generating prompt: ' + message.error, 'error');
+          const errorButton = document.getElementById('generate-copy-' + message.step);
+          if (errorButton) {
+            errorButton.textContent = "ERROR - TRY AGAIN";
+            setTimeout(() => {
+              errorButton.textContent = "GET PROMPT";
+              validateStep(message.step);
+            }, 2000);
+          }
+          break;
         }
-
-        // Add input event listeners to all required fields for validation
-        for (const stepType in stepValidation) {
-          const fields = stepValidation[stepType];
-          fields.forEach(fieldId => {
-            const field = document.getElementById(fieldId);
-            if (field) {
-              field.addEventListener('input', () => {
-                validateStep(stepType);
-              });
+        case 'jinaStatus': {
+          const jinaSection = document.getElementById('jina-section');
+          if (jinaSection) {
+            jinaSection.style.display = message.enabled ? 'block' : 'none';
+            if (message.enabled) {
+              initJinaFunctionality();
             }
+          }
+          break;
+        }
+        case 'fetchJinaSuccess': {
+          const fetchJinaBtn = document.getElementById('fetchJinaBtn');
+          if (fetchJinaBtn) {
+            fetchJinaBtn.textContent = 'FETCH FROM JINA';
+            fetchJinaBtn.disabled = false;
+          }
+          if (message.results && message.results.length > 0) {
+            const successCount = message.results.filter(r => !r.error).length;
+            const failCount = message.results.length - successCount;
+            let statusMessage = "Fetched " + successCount + " out of " + message.results.length + " URLs successfully.";
+            if (failCount > 0) {
+              statusMessage += " " + failCount + " URLs failed.";
+            }
+            alert(statusMessage);
+          }
+          break;
+        }
+        case 'fetchJinaError': {
+          const errorBtn = document.getElementById('fetchJinaBtn');
+          if (errorBtn) {
+            errorBtn.textContent = 'FETCH FROM JINA';
+            errorBtn.disabled = false;
+          }
+          alert('Error fetching from Jina: ' + message.error);
+          break;
+        }
+        default:
+          console.log('Received unknown message type:', message.command);
+      }
+    });
+
+    // Step browsing and validation
+    let currentStep = 1;
+    const totalSteps = 5;
+    const stepTypes = ['request', 'spec', 'planner', 'codegen', 'review'];
+    const stepValidation = {
+      'request': ['request-idea'],
+      'spec': ['spec-request'],
+      'planner': ['planner-request', 'planner-spec'],
+      'codegen': ['codegen-request', 'codegen-spec', 'codegen-plan'],
+      'review': ['review-request', 'review-spec', 'review-plan', 'review-code']
+    };
+
+    function validateStep(stepType) {
+      const generateButton = document.getElementById('generate-copy-' + stepType);
+      if (!generateButton) return;
+      if (generateButton.textContent !== "GET PROMPT") return;
+      const requiredFields = stepValidation[stepType] || [];
+      const isValid = requiredFields.every(fieldId => {
+        const field = document.getElementById(fieldId);
+        return field && field.value.trim() !== '';
+      });
+      generateButton.disabled = !isValid;
+    }
+
+    function syncValueAcrossSteps(sourceId, targetIds) {
+      const sourceElement = document.getElementById(sourceId);
+      if (!sourceElement) return;
+      sourceElement.addEventListener('input', () => {
+        const value = sourceElement.value;
+        targetIds.forEach(targetId => {
+          const targetElement = document.getElementById(targetId);
+          if (targetElement) {
+            targetElement.value = value;
+            for (const stepType in stepValidation) {
+              if (stepValidation[stepType].includes(targetId)) {
+                validateStep(stepType);
+                break;
+              }
+            }
+          }
+        });
+      });
+    }
+
+    for (const stepType in stepValidation) {
+      const fields = stepValidation[stepType];
+      fields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+          field.addEventListener('input', () => {
+            validateStep(stepType);
           });
         }
+      });
+    }
 
-        // Sync project request across steps 2-5
-        syncValueAcrossSteps('spec-request', ['planner-request', 'codegen-request', 'review-request']);
+    syncValueAcrossSteps('spec-request', ['planner-request', 'codegen-request', 'review-request']);
+    syncValueAcrossSteps('spec-rules', ['planner-rules', 'codegen-rules', 'review-rules']);
+    syncValueAcrossSteps('spec-template', ['planner-template']);
+    syncValueAcrossSteps('planner-spec', ['codegen-spec', 'review-spec']);
+    syncValueAcrossSteps('codegen-plan', ['review-plan']);
 
-        // Sync rules across steps
-        syncValueAcrossSteps('spec-rules', ['planner-rules', 'codegen-rules', 'review-rules']);
+    const prevButton = document.getElementById('prev-step');
+    const nextButton = document.getElementById('next-step');
+    const steps = document.querySelectorAll('.step');
 
-        // Sync template across steps
-        syncValueAcrossSteps('spec-template', ['planner-template']);
+    function updateStep(newStep) {
+      try {
+        steps.forEach(step => step.style.display = 'none');
+        document.querySelector('[data-step="' + newStep + '"]').style.display = 'block';
+        prevButton.disabled = newStep === 1;
+        nextButton.disabled = newStep === totalSteps;
+        currentStep = newStep;
+        validateStep(stepTypes[newStep - 1]);
+        vscode.postMessage({ command: 'stepChange', step: currentStep });
+      } catch (error) {
+        logToExtension('Error initializing first step: ' + error, 'error');
+      }
+    }
 
-        // Sync technical specification across steps
-        syncValueAcrossSteps('planner-spec', ['codegen-spec', 'review-spec']);
+    prevButton.addEventListener('click', () => {
+      if (currentStep > 1) {
+        updateStep(currentStep - 1);
+      }
+    });
 
-        // Sync implementation plan across steps
-        syncValueAcrossSteps('codegen-plan', ['review-plan']);
+    nextButton.addEventListener('click', () => {
+      if (currentStep < totalSteps) {
+        updateStep(currentStep + 1);
+      }
+    });
 
-        // Get UI elements
-        const prevButton = document.getElementById('prev-step');
-        const nextButton = document.getElementById('next-step');
-        const steps = document.querySelectorAll('.step');
-
-        // Function to update the visible step
-        function updateStep(newStep) {
+    stepTypes.forEach((stepType) => {
+      const generateCopyButton = document.getElementById('generate-copy-' + stepType);
+      if (generateCopyButton) {
+        let isProcessing = false;
+        generateCopyButton.addEventListener('click', async () => {
+          if (generateCopyButton.disabled || isProcessing) {
+            return;
+          }
+          const inputData = {};
+          isProcessing = true;
+          generateCopyButton.textContent = "GENERATING...";
+          generateCopyButton.disabled = true;
           try {
-            steps.forEach(step => step.style.display = 'none');
-            document.querySelector('[data-step="' + newStep + '"]').style.display = 'block';
-
-            prevButton.disabled = newStep === 1;
-            nextButton.disabled = newStep === totalSteps;
-
-            currentStep = newStep;
-
-            // Update validation for the newly displayed step
-            validateStep(stepTypes[newStep - 1]);
-
-            // Notify extension of step change
-            vscode.postMessage({
-              command: 'stepChange',
-              step: currentStep
-            });
-          } catch (error) {
-            logToExtension('Error initializing first step: ' + error, 'error');
-          }
-        }
-
-        // Event listeners for navigation
-        prevButton.addEventListener('click', () => {
-          if (currentStep > 1) {
-            updateStep(currentStep - 1);
-          }
-        });
-
-        nextButton.addEventListener('click', () => {
-          if (currentStep < totalSteps) {
-            updateStep(currentStep + 1);
-          }
-        });
-
-        // Setup generate-and-copy buttons for each step
-        stepTypes.forEach((stepType) => {
-          const generateCopyButton = document.getElementById('generate-copy-' + stepType);
-          if (generateCopyButton) {
-            // Add a processing flag to prevent duplicate operations
-            let isProcessing = false;
-
-            generateCopyButton.addEventListener('click', async () => {
-              // Prevent multiple clicks and duplicate processing
-              if (generateCopyButton.disabled || isProcessing) {
-                return;
-              }
-
-              const inputData = {};
-              isProcessing = true;
-
-              // Show loading state
-              generateCopyButton.textContent = "GENERATING...";
-              generateCopyButton.disabled = true;
-
-              try {
-                // Each step has different input fields
-                switch(stepType) {
-                  case 'request':
-                    const requestIdeaEl = document.getElementById('request-idea');
-                    if (!requestIdeaEl?.value.trim()) {
-                      throw new Error('Please enter your initial idea first.');
-                    }
-                    inputData.INITIAL_IDEA = requestIdeaEl.value.trim();
-                    break;
-
-                  case 'spec':
-                    const specRequestEl = document.getElementById('spec-request');
-                    if (!specRequestEl?.value.trim()) {
-                      throw new Error('Please enter the project request first.');
-                    }
-                    inputData.PROJECT_REQUEST = specRequestEl.value.trim();
-                    inputData.PROJECT_RULES = document.getElementById('spec-rules')?.value.trim() || '';
-                    inputData.STARTER_TEMPLATE = document.getElementById('spec-template')?.value.trim() || '';
-                    break;
-
-                  case 'planner':
-                    const plannerRequestEl = document.getElementById('planner-request');
-                    const plannerSpecEl = document.getElementById('planner-spec');
-                    if (!plannerRequestEl?.value.trim() || !plannerSpecEl?.value.trim()) {
-                      throw new Error('Please fill in both the request and specification fields.');
-                    }
-                    inputData.PROJECT_REQUEST = plannerRequestEl.value.trim();
-                    inputData.PROJECT_RULES = document.getElementById('planner-rules')?.value.trim() || '';
-                    inputData.TECHNICAL_SPECIFICATION = plannerSpecEl.value.trim();
-                    inputData.STARTER_TEMPLATE = document.getElementById('planner-template')?.value.trim() || '';
-                    break;
-
-                  case 'codegen':
-                    const codegenRequestEl = document.getElementById('codegen-request');
-                    const codegenSpecEl = document.getElementById('codegen-spec');
-                    const codegenPlanEl = document.getElementById('codegen-plan');
-                    if (!codegenRequestEl?.value.trim() || !codegenSpecEl?.value.trim() || !codegenPlanEl?.value.trim()) {
-                      throw new Error('Please fill in the request, specification, and implementation plan fields.');
-                    }
-                    inputData.PROJECT_REQUEST = codegenRequestEl.value.trim();
-                    inputData.PROJECT_RULES = document.getElementById('codegen-rules')?.value.trim() || '';
-                    inputData.TECHNICAL_SPECIFICATION = codegenSpecEl.value.trim();
-                    inputData.IMPLEMENTATION_PLAN = codegenPlanEl.value.trim();
-                    inputData.YOUR_CODE = document.getElementById('codegen-code')?.value.trim() || '';
-                    break;
-
-                  case 'review':
-                    const reviewRequestEl = document.getElementById('review-request');
-                    const reviewSpecEl = document.getElementById('review-spec');
-                    const reviewPlanEl = document.getElementById('review-plan');
-                    const reviewCodeEl = document.getElementById('review-code');
-                    if (!reviewRequestEl?.value.trim() || !reviewSpecEl?.value.trim() ||
-                        !reviewPlanEl?.value.trim() || !reviewCodeEl?.value.trim()) {
-                      throw new Error('Please fill in all required fields.');
-                    }
-                    inputData.PROJECT_REQUEST = reviewRequestEl.value.trim();
-                    inputData.PROJECT_RULES = document.getElementById('review-rules')?.value.trim() || '';
-                    inputData.TECHNICAL_SPECIFICATION = reviewSpecEl.value.trim();
-                    inputData.IMPLEMENTATION_PLAN = reviewPlanEl.value.trim();
-                    inputData.EXISTING_CODE = reviewCodeEl.value.trim();
-                    break;
-
-                  default:
-                    throw new Error('Unknown step type');
+            switch(stepType) {
+              case 'request': {
+                const requestIdeaEl = document.getElementById('request-idea');
+                if (!requestIdeaEl?.value.trim()) {
+                  throw new Error('Please enter your initial idea first.');
                 }
-
-                logToExtension('Generating prompt for ' + stepType);
-
-                // Send message to extension
-                vscode.postMessage({
-                  command: 'generatePrompt',
-                  step: stepType,
-                  data: inputData
-                });
-
-              } catch (error) {
-                logToExtension('Error preparing inputs: ' + (error.message || String(error)), 'error');
-                alert(error.message || 'Failed to prepare inputs');
-                generateCopyButton.textContent = "ERROR - TRY AGAIN";
-                generateCopyButton.disabled = false;
-              } finally {
-                // Reset the processing flag after a short delay
-                setTimeout(() => {
-                  isProcessing = false;
-                }, 2100); // Slightly longer than the button reset timeout
+                inputData.INITIAL_IDEA = requestIdeaEl.value.trim();
+                break;
               }
-            });
+              case 'spec': {
+                const specRequestEl = document.getElementById('spec-request');
+                if (!specRequestEl?.value.trim()) {
+                  throw new Error('Please enter the project request first.');
+                }
+                inputData.PROJECT_REQUEST = specRequestEl.value.trim();
+                inputData.PROJECT_RULES = document.getElementById('spec-rules')?.value.trim() || '';
+                inputData.STARTER_TEMPLATE = document.getElementById('spec-template')?.value.trim() || '';
+                break;
+              }
+              case 'planner': {
+                const plannerRequestEl = document.getElementById('planner-request');
+                const plannerSpecEl = document.getElementById('planner-spec');
+                if (!plannerRequestEl?.value.trim() || !plannerSpecEl?.value.trim()) {
+                  throw new Error('Please fill in both the request and specification fields.');
+                }
+                inputData.PROJECT_REQUEST = plannerRequestEl.value.trim();
+                inputData.PROJECT_RULES = document.getElementById('planner-rules')?.value.trim() || '';
+                inputData.TECHNICAL_SPECIFICATION = plannerSpecEl.value.trim();
+                inputData.STARTER_TEMPLATE = document.getElementById('planner-template')?.value.trim() || '';
+                break;
+              }
+              case 'codegen': {
+                const codegenRequestEl = document.getElementById('codegen-request');
+                const codegenSpecEl = document.getElementById('codegen-spec');
+                const codegenPlanEl = document.getElementById('codegen-plan');
+                if (!codegenRequestEl?.value.trim() || !codegenSpecEl?.value.trim() || !codegenPlanEl?.value.trim()) {
+                  throw new Error('Please fill in the request, specification, and implementation plan fields.');
+                }
+                inputData.PROJECT_REQUEST = codegenRequestEl.value.trim();
+                inputData.PROJECT_RULES = document.getElementById('codegen-rules')?.value.trim() || '';
+                inputData.TECHNICAL_SPECIFICATION = codegenSpecEl.value.trim();
+                inputData.IMPLEMENTATION_PLAN = codegenPlanEl.value.trim();
+                inputData.YOUR_CODE = document.getElementById('codegen-code')?.value.trim() || '';
+                break;
+              }
+              case 'review': {
+                const reviewRequestEl = document.getElementById('review-request');
+                const reviewSpecEl = document.getElementById('review-spec');
+                const reviewPlanEl = document.getElementById('review-plan');
+                const reviewCodeEl = document.getElementById('review-code');
+                if (!reviewRequestEl?.value.trim() || !reviewSpecEl?.value.trim() ||
+                    !reviewPlanEl?.value.trim() || !reviewCodeEl?.value.trim()) {
+                  throw new Error('Please fill in all required fields.');
+                }
+                inputData.PROJECT_REQUEST = reviewRequestEl.value.trim();
+                inputData.PROJECT_RULES = document.getElementById('review-rules')?.value.trim() || '';
+                inputData.TECHNICAL_SPECIFICATION = reviewSpecEl.value.trim();
+                inputData.IMPLEMENTATION_PLAN = reviewPlanEl.value.trim();
+                inputData.EXISTING_CODE = reviewCodeEl.value.trim();
+                break;
+              }
+              default:
+                throw new Error('Unknown step type');
+            }
+            logToExtension('Generating prompt for ' + stepType);
+            vscode.postMessage({ command: 'generatePrompt', step: stepType, data: inputData });
+          } catch (error) {
+            logToExtension('Error preparing inputs: ' + (error.message || String(error)), 'error');
+            alert(error.message || 'Failed to prepare inputs');
+            generateCopyButton.textContent = "ERROR - TRY AGAIN";
+            generateCopyButton.disabled = false;
+          } finally {
+            setTimeout(() => {
+              isProcessing = false;
+            }, 2100);
           }
         });
+      }
+    });
 
-        // Initialize first step and validation
+    updateStep(1);
+
+    // Initialize Jina functionality
+    function initJinaFunctionality() {
+      const jinaUrlsInput = document.getElementById('jinaUrls');
+      const fetchJinaBtn = document.getElementById('fetchJinaBtn');
+      
+      if (!jinaUrlsInput || !fetchJinaBtn) return;
+
+      // Disable button initially
+      fetchJinaBtn.disabled = true;
+
+      // Enable/disable button based on input
+      jinaUrlsInput.addEventListener('input', () => {
+        fetchJinaBtn.disabled = !jinaUrlsInput.value.trim();
+      });
+
+      // Handle fetch button click
+      fetchJinaBtn.addEventListener('click', async () => {
+        if (fetchJinaBtn.disabled) return;
+
+        const url = jinaUrlsInput.value.trim();
+        if (!url) return;
+
         try {
-          updateStep(1);
-          // Initialize validation for all steps
-          stepTypes.forEach(validateStep);
-        } catch (error) {
-          logToExtension('Error initializing first step: ' + error, 'error');
+          // Validate URL
+          new URL(url);
+        } catch {
+          alert('Please enter a valid URL');
+          return;
         }
-      </script>
-    </body>
-    </html>`;
+
+        fetchJinaBtn.disabled = true;
+        fetchJinaBtn.textContent = 'FETCHING...';
+
+        vscode.postMessage({
+          command: 'fetchJina',
+          url: url
+        });
+      });
+    }
+
+    // Request Jina integration status on initialization
+    vscode.postMessage({ command: 'checkJinaEnabled' });
+  </script>
+</body>
+</html>`;
   }
 }
 

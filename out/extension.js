@@ -50,8 +50,9 @@ function activate(context) {
         });
         return "Debug command executed";
     });
-    // Register the sidebar provider
+    // Register the sidebar provider and configure it to handle Jina messages
     const sidebarProvider = new sidebarViewProvider_1.SidebarViewProvider(context.extensionUri);
+    // Setup Jina message handling for the sidebar provider
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(sidebarViewProvider_1.SidebarViewProvider.viewType, sidebarProvider));
     // Make sure the activity bar icon is visible on activation
     vscode.commands.executeCommand('setContext', 'korneliusVisible', true);
@@ -105,6 +106,66 @@ function activate(context) {
     vscode.commands.registerCommand('kornelius.log', (message) => {
         debugLogger_1.DebugLogger.log(message);
     }));
+    // Configure Jina integration message handling
+    sidebarProvider.setJinaMessageHandler(async (message, webviewView) => {
+        try {
+            debugLogger_1.DebugLogger.log('Handling Jina message: ' + message.command);
+            switch (message.command) {
+                case 'fetchJina':
+                    // Handle Jina fetch request with progress indicator
+                    await vscode.window.withProgress({
+                        location: vscode.ProgressLocation.Notification,
+                        title: 'Fetching from Jina...',
+                        cancellable: false
+                    }, async () => {
+                        try {
+                            const reader = new jinaReader_1.JinaReader();
+                            const markdown = await reader.fetchMarkdown(message.url);
+                            // Create a new document with the content
+                            const document = await vscode.workspace.openTextDocument({
+                                content: markdown,
+                                language: 'markdown'
+                            });
+                            await vscode.window.showTextDocument(document);
+                            await vscode.env.clipboard.writeText(markdown);
+                            // Send success result back to webview
+                            webviewView.webview.postMessage({
+                                command: 'fetchJinaSuccess',
+                                results: [{
+                                        url: message.url,
+                                        error: null
+                                    }]
+                            });
+                        }
+                        catch (error) {
+                            debugLogger_1.DebugLogger.error(`Error fetching from Jina: ${error instanceof Error ? error.message : String(error)}`);
+                            webviewView.webview.postMessage({
+                                command: 'fetchJinaError',
+                                error: error instanceof Error ? error.message : String(error)
+                            });
+                        }
+                    });
+                    break;
+                case 'checkJinaEnabled':
+                    // Send current Jina settings to webview
+                    const config = vscode.workspace.getConfiguration('kornelius');
+                    webviewView.webview.postMessage({
+                        command: 'jinaStatus',
+                        enabled: config.get('enableJinaIntegration')
+                    });
+                    break;
+                default:
+                    debugLogger_1.DebugLogger.log(`Unknown Jina message command: ${message.command}`);
+            }
+        }
+        catch (error) {
+            debugLogger_1.DebugLogger.error(`Error handling Jina message: ${error instanceof Error ? error.message : String(error)}`);
+            webviewView.webview.postMessage({
+                command: 'fetchJinaError',
+                error: 'Internal extension error'
+            });
+        }
+    });
     // Add initial configuration if not already present
     const config = vscode.workspace.getConfiguration('kornelius');
     if (config.get('enableJinaIntegration') === undefined) {

@@ -35,18 +35,10 @@ class JinaReader {
         // Get the API key from VS Code settings
         this._apiKey = vscode.workspace.getConfiguration('kornelius').get('jinaApiKey');
     }
-    /**
-     * Check if the Jina.ai integration is enabled and configured
-     */
     isEnabled() {
-        // Check if the feature is enabled in settings
         const enabled = vscode.workspace.getConfiguration('kornelius').get('enableJinaIntegration');
-        // Ensure we have an API key
         return Boolean(enabled && this._apiKey);
     }
-    /**
-     * Fetch markdown content from a URL using Jina.ai
-     */
     async fetchMarkdown(url) {
         if (!this.isEnabled()) {
             throw new Error('Jina.ai integration is not enabled or missing API key. Configure it in settings.');
@@ -55,35 +47,31 @@ class JinaReader {
             try {
                 // Validate URL
                 const parsedUrl = new url_1.URL(url);
-                // Prepare request options
+                // Create request options with additional headers for markdown formatting
                 const options = {
-                    hostname: 'api.jina.ai',
-                    path: '/v1/fetch-markdown',
-                    method: 'POST',
+                    hostname: 'r.jina.ai',
+                    path: '/' + parsedUrl.toString(),
+                    method: 'GET',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${this._apiKey}`
+                        'Authorization': `Bearer ${this._apiKey}`,
+                        'X-Md-Bullet-List-Marker': '-',
+                        'X-Md-Em-Delimiter': '*',
+                        'X-Return-Format': 'markdown',
+                        'X-With-Links-Summary': 'true' // Include a summary of links
                     }
                 };
                 // Make the request
                 const req = https.request(options, (res) => {
                     let data = '';
-                    res.on('data', (chunk) => {
-                        data += chunk;
-                    });
+                    res.on('data', (chunk) => data += chunk);
                     res.on('end', () => {
                         if (res.statusCode === 200) {
                             try {
-                                const response = JSON.parse(data);
-                                if (response.markdown) {
-                                    resolve(response.markdown);
-                                }
-                                else {
-                                    reject(new Error('No markdown content found in response'));
-                                }
+                                // The r.jina.ai endpoint returns markdown directly, no need to parse JSON
+                                resolve(data);
                             }
                             catch (error) {
-                                reject(new Error(`Failed to parse response: ${error instanceof Error ? error.message : String(error)}`));
+                                reject(new Error(`Failed to process response: ${error instanceof Error ? error.message : String(error)}`));
                             }
                         }
                         else {
@@ -94,8 +82,7 @@ class JinaReader {
                 req.on('error', (error) => {
                     reject(new Error(`Request error: ${error.message}`));
                 });
-                // Write request body
-                req.write(JSON.stringify({ url: parsedUrl.toString() }));
+                // No need to write request body for GET request
                 req.end();
             }
             catch (error) {
@@ -103,12 +90,8 @@ class JinaReader {
             }
         });
     }
-    /**
-     * Register Jina.ai related commands
-     */
     static registerCommands(context) {
-        // Register command to fetch markdown
-        const fetchMarkdownCmd = vscode.commands.registerCommand('kornelius.fetchMarkdown', async () => {
+        const fetchCommand = vscode.commands.registerCommand('kornelius.fetchJina', async () => {
             try {
                 const reader = new JinaReader();
                 if (!reader.isEnabled()) {
@@ -120,31 +103,40 @@ class JinaReader {
                     return;
                 }
                 const url = await vscode.window.showInputBox({
-                    prompt: 'Enter URL to fetch markdown content from',
-                    placeHolder: 'https://example.com/article'
+                    prompt: 'Enter URL to fetch markdown from',
+                    placeHolder: 'https://example.com/article',
+                    validateInput: (value) => {
+                        try {
+                            new url_1.URL(value);
+                            return null;
+                        }
+                        catch {
+                            return 'Please enter a valid URL';
+                        }
+                    }
                 });
                 if (!url)
                     return;
-                // Show progress indicator
                 await vscode.window.withProgress({
                     location: vscode.ProgressLocation.Notification,
                     title: 'Fetching markdown content...',
                     cancellable: false
                 }, async () => {
                     const markdown = await reader.fetchMarkdown(url);
-                    // Create a new untitled document with the fetched markdown
                     const document = await vscode.workspace.openTextDocument({
                         content: markdown,
                         language: 'markdown'
                     });
                     await vscode.window.showTextDocument(document);
+                    await vscode.env.clipboard.writeText(markdown);
+                    vscode.window.showInformationMessage('Content fetched and copied to clipboard');
                 });
             }
             catch (error) {
                 vscode.window.showErrorMessage(`Error fetching markdown: ${error instanceof Error ? error.message : String(error)}`);
             }
         });
-        context.subscriptions.push(fetchMarkdownCmd);
+        context.subscriptions.push(fetchCommand);
     }
 }
 exports.JinaReader = JinaReader;
