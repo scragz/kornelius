@@ -1,0 +1,388 @@
+/* KoЯnelius - Your nu-code companion */
+
+/* Font declarations */
+@font-face {
+  font-family: 'Anton';
+  src: url('./fonts/Anton/Anton-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Permanent Marker';
+  src: url('./fonts/Permanent_Marker/PermanentMarker-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Bungee';
+  src: url('./fonts/Bungee/Bungee-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+.container {
+  padding: 15px 0;
+  max-width: 100%;
+  position: relative;
+}
+
+/* Typography with nu-metal style */
+h1 {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.8em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transform: rotate(-1deg);
+  text-shadow: 2px 2px 0px var(--vscode-editor-background);
+}
+
+h2 {
+  font-family: 'Anton', sans-serif;
+  font-size: 1.4em;
+  font-weight: bold;
+  margin: 15px 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+h3 {
+  font-family: 'Permanent Marker', cursive;
+  font-size: 1.2em;
+  margin: 10px 0;
+  transform: rotate(-0.5deg);
+}
+
+h4 {
+  font-family: 'Permanent Marker', cursive;
+  font-size: 1em;
+  margin: 8px 0;
+}
+
+/* Logo */
+.logo {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.logo h1 {
+  margin: 0;
+}
+
+.logo span.reversed {
+  display: inline-block;
+  transform: scaleX(-1) rotate(-1deg);
+}
+
+p {
+  margin: 5px 0 15px;
+  line-height: 1.4;
+}
+
+.tagline {
+  font-family: 'Permanent Marker', cursive;
+  font-size: 0.9em;
+  opacity: 0.8;
+  transform: rotate(-0.5deg);
+  margin-bottom: 20px;
+}
+
+/* Guitar pick shaped navigation */
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+  border-top: 1px solid var(--vscode-panel-border);
+  border-bottom: 1px solid var(--vscode-panel-border);
+  padding: 10px 0;
+  position: relative;
+}
+
+.step-navigation::before, .step-navigation::after {
+  content: "";
+  position: absolute;
+  height: 5px;
+  width: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--vscode-panel-border),
+    var(--vscode-panel-border) 2px,
+    transparent 2px,
+    transparent 10px
+  );
+}
+
+.step-navigation::before {
+  top: -10px;
+}
+
+.step-navigation::after {
+  bottom: -10px;
+}
+
+.step-navigation button {
+  width: auto;
+  flex: 0 0 auto;
+  margin: 0 5px;
+  border-radius: 15px;
+  transform: perspective(200px) rotateX(10deg);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.step-navigation button:hover:not(:disabled) {
+  transform: perspective(200px) rotateX(10deg) scale(1.05);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+}
+
+.step-navigation button:active:not(:disabled) {
+  transform: perspective(200px) rotateX(10deg) scale(0.98);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.step-navigation span {
+  flex: 1;
+  text-align: center;
+  font-family: 'Permanent Marker', cursive;
+  font-size: 0.9em;
+  letter-spacing: 0.5px;
+}
+
+.step {
+  margin: 15px 0;
+  position: relative;
+}
+
+.step::after {
+  content: "";
+  display: block;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--vscode-panel-border),
+    transparent
+  );
+  margin: 20px 0;
+}
+
+.step h2 {
+  display: inline-block;
+  position: relative;
+}
+
+.step h2::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    var(--vscode-panel-border) 0%,
+    var(--vscode-panel-border) 50%,
+    transparent 100%
+  );
+}
+
+textarea {
+  min-height: 150px;
+  resize: vertical;
+  margin: 10px 0;
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  border-radius: 5px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+}
+
+textarea:focus {
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.preview-box {
+  padding: 15px;
+  margin: 10px 0;
+  border: 1px solid var(--vscode-panel-border);
+  background-color: var(--vscode-editor-background);
+  max-height: 300px;
+  overflow-y: auto;
+  border-radius: 5px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.placeholder {
+  font-style: italic;
+  color: var(--vscode-input-placeholderForeground);
+  font-family: 'Permanent Marker', cursive;
+  opacity: 0.7;
+}
+
+/* Guitar pick shaped buttons */
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.button-group button {
+  width: 100%;
+  border-radius: 20px;
+  transform: perspective(200px) rotateX(5deg);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.button-group button:hover:not(:disabled) {
+  transform: perspective(200px) rotateX(5deg) scale(1.05);
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+}
+
+.button-group button:active:not(:disabled) {
+  transform: perspective(200px) rotateX(5deg) scale(0.98);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.prompt-section {
+  margin: 15px 0;
+  padding: 10px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  position: relative;
+}
+
+.prompt-section:last-child {
+  border-bottom: none;
+}
+
+.prompt-section h4 {
+  display: inline-block;
+  position: relative;
+  z-index: 1;
+}
+
+.prompt-section h4::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 5px;
+  background-color: var(--vscode-editor-background);
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  opacity: 0.7;
+}
+
+.prompt-section p {
+  white-space: pre-wrap;
+  font-family: var(--vscode-editor-font-family);
+  font-size: 0.9em;
+  line-height: 1.5;
+  padding-left: 10px;
+  border-left: 3px solid var(--vscode-panel-border);
+}
+
+/* Template selector styling - like a mixtape selector */
+.template-selector {
+  margin: 15px 0;
+  position: relative;
+}
+
+.template-selector::before {
+  content: "▶ SELECT YOUR TEMPLATE";
+  font-family: 'Anton', sans-serif;
+  font-size: 0.8em;
+  color: var(--vscode-foreground);
+  opacity: 0.7;
+  position: absolute;
+  top: -15px;
+  left: 5px;
+  letter-spacing: 1px;
+}
+
+.template-selector select {
+  width: 100%;
+  padding: 8px;
+  margin: 5px 0;
+  background-color: var(--vscode-dropdown-background);
+  color: var(--vscode-dropdown-foreground);
+  border: 1px solid var(--vscode-dropdown-border);
+  border-radius: 4px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  appearance: none;
+  padding-right: 25px;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 12px;
+}
+
+.template-selector select:focus {
+  outline: 2px solid var(--vscode-focusBorder);
+  outline-offset: 1px;
+}
+
+/* Error message styling - with nu-metal attitude */
+.error-message {
+  color: var(--vscode-errorForeground);
+  margin: 15px 0;
+  padding: 10px;
+  font-size: 0.9em;
+  font-family: 'Permanent Marker', cursive;
+  border-left: 3px solid var(--vscode-errorForeground);
+  background-color: var(--vscode-inputValidation-errorBackground);
+  border-radius: 4px;
+}
+
+/* Success message styling - with nu-metal attitude */
+.success-message {
+  color: var(--vscode-terminal-ansiGreen);
+  margin: 15px 0;
+  padding: 10px;
+  font-size: 0.9em;
+  font-family: 'Permanent Marker', cursive;
+  border-left: 3px solid var(--vscode-terminal-ansiGreen);
+  background-color: var(--vscode-inputValidation-infoBackground);
+  border-radius: 4px;
+}
+
+/* Step transitions */
+.step {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Copy feedback animation */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.pulse {
+  animation: pulse 0.3s ease-in-out;
+}
+
+/* Nu-metal style accent divider */
+.barbed-divider {
+  height: 20px;
+  width: 100%;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='100' height='20' viewBox='0 0 100 20' preserveAspectRatio='none'%3e%3cpath d='M0,10 L10,0 L15,10 L20,0 L25,10 L30,0 L35,10 L40,0 L45,10 L50,0 L55,10 L60,0 L65,10 L70,0 L75,10 L80,0 L85,10 L90,0 L95,10 L100,0 L100,20 L0,20 Z' fill='rgba(128,128,128,0.1)'/%3e%3c/svg%3e");
+  background-repeat: repeat-x;
+  margin: 20px 0;
+  opacity: 0.5;
+}
