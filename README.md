@@ -1,9 +1,9 @@
-<img src="media/munky.png" width="80" height="80" align="right" alt="Munky playing guitar" />
+<img src="media/munky.png" width="200" height="200" align="center" alt="Munky playing guitar" />
 
 # KoЯnelius
 
 Your nu-code companion for this vibe-driven coding era, KoЯnelius is
-an AI-based prompt creation extension for Visual Studio Code.[]
+an AI-based prompt creation extension for Visual Studio Code.
 
 ## 🎸 Features
 
