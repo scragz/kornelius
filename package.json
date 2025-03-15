@@ -4,6 +4,10 @@
   "description": "A guided flow for AI-based prompt creation",
   "version": "0.1.0",
   "publisher": "kornelius",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scragz/kornelius.git"
+  },
   "engines": {
     "vscode": "^1.60.0"
   },

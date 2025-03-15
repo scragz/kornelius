@@ -30,12 +30,26 @@ const jinaReader_1 = require("./utils/jinaReader");
 const browsePrompts_1 = require("./commands/browsePrompts");
 const generatePrompt_1 = require("./commands/generatePrompt");
 const copyPrompt_1 = require("./commands/copyPrompt");
+const debugLogger_1 = require("./utils/debugLogger");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
-    console.log('Congratulations, your extension "kornelius" is now active!');
+    // Initialize debug logging
+    debugLogger_1.DebugLogger.initialize();
     // Log successful activation
-    console.log('KoЯnelius extension activated!');
+    debugLogger_1.DebugLogger.log('KoЯnelius extension activated!');
+    // Create a special debug command for testing
+    const debugCommand = vscode.commands.registerCommand('kornelius.debugAction', () => {
+        vscode.window.showInformationMessage('Debug action invoked - This is a test message');
+        // Test clipboard functionality
+        const testText = "This is a test of the clipboard functionality at " + new Date().toISOString();
+        vscode.env.clipboard.writeText(testText).then(() => {
+            vscode.window.showInformationMessage('Test text copied to clipboard: ' + testText.substring(0, 20) + '...');
+        }, (err) => {
+            vscode.window.showErrorMessage('Clipboard test failed: ' + err.message);
+        });
+        return "Debug command executed";
+    });
     // Register the sidebar provider
     const sidebarProvider = new sidebarViewProvider_1.SidebarViewProvider(context.extensionUri);
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(sidebarViewProvider_1.SidebarViewProvider.viewType, sidebarProvider));
@@ -51,15 +65,29 @@ function activate(context) {
     });
     // Register generate prompt command
     const generatePromptCmd = vscode.commands.registerCommand('kornelius.generatePrompt', async (step, userInputs) => {
-        return await (0, generatePrompt_1.generatePrompt)(step, userInputs);
-    });
-    // Register save prompt command
-    const savePromptCmd = vscode.commands.registerCommand('kornelius.savePrompt', async (content) => {
-        return await (0, generatePrompt_1.saveGeneratedPrompt)(content);
+        debugLogger_1.DebugLogger.log('Command kornelius.generatePrompt called', { step, userInputsKeys: Object.keys(userInputs || {}) });
+        try {
+            const result = await (0, generatePrompt_1.generatePrompt)(step, userInputs);
+            debugLogger_1.DebugLogger.log('Command kornelius.generatePrompt succeeded', { resultLength: result.length });
+            return result;
+        }
+        catch (err) {
+            debugLogger_1.DebugLogger.error('Command kornelius.generatePrompt failed', err);
+            throw err;
+        }
     });
     // Register copy to clipboard command
     const copyToClipboardCmd = vscode.commands.registerCommand('kornelius.copyToClipboard', async (text) => {
-        await (0, copyPrompt_1.copyToClipboard)(text);
+        debugLogger_1.DebugLogger.log('Command kornelius.copyToClipboard called', { textLength: text?.length });
+        try {
+            await (0, copyPrompt_1.copyToClipboard)(text);
+            debugLogger_1.DebugLogger.log('Text copied to clipboard successfully');
+            return true;
+        }
+        catch (err) {
+            debugLogger_1.DebugLogger.error('Failed to copy to clipboard', err);
+            return false;
+        }
     });
     // Register Jina.ai commands
     jinaReader_1.JinaReader.registerCommands(context);
@@ -72,7 +100,7 @@ function activate(context) {
         return await (0, browsePrompts_1.getTemplateContent)(templatePath);
     });
     // Add all commands to subscriptions
-    context.subscriptions.push(browsePromptsCmd, generatePromptCmd, savePromptCmd, copyToClipboardCmd, selectTemplateCmd, getTemplateContentCmd, focusCmd);
+    context.subscriptions.push(browsePromptsCmd, generatePromptCmd, copyToClipboardCmd, selectTemplateCmd, getTemplateContentCmd, focusCmd, debugCommand);
     // Add initial configuration if not already present
     const config = vscode.workspace.getConfiguration('kornelius');
     if (config.get('enableJinaIntegration') === undefined) {

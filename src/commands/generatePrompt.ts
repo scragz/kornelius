@@ -1,5 +1,6 @@
-  import * as vscode from 'vscode';
+import * as vscode from 'vscode';
 import { PromptManager } from '../utils/promptManager';
+import { DebugLogger } from '../utils/debugLogger';
 
 /**
  * Interface representing user input data for prompt generation
@@ -21,20 +22,35 @@ export async function generatePrompt(
   userInputs: PromptUserInputs
 ): Promise<string> {
   try {
+    // Enhanced logging with file output
+    DebugLogger.log('*******************************************');
+    DebugLogger.log(`generatePrompt called for step: ${step}`);
+    DebugLogger.log('User inputs:', userInputs);
+
+    // Show message to user for debugging
+    vscode.window.showInformationMessage(`Generating prompt for: ${step}`);
+
+    // Create prompt manager
     const promptManager = new PromptManager();
 
     // Get all templates
+    DebugLogger.log(`Looking for templates in: ${promptManager['_promptsDirectory']}`);
     const templates = await promptManager.getPromptTemplates();
+    DebugLogger.log(`Found ${templates.length} templates:`, templates.map(t => t.name).join(', '));
 
     // Find the template that matches the current step
     const matchingTemplate = templates.find(template => template.type === step);
 
     if (!matchingTemplate) {
-      throw new Error(`No template found for step: ${step}`);
+      DebugLogger.error(`No template found for step: ${step}. Available: ${templates.map(t => t.name).join(', ')}`);
+      throw new Error(`No template found for step: ${step}. Available templates: ${templates.map(t => t.name).join(', ')}`);
     }
+
+    DebugLogger.log(`Found matching template: ${matchingTemplate.name} at ${matchingTemplate.fullPath}`);
 
     // Get the template content
     const templateContent = await promptManager.getPromptContent(matchingTemplate.fullPath);
+    DebugLogger.log(`Loaded template content, length: ${templateContent.length} characters`);
 
     // Convert the structured user inputs to a flat record of key-value pairs
     const placeholderMap: Record<string, string> = {};

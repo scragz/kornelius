@@ -4,14 +4,31 @@ import { JinaReader } from './utils/jinaReader';
 import { browsePrompts, selectPromptTemplate, getTemplateContent } from './commands/browsePrompts';
 import { generatePrompt, saveGeneratedPrompt } from './commands/generatePrompt';
 import { copyToClipboard } from './commands/copyPrompt';
+import { DebugLogger } from './utils/debugLogger';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  console.log('Congratulations, your extension "kornelius" is now active!');
+  // Initialize debug logging
+  DebugLogger.initialize();
 
   // Log successful activation
-  console.log('KoЯnelius extension activated!');
+  DebugLogger.log('KoЯnelius extension activated!');
+
+  // Create a special debug command for testing
+  const debugCommand = vscode.commands.registerCommand('kornelius.debugAction', () => {
+    vscode.window.showInformationMessage('Debug action invoked - This is a test message');
+
+    // Test clipboard functionality
+    const testText = "This is a test of the clipboard functionality at " + new Date().toISOString();
+    vscode.env.clipboard.writeText(testText).then(() => {
+      vscode.window.showInformationMessage('Test text copied to clipboard: ' + testText.substring(0, 20) + '...');
+    }, (err) => {
+      vscode.window.showErrorMessage('Clipboard test failed: ' + err.message);
+    });
+
+    return "Debug command executed";
+  });
 
   // Register the sidebar provider
   const sidebarProvider = new SidebarViewProvider(context.extensionUri);
@@ -38,21 +55,31 @@ export function activate(context: vscode.ExtensionContext) {
   // Register generate prompt command
   const generatePromptCmd = vscode.commands.registerCommand('kornelius.generatePrompt',
     async (step: string, userInputs: any) => {
-      return await generatePrompt(step, userInputs);
-    }
-  );
+      DebugLogger.log('Command kornelius.generatePrompt called', { step, userInputsKeys: Object.keys(userInputs || {}) });
 
-  // Register save prompt command
-  const savePromptCmd = vscode.commands.registerCommand('kornelius.savePrompt',
-    async (content: string) => {
-      return await saveGeneratedPrompt(content);
+      try {
+        const result = await generatePrompt(step, userInputs);
+        DebugLogger.log('Command kornelius.generatePrompt succeeded', { resultLength: result.length });
+        return result;
+      } catch (err) {
+        DebugLogger.error('Command kornelius.generatePrompt failed', err);
+        throw err;
+      }
     }
   );
 
   // Register copy to clipboard command
   const copyToClipboardCmd = vscode.commands.registerCommand('kornelius.copyToClipboard',
     async (text: string) => {
-      await copyToClipboard(text);
+      DebugLogger.log('Command kornelius.copyToClipboard called', { textLength: text?.length });
+      try {
+        await copyToClipboard(text);
+        DebugLogger.log('Text copied to clipboard successfully');
+        return true;
+      } catch (err) {
+        DebugLogger.error('Failed to copy to clipboard', err);
+        return false;
+      }
     }
   );
 
@@ -77,11 +104,11 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     browsePromptsCmd,
     generatePromptCmd,
-    savePromptCmd,
     copyToClipboardCmd,
     selectTemplateCmd,
     getTemplateContentCmd,
-    focusCmd
+    focusCmd,
+    debugCommand
   );
 
   // Add initial configuration if not already present

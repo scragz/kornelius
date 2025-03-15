@@ -26,21 +26,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.saveGeneratedPrompt = exports.generatePrompt = void 0;
 const vscode = __importStar(require("vscode"));
 const promptManager_1 = require("../utils/promptManager");
+const debugLogger_1 = require("../utils/debugLogger");
 /**
  * Command to generate a prompt for a specific step from a template and user inputs
  */
 async function generatePrompt(step, userInputs) {
     try {
+        // Enhanced logging with file output
+        debugLogger_1.DebugLogger.log('*******************************************');
+        debugLogger_1.DebugLogger.log(`generatePrompt called for step: ${step}`);
+        debugLogger_1.DebugLogger.log('User inputs:', userInputs);
+        // Show message to user for debugging
+        vscode.window.showInformationMessage(`Generating prompt for: ${step}`);
+        // Create prompt manager
         const promptManager = new promptManager_1.PromptManager();
         // Get all templates
+        debugLogger_1.DebugLogger.log(`Looking for templates in: ${promptManager['_promptsDirectory']}`);
         const templates = await promptManager.getPromptTemplates();
+        debugLogger_1.DebugLogger.log(`Found ${templates.length} templates:`, templates.map(t => t.name).join(', '));
         // Find the template that matches the current step
         const matchingTemplate = templates.find(template => template.type === step);
         if (!matchingTemplate) {
-            throw new Error(`No template found for step: ${step}`);
+            debugLogger_1.DebugLogger.error(`No template found for step: ${step}. Available: ${templates.map(t => t.name).join(', ')}`);
+            throw new Error(`No template found for step: ${step}. Available templates: ${templates.map(t => t.name).join(', ')}`);
         }
+        debugLogger_1.DebugLogger.log(`Found matching template: ${matchingTemplate.name} at ${matchingTemplate.fullPath}`);
         // Get the template content
         const templateContent = await promptManager.getPromptContent(matchingTemplate.fullPath);
+        debugLogger_1.DebugLogger.log(`Loaded template content, length: ${templateContent.length} characters`);
         // Convert the structured user inputs to a flat record of key-value pairs
         const placeholderMap = {};
         // Map appropriate values based on the current step

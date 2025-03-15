@@ -1,6 +1,6 @@
-// Remove unused import - we'll re-add this if we need vscode APIs
 import * as fs from 'fs';
 import * as path from 'path';
+import { DebugLogger } from './debugLogger';
 
 export interface PromptTemplate {
   name: string;
@@ -12,36 +12,72 @@ export class PromptManager {
   private _promptsDirectory: string;
 
   constructor() {
-    this._promptsDirectory = 'c:\\Src\\kornelius\\prompts';
+    // Get the extension's directory path
+    // In production builds, __dirname would be something like:
+    // c:\Users\username\.vscode\extensions\extension-name\dist
+    const extensionRoot = path.resolve(path.dirname(require.main?.filename || ''), '../../..');
+    this._promptsDirectory = path.join(extensionRoot, 'prompts');
+
+    DebugLogger.log('PromptManager initialized');
+    DebugLogger.log('Extension root directory determined as:', extensionRoot);
+    DebugLogger.log('Prompt directory set to:', this._promptsDirectory);
+
+    // Additional logging to help diagnose path issues
+    try {
+      if (fs.existsSync(this._promptsDirectory)) {
+        console.log('✓ Prompts directory exists');
+        const promptFiles = fs.readdirSync(this._promptsDirectory);
+        console.log(`Found ${promptFiles.length} files in prompts directory:`, promptFiles);
+      } else {
+        console.error('✗ Prompts directory does not exist at:', this._promptsDirectory);
+
+        // Try to list parent directory to aid in debugging
+        const parentDir = path.dirname(this._promptsDirectory);
+        if (fs.existsSync(parentDir)) {
+          console.log(`Parent directory exists, contents:`, fs.readdirSync(parentDir));
+        }
+      }
+    } catch (error) {
+      console.error('Error checking prompts directory:', error);
+    }
   }
 
   /**
    * Get all available prompt templates from the prompts directory
    */
   public async getPromptTemplates(): Promise<PromptTemplate[]> {
+    DebugLogger.log('PromptManager.getPromptTemplates - Reading from filesystem');
+
     try {
-      const files = await fs.promises.readdir(this._promptsDirectory);
+      // Check if the prompts directory exists
+      if (!fs.existsSync(this._promptsDirectory)) {
+        DebugLogger.error(`Prompts directory does not exist: ${this._promptsDirectory}`);
+        return [];
+      }
 
-      return files
-        .filter(file =>
-          file.endsWith('.prompt') ||
-          file.endsWith('.md') ||
-          file.endsWith('.txt')
-        )
-        .map(file => {
+      // Read all files in the prompts directory
+      const files = fs.readdirSync(this._promptsDirectory);
+      DebugLogger.log(`Found ${files.length} files in prompts directory:`, files);
+
+      // Filter for .prompt files and create template objects
+      const templates: PromptTemplate[] = [];
+      for (const file of files) {
+        if (file.endsWith('.prompt')) {
           const fullPath = path.join(this._promptsDirectory, file);
-          // Extract the "type" from the filename (e.g., "request.prompt" => "request")
-          const type = path.basename(file, path.extname(file));
-
-          return {
+          const type = file.split('.')[0]; // Assuming filename format is 'type.prompt'
+          templates.push({
             name: file,
             fullPath,
             type
-          };
-        });
+          });
+        }
+      }
+
+      DebugLogger.log(`Returning ${templates.length} prompt templates`);
+      return templates;
     } catch (error) {
-      console.error('Error reading prompts directory:', error);
-      throw new Error(`Failed to read prompts directory: ${error instanceof Error ? error.message : String(error)}`);
+      DebugLogger.error('Error reading prompt templates:', error);
+      return [];
     }
   }
 
@@ -49,11 +85,23 @@ export class PromptManager {
    * Get the content of a specific prompt template
    */
   public async getPromptContent(templatePath: string): Promise<string> {
+    DebugLogger.log(`PromptManager.getPromptContent - Reading template from: ${templatePath}`);
+
     try {
-      return await fs.promises.readFile(templatePath, 'utf-8');
+      // Check if the template file exists
+      if (!fs.existsSync(templatePath)) {
+        DebugLogger.error(`Template file does not exist: ${templatePath}`);
+        throw new Error(`Template file not found: ${templatePath}`);
+      }
+
+      // Read the template file
+      const content = fs.readFileSync(templatePath, 'utf-8');
+      DebugLogger.log(`Read template content, length: ${content.length} characters`);
+
+      return content;
     } catch (error) {
-      console.error('Error reading prompt file:', error);
-      throw new Error(`Failed to read prompt file: ${error instanceof Error ? error.message : String(error)}`);
+      DebugLogger.error(`Error reading template content:`, error);
+      throw error;
     }
   }
 
@@ -61,34 +109,17 @@ export class PromptManager {
    * Generate a final prompt by combining template with user inputs
    */
   public generatePrompt(templateContent: string, userInputs: Record<string, string>): string {
+    DebugLogger.log('PromptManager.generatePrompt - Replacing placeholders with user inputs');
+    DebugLogger.log('PromptManager.generatePrompt - User inputs:', userInputs);
+
     let result = templateContent;
 
-    // Replace placeholders in the format {{key}} with user input values
+    // Replace all placeholders in the template with user inputs
     for (const [key, value] of Object.entries(userInputs)) {
-      const placeholder = new RegExp(`{{\\s*${key}\\s*}}`, 'g');
-      result = result.replace(placeholder, value);
+      const placeholder = `{{${key}}}`;
+      result = result.replace(new RegExp(placeholder, 'g'), value || '');
     }
 
     return result;
-  }
-
-  /**
-   * Save the generated prompt to a file
-   */
-  public async saveGeneratedPrompt(content: string, fileName: string): Promise<string> {
-    try {
-      const savePath = path.join(this._promptsDirectory, 'generated', fileName);
-
-      // Ensure the 'generated' directory exists
-      await fs.promises.mkdir(path.dirname(savePath), { recursive: true });
-
-      // Write the file
-      await fs.promises.writeFile(savePath, content, 'utf-8');
-
-      return savePath;
-    } catch (error) {
-      console.error('Error saving generated prompt:', error);
-      throw new Error(`Failed to save generated prompt: ${error instanceof Error ? error.message : String(error)}`);
-    }
   }
 }
