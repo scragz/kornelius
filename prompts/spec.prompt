@@ -1,143 +1,153 @@
-You are an expert software architect tasked with creating detailed technical specifications for software development projects.
+Your task is to **generate a comprehensive technical specification** based on an existing project request and any relevant guidelines or templates. The specification must be precise, thorough, and suitable for planning & code generation.
 
-Your specifications will be used as direct input for planning & code generation AI systems, so they must be precise, structured, and comprehensive.
+---
 
-First, carefully review the project request:
+## **Required Inputs**
 
-<project_request>
-{{insert_request_here}}
-</project_request>
+1. **REQUEST**: The existing project or feature request in `<project_request>`.
+2. **RULES**: The guidelines or best practices in `<project_rules>`, if any.
 
-Next, carefully review the project rules:
+---
 
-<project_rules>
-{{insert_rules_here}}
-</project_rules>
+## **Optional Inputs**
 
-Finally, carefully review the starter template:
+1. **TEMPLATE**: A starter template or reference design in `<starter_template>`.
 
-<starter_template>
-{{insert_template_here}}
-</starter_template>
+---
 
-Your task is to generate a comprehensive technical specification based on this information.
+## **Task Overview**
 
-Before creating the final specification, analyze the project requirements and plan your approach. Wrap your thought process in <specification_planning> tags, considering the following:
+This prompt instructs the AI to:
 
-1. Core system architecture and key workflows
-2. Project structure and organization
-3. Detailed feature specifications
-4. Database schema design
-5. Server actions and integrations
-6. Design system and component architecture
-7. Authentication and authorization implementation
-8. Data flow and state management
-9. Payment implementation
-10. Analytics implementation
-11. Testing strategy
+1. Analyze all inputs and plan an approach inside `<specification_planning>` tags.
+2. Cover architecture, feature breakdowns, data flows, and any relevant integration points.
+3. Return a final specification in Markdown with defined sections (1 through 12).
 
-For each of these areas:
+---
 
-- Provide a step-by-step breakdown of what needs to be included
-- List potential challenges or areas needing clarification
-- Consider potential edge cases and error handling scenarios
+## **Detailed Process Outline**
 
-In your analysis, be sure to:
+1. **Review Inputs**: The AI reviews `<project_request>`, `<project_rules>`, and (optionally) `<starter_template>`.
+2. **Planning**: Within `<specification_planning>` tags, the AI:
+   - Identifies key workflows, project structure, data flows, etc.
+   - Pinpoints challenges and clarifies requirements.
+3. **Specification Output**: The AI creates a detailed specification in the following order:
+   1. System Overview
+   2. Project Structure
+   3. Feature Specification
+   4. Database Schema
+   5. Server Actions
+   6. Design System
+   7. Component Architecture
+   8. Authentication & Authorization
+   9. Data Flow
+   10. Payment Integration
+   11. Analytics Integration
+   12. Testing
+4. **Further Iteration**: The user can request additional details, modifications, or clarifications as needed.
 
-- Break down complex features into step-by-step flows
-- Identify areas that require further clarification or have potential risks
-- Propose solutions or alternatives for any identified challenges
+---
 
-After your analysis, generate the technical specification using the following markdown structure:
+## **Guidelines**
+
+Ensure that your specification is **extremely detailed**, giving **implementation guidance** and examples for complex features. Clearly define interfaces and data contracts. Summarize your final spec at the end, noting any open questions.
+
+We'll keep refining the request until I indicate it's complete and ready.
+
+---
+
+## **Output Template**
 
 ```markdown
 # {Project Name} Technical Specification
 
 ## 1. System Overview
-- Core purpose and value proposition
+- Core purpose
 - Key workflows
 - System architecture
 
 ## 2. Project Structure
-- Detailed breakdown of project structure & organization
+- Detailed breakdown & organization
 
 ## 3. Feature Specification
-For each feature:
 ### 3.1 Feature Name
-- User story and requirements
+- User story & requirements
 - Detailed implementation steps
-- Error handling and edge cases
+- Error handling & edge cases
 
 ## 4. Database Schema
 ### 4.1 Tables
-For each table:
-- Complete table schema (field names, types, constraints)
-- Relationships and indexes
+- Field names, types, constraints
+- Relationships & indexes
 
 ## 5. Server Actions
 ### 5.1 Database Actions
-For each action:
-- Detailed description of the action
-- Input parameters and return values
-- SQL queries or ORM operations
+- Description
+- Input parameters & return values
+- Queries or operations
 
 ### 5.2 Other Actions
-- External API integrations (endpoints, authentication, data formats)
+- External API integrations
 - File handling procedures
 - Data processing algorithms
 
 ## 6. Design System
 ### 6.1 Visual Style
-- Color palette (with hex codes)
-- Typography (font families, sizes, weights)
-- Component styling patterns
-- Spacing and layout principles
+- Overall look & feel
+- Typography, spacing, layouts
 
 ### 6.2 Core Components
-- Layout structure (with examples)
-- Navigation patterns
-- Shared components (with props and usage examples)
-- Interactive states (hover, active, disabled)
+- Layout structure & navigation
+- Shared components
+- Interactive states
 
 ## 7. Component Architecture
 ### 7.1 Server Components
-- Data fetching strategy
-- Suspense boundaries
-- Error handling
-- Props interface (with TypeScript types)
+- Data fetching
+- Error boundaries
+- Types & interfaces
 
 ### 7.2 Client Components
-- State management approach
+- State management
 - Event handlers
-- UI interactions
-- Props interface (with TypeScript types)
+- Types & interfaces
 
 ## 8. Authentication & Authorization
-- Clerk implementation details
-- Protected routes configuration
-- Session management strategy
+- Methods & session management
+- Protected routes setup
 
 ## 9. Data Flow
-- Server/client data passing mechanisms
-- State management architecture
+- Server/client data patterns
+- State management details
 
-## 10. Stripe Integration
+## 10. Payment Integration
 - Payment flow diagram
-- Webhook handling process
-- Product/Price configuration details
+- Webhook handling
+- Product/Price structure
 
-## 11. PostHog Analytics
-- Analytics strategy
-- Event tracking implementation
+## 11. Analytics Integration
+- Event tracking strategy
 - Custom property definitions
 
 ## 12. Testing
-- Unit tests with Jest (example test cases)
-- e2e tests with Playwright (key user flows to test)
+- Unit tests
+- e2e tests
 ```
 
-Ensure that your specification is extremely detailed, providing specific implementation guidance wherever possible. Include concrete examples for complex features and clearly define interfaces between components.
+---
 
-Begin your response with your specification planning, then proceed to the full technical specification in the markdown output format.
+## **Context**
 
-Once you are done, we will pass this specification to the AI code planning system.
+<project_request>
+{{insert_request_here}}
+</project_request>
+
+<project_rules>
+{{insert_rules_here}}
+</project_rules>
+
+<starter_template>
+{{insert_template_here}}
+</starter_template>
+
+---

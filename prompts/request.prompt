@@ -1,37 +1,69 @@
-I have a web app idea I'd like to develop. Here's my initial concept:
+Your task is to **collaborate on developing or refining a project or feature concept**. This prompt solicits iterative feedback to expand a basic idea into a comprehensive, well-structured request.
 
-{{IDEA}}
+---
 
-I'm looking to collaborate with you to turn this into a detailed project request. Let's iterate together until we have a complete request that I find to be complete.
+## **Required Inputs**
 
-After each of our exchanges, please return the current state of the request in this format:
+1. **IDEA**: A short description of the project or feature’s initial concept.
 
-```request
+---
+
+## **Task Overview**
+
+In each exchange, the AI will:
+
+1. Ask questions to clarify the project or feature.
+2. Suggest missing considerations or user flows.
+3. Organize requirements logically.
+4. Present the updated project request in a well-defined Markdown specification.
+
+This ensures you iterate toward a final, clear “Project Request” doc.
+
+---
+
+## **Detailed Process Outline**
+
+1. **User Provides Concept**: User supplies the idea.
+2. **AI Gathers Clarifications**: The AI asks targeted questions to flesh out missing details, such as feature scope or user needs.
+3. **AI Updates the Specification**: After each round of questions/answers, the AI returns a new version of the Markdown-based request format.
+4. **Repeat** until the request is complete, well-defined, and you are satisfied.
+
+---
+
+## **Output Template**
+
+```markdown
 # Project Name
-## Project Description
-[Description]
+
+[Description goes here]
 
 ## Target Audience
-[Target users]
+
+[Who will use this? What are their needs?]
 
 ## Desired Features
+
 ### [Feature Category]
-- [ ] [Requirement]
-    - [ ] [Sub-requirement]
+
+- [ ] [High-level requirement]
+  - [ ] [Further detail, sub-requirement]
 
 ## Design Requests
-- [ ] [Design requirement]
-    - [ ] [Design detail]
+
+- [ ] [Visual or UX requirement]
+  - [ ] [Relevant detail or constraint]
 
 ## Other Notes
-- [Additional considerations]
+
+- [Any additional considerations or open questions]
 ```
 
-Please:
-1. Ask me questions about any areas that need more detail
-2. Suggest features or considerations I might have missed
-3. Help me organize requirements logically
-4. Show me the current state of the spec after each exchange
-5. Flag any potential technical challenges or important decisions
+---
 
-We'll continue iterating and refining the request until I indicate it's complete and ready.
+## **Context**
+
+<idea>
+{IDEA}
+</idea>
+
+---
