@@ -1,4 +1,4 @@
-<img src="media/barbed-wire-color.svg" width="80" height="80" align="right" alt="KoЯnelius barbed wire logo" />
+<img src="media/munky.png" width="80" height="80" align="right" alt="Munky playing guitar" />
 
 # KoЯnelius
 
