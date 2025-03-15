@@ -2,7 +2,7 @@
 
 /* Munky Says Tip Box */
 .munky-tip {
-  margin: 15px 0;
+  margin: 30px 0 15px 0;
   background-color: color-mix(in srgb, var(--vscode-editor-background) 95%, var(--function-color));
   border: 1px dashed var(--function-color);
   border-radius: 10px;
@@ -51,26 +51,30 @@
 /* Model recommendation badges */
 .model-badge {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 3px 8px;
   margin: 0 3px;
-  border-radius: 12px;
-  background-color: color-mix(in srgb, var(--vscode-editor-background) 70%, var(--variable-color));
-  color: var(--vscode-editor-foreground);
+  font-family: 'Permanent Marker', cursive;
   font-size: 0.85em;
-  font-weight: bold;
-  border: 1px solid var(--variable-color);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-  text-shadow: none;
+  transform: rotate(-2deg);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
+  position: relative;
+  animation: pulse 3s infinite alternate;
 }
 
 .reasoning-model {
-  background-color: color-mix(in srgb, var(--vscode-editor-background) 70%, var(--type-color));
-  border-color: var(--type-color);
-  color: var(--vscode-editor-foreground);
+  background: linear-gradient(to bottom right, #ff00cc, #3333ff);
+  border: 2px dashed #ff88ff;
+  border-radius: 8px 2px 8px 2px;
+  color: white;
+  transform: rotate(-1deg) skew(-1deg);
 }
 
 .coding-model {
-  background-color: color-mix(in srgb, var(--vscode-editor-background) 70%, var(--function-color));
-  border-color: var(--function-color);
-  color: var(--vscode-editor-foreground);
+  background: linear-gradient(to bottom right, #00cc66, #006699);
+  border: 2px dashed #88ffbb;
+  border-radius: 2px 8px 2px 8px;
+  color: white;
+  transform: rotate(1deg) skew(1deg);
 }

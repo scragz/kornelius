@@ -1,6 +1,6 @@
 /* KoЯnelius - Navigation Styles */
 
-/* Guitar pick shaped navigation */
+/* Simple navigation buttons */
 .step-navigation {
   display: flex;
   justify-content: space-between;
@@ -40,9 +40,7 @@
 }
 
 .step-navigation button {
-  width: auto;
-  flex: 0 0 auto;
-  margin: 0 5px;
+  padding: 6px 15px;
   border-radius: 15px;
   background: linear-gradient(to bottom,
     var(--vscode-button-background) 0%,
@@ -54,7 +52,9 @@
   box-shadow:
     0 3px 0 rgba(0, 0, 0, 0.3),
     0 5px 10px rgba(0, 0, 0, 0.2);
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  width: 100px;
+  margin: 0 10px;
 }
 
 .step-navigation button:hover:not(:disabled) {
@@ -84,21 +84,4 @@
     color-mix(in srgb, var(--vscode-disabledForeground) 80%, var(--vscode-editor-background)) 100%);
   color: var(--vscode-disabledForeground);
   border-color: var(--vscode-panel-border);
-}
-
-.step-navigation span {
-  flex: 1;
-  text-align: center;
-  font-family: 'Permanent Marker', cursive;
-  font-size: 0.9em;
-  letter-spacing: 0.5px;
-  color: var(--string-color);
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
-  background: linear-gradient(to right,
-    transparent,
-    rgba(0, 0, 0, 0.1) 20%,
-    rgba(0, 0, 0, 0.1) 80%,
-    transparent 100%);
-  padding: 5px;
-  border-radius: 20px;
 }

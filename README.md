@@ -2,14 +2,12 @@
 
 # KoЯnelius
 
-### *Your nu-code companion*
-
-A VS Code extension that provides a guided flow for AI-based prompt creation with a distinctive nu-metal inspired style.
+Your nu-code companion for this vibe-driven coding era, KoЯnelius is
+an AI-based prompt creation extension for Visual Studio Code.[]
 
 ## 🎸 Features
 
 - **5-STEP WORKFLOW**: `REQUEST → SPEC → PLANNER → CODEGEN → REVIEW`
-- **TEMPLATE MANAGEMENT**: Browse templates from local directory
 - **GENERATE PROMPTS**: Create custom AI prompts with attitude
 - **JINA.AI INTEGRATION**: Optional markdown fetching capabilities
 

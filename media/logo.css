@@ -33,9 +33,7 @@
 
 .logo span.reversed {
   display: inline-block;
-  transform: scaleX(-1) rotate(-1deg);
   color: var(--keyword-color);
-  filter: drop-shadow(0 0 5px var(--keyword-color));
 }
 
 /* Nu-metal style accent divider */

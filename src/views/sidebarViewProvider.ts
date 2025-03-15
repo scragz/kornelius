@@ -107,23 +107,22 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         </div>
         <p class="tagline">Your nu-code companion</p>
 
-        <div class="barbed-divider"></div>
-
         <div class="step-navigation">
           <button id="prev-step" disabled>◀ PREV</button>
-          <span id="step-indicator">STEP 1 OF 5</span>
           <button id="next-step">NEXT ▶</button>
         </div>
 
         <!-- Step 1: Request -->
         <div class="step" id="step-request" data-step="1">
           <h2>REQUEST</h2>
-          <div class="input-group">
-            <label for="request-idea">Your idea or request:</label>
-            <textarea id="request-idea" class="main-input" rows="8" placeholder="Enter your request here..."></textarea>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="request-idea">Your idea or request:</label>
+              <textarea id="request-idea" class="main-input" rows="8" placeholder="Enter your request here..."></textarea>
+            </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-request" class="generate-copy-btn">GENERATE & COPY PROMPT</button>
+            <button id="generate-copy-request" class="generate-copy-btn">GET PROMPT</button>
           </div>
           <div class="munky-tip">
             <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
@@ -148,7 +147,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-spec" class="generate-copy-btn">GENERATE & COPY PROMPT</button>
+            <button id="generate-copy-spec" class="generate-copy-btn">GET PROMPT</button>
           </div>
           <div class="munky-tip">
             <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
@@ -177,7 +176,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-planner" class="generate-copy-btn">GENERATE & COPY PROMPT</button>
+            <button id="generate-copy-planner" class="generate-copy-btn">GET PROMPT</button>
           </div>
           <div class="munky-tip">
             <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
@@ -210,7 +209,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-codegen" class="generate-copy-btn">GENERATE & COPY PROMPT</button>
+            <button id="generate-copy-codegen" class="generate-copy-btn">GET PROMPT</button>
           </div>
           <div class="munky-tip">
             <p>Use a <span class="model-badge coding-model">coding model</span> like <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.</p>
@@ -243,7 +242,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-review" class="generate-copy-btn">GENERATE & COPY PROMPT</button>
+            <button id="generate-copy-review" class="generate-copy-btn">GET PROMPT</button>
           </div>
           <div class="munky-tip">
             <p>Use a <span class="model-badge coding-model">coding model</span> like <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.</p>
@@ -272,9 +271,6 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
           // Show the current step
           document.querySelector(\`[data-step="\${newStep}"]\`).style.display = 'block';
-
-          // Update step indicator
-          stepIndicator.textContent = \`STEP \${newStep} OF \${totalSteps}\`;
 
           // Update button states
           prevButton.disabled = newStep === 1;
@@ -453,7 +449,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
                   // Reset button after a delay
                   setTimeout(() => {
-                    generateCopyButton.textContent = "GENERATE & COPY PROMPT";
+                    generateCopyButton.textContent = "GET PROMPT";
                     generateCopyButton.disabled = false;
                     generateCopyButton.classList.remove('pulse');
                   }, 2000);
@@ -465,7 +461,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
                 // Reset button after a delay
                 setTimeout(() => {
-                  generateCopyButton.textContent = "GENERATE & COPY PROMPT";
+                  generateCopyButton.textContent = "GET PROMPT";
                   generateCopyButton.disabled = false;
                 }, 2000);
               }

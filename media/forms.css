@@ -74,16 +74,19 @@ textarea:focus {
   border: 1px dashed var(--variable-color);
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
   position: relative;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 .multi-input-container::before {
-  content: "✓ MULTI-FIELD INPUT";
+  content: "✓ CONTEXT";
   font-family: 'Anton', sans-serif;
   font-size: 0.7em;
   color: var(--variable-color);
   position: absolute;
   top: -8px;
   left: 15px;
+  right: 15px;
   background-color: var(--vscode-editor-background);
   padding: 0 8px;
   border-radius: 10px;
