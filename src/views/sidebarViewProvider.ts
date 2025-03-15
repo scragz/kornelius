@@ -118,75 +118,135 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         <!-- Step 1: Request -->
         <div class="step" id="step-request" data-step="1">
           <h2>REQUEST</h2>
-          <p>Drop your initial request or idea:</p>
-          <textarea id="request-input" rows="10" placeholder="Enter your request here..."></textarea>
-          <div class="prompt-preview" id="request-preview" style="display: none;">
-            <h3>Generated Prompt</h3>
-            <div class="preview-content"></div>
+          <div class="input-group">
+            <label for="request-idea">Your idea or request:</label>
+            <textarea id="request-idea" class="main-input" rows="8" placeholder="Enter your request here..."></textarea>
           </div>
           <div class="button-group">
-            <button id="generate-request">GENERATE PROMPT</button>
-            <button id="copy-request" disabled>COPY TO CLIPBOARD</button>
+            <button id="generate-copy-request" class="generate-copy-btn">GENERATE & COPY PROMPT</button>
+          </div>
+          <div class="munky-tip">
+            <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
           </div>
         </div>
 
         <!-- Step 2: Spec -->
         <div class="step" id="step-spec" data-step="2" style="display: none;">
           <h2>SPEC</h2>
-          <p>Define the specifications for your request:</p>
-          <textarea id="spec-input" rows="10" placeholder="Enter specifications here..."></textarea>
-          <div class="prompt-preview" id="spec-preview" style="display: none;">
-            <h3>Generated Prompt</h3>
-            <div class="preview-content"></div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="spec-request">Project Request:</label>
+              <textarea id="spec-request" rows="3" placeholder="Paste the results from the previous step..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="spec-rules">Project Rules (optional):</label>
+              <textarea id="spec-rules" rows="3" placeholder="Enter any project rules..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="spec-template">Starter Template (optional):</label>
+              <textarea id="spec-template" rows="3" placeholder="Enter any starter template..."></textarea>
+            </div>
           </div>
           <div class="button-group">
-            <button id="generate-spec">GENERATE PROMPT</button>
-            <button id="copy-spec" disabled>COPY TO CLIPBOARD</button>
+            <button id="generate-copy-spec" class="generate-copy-btn">GENERATE & COPY PROMPT</button>
+          </div>
+          <div class="munky-tip">
+            <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
           </div>
         </div>
 
         <!-- Step 3: Planner -->
         <div class="step" id="step-planner" data-step="3" style="display: none;">
           <h2>PLANNER</h2>
-          <p>Map out the implementation approach:</p>
-          <textarea id="planner-input" rows="10" placeholder="Enter planning details here..."></textarea>
-          <div class="prompt-preview" id="planner-preview" style="display: none;">
-            <h3>Generated Prompt</h3>
-            <div class="preview-content"></div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="planner-request">Project Request:</label>
+              <textarea id="planner-request" rows="3" placeholder="Paste the project request..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="planner-rules">Project Rules (optional):</label>
+              <textarea id="planner-rules" rows="3" placeholder="Enter project rules..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="planner-spec">Technical Specification:</label>
+              <textarea id="planner-spec" rows="3" placeholder="Paste the results from the spec step..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="planner-template">Starter Template (optional):</label>
+              <textarea id="planner-template" rows="3" placeholder="Enter starter template..."></textarea>
+            </div>
           </div>
           <div class="button-group">
-            <button id="generate-planner">GENERATE PROMPT</button>
-            <button id="copy-planner" disabled>COPY TO CLIPBOARD</button>
+            <button id="generate-copy-planner" class="generate-copy-btn">GENERATE & COPY PROMPT</button>
+          </div>
+          <div class="munky-tip">
+            <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
           </div>
         </div>
 
         <!-- Step 4: Codegen -->
         <div class="step" id="step-codegen" data-step="4" style="display: none;">
           <h2>CODEGEN</h2>
-          <p>Specify coding requirements or samples:</p>
-          <textarea id="codegen-input" rows="10" placeholder="Enter code generation requirements here..."></textarea>
-          <div class="prompt-preview" id="codegen-preview" style="display: none;">
-            <h3>Generated Prompt</h3>
-            <div class="preview-content"></div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="codegen-request">Project Request:</label>
+              <textarea id="codegen-request" rows="3" placeholder="Paste the project request..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="codegen-rules">Project Rules (optional):</label>
+              <textarea id="codegen-rules" rows="3" placeholder="Enter project rules..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="codegen-spec">Technical Specification:</label>
+              <textarea id="codegen-spec" rows="3" placeholder="Paste the specification..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="codegen-plan">Implementation Plan:</label>
+              <textarea id="codegen-plan" rows="3" placeholder="Paste the implementation plan..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="codegen-code">Your Code (optional):</label>
+              <textarea id="codegen-code" rows="3" placeholder="Enter existing code..."></textarea>
+            </div>
           </div>
           <div class="button-group">
-            <button id="generate-codegen">GENERATE PROMPT</button>
-            <button id="copy-codegen" disabled>COPY TO CLIPBOARD</button>
+            <button id="generate-copy-codegen" class="generate-copy-btn">GENERATE & COPY PROMPT</button>
+          </div>
+          <div class="munky-tip">
+            <p>Use a <span class="model-badge coding-model">coding model</span> like <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.</p>
           </div>
         </div>
 
         <!-- Step 5: Review -->
         <div class="step" id="step-review" data-step="5" style="display: none;">
           <h2>REVIEW</h2>
-          <p>Review the implementation and provide feedback:</p>
-          <textarea id="review-input" rows="10" placeholder="Enter review feedback here..."></textarea>
-          <div class="prompt-preview" id="review-preview" style="display: none;">
-            <h3>Generated Prompt</h3>
-            <div class="preview-content"></div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="review-request">Project Request:</label>
+              <textarea id="review-request" rows="3" placeholder="Paste the project request..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="review-rules">Project Rules (optional):</label>
+              <textarea id="review-rules" rows="3" placeholder="Enter project rules..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="review-spec">Technical Specification:</label>
+              <textarea id="review-spec" rows="3" placeholder="Paste the specification..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="review-plan">Implementation Plan:</label>
+              <textarea id="review-plan" rows="3" placeholder="Paste the implementation plan..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="review-code">Existing Code:</label>
+              <textarea id="review-code" rows="3" placeholder="Paste the code to review..."></textarea>
+            </div>
           </div>
           <div class="button-group">
-            <button id="generate-review">GENERATE PROMPT</button>
-            <button id="copy-review" disabled>COPY TO CLIPBOARD</button>
+            <button id="generate-copy-review" class="generate-copy-btn">GENERATE & COPY PROMPT</button>
+          </div>
+          <div class="munky-tip">
+            <p>Use a <span class="model-badge coding-model">coding model</span> like <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.</p>
           </div>
         </div>
       </div>
@@ -244,67 +304,170 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
           }
         });
 
-        // Setup generate and copy buttons for each step
+        // Setup generate-and-copy buttons for each step
         stepTypes.forEach((stepType, index) => {
-          const generateButton = document.getElementById(\`generate-\${stepType}\`);
-          const copyButton = document.getElementById(\`copy-\${stepType}\`);
-          const previewDiv = document.getElementById(\`\${stepType}-preview\`);
+          const generateCopyButton = document.getElementById(\`generate-copy-\${stepType}\`);
 
-          if (generateButton && copyButton && previewDiv) {
-            // Generate prompt for this step
-            generateButton.addEventListener('click', () => {
-              // Get the current data (focusing just on the current step's input)
+          if (generateCopyButton) {
+            // Handle generate and copy in one click
+            generateCopyButton.addEventListener('click', async () => {
+              // Get the current data from all the input fields for this step
               const inputData = {};
 
-              // For each step, we'll collect the inputs from previous steps
-              for (let i = 0; i <= index; i++) {
-                const prevStepType = stepTypes[i];
-                const inputElement = document.getElementById(\`\${prevStepType}-input\`);
-                if (inputElement) {
-                  inputData[prevStepType] = inputElement.value || '';
-                }
+              // Show loading state
+              generateCopyButton.textContent = "GENERATING...";
+              generateCopyButton.disabled = true;
+
+              try {
+                // Each step has different input fields
+                switch(stepType) {
+                case 'request':
+                  const requestIdeaEl = document.getElementById('request-idea');
+                  if (!requestIdeaEl || !requestIdeaEl.value.trim()) {
+                    alert('Please enter your request or idea first.');
+                    return;
+                  }
+                  inputData['request'] = requestIdeaEl.value.trim();
+                  break;
+
+                case 'spec':
+                  const specRequestEl = document.getElementById('spec-request');
+                  const specRulesEl = document.getElementById('spec-rules');
+                  const specTemplateEl = document.getElementById('spec-template');
+
+                  if (!specRequestEl || !specRequestEl.value.trim()) {
+                    alert('Please paste in the project request first.');
+                    return;
+                  }
+
+                  inputData['request'] = specRequestEl.value.trim();
+                  inputData['insert_rules_here'] = specRulesEl ? specRulesEl.value.trim() : '';
+                  inputData['insert_template_here'] = specTemplateEl ? specTemplateEl.value.trim() : '';
+                  break;
+
+                case 'planner':
+                  const plannerRequestEl = document.getElementById('planner-request');
+                  const plannerRulesEl = document.getElementById('planner-rules');
+                  const plannerSpecEl = document.getElementById('planner-spec');
+                  const plannerTemplateEl = document.getElementById('planner-template');
+
+                  if (!plannerRequestEl || !plannerRequestEl.value.trim() ||
+                      !plannerSpecEl || !plannerSpecEl.value.trim()) {
+                    alert('Please fill in both the request and specification fields.');
+                    return;
+                  }
+
+                  inputData['request'] = plannerRequestEl.value.trim();
+                  inputData['PROJECT_RULES'] = plannerRulesEl ? plannerRulesEl.value.trim() : '';
+                  inputData['spec'] = plannerSpecEl.value.trim();
+                  inputData['STARTER_TEMPLATE'] = plannerTemplateEl ? plannerTemplateEl.value.trim() : '';
+                  break;
+
+                case 'codegen':
+                  const codegenRequestEl = document.getElementById('codegen-request');
+                  const codegenRulesEl = document.getElementById('codegen-rules');
+                  const codegenSpecEl = document.getElementById('codegen-spec');
+                  const codegenPlanEl = document.getElementById('codegen-plan');
+                  const codegenCodeEl = document.getElementById('codegen-code');
+
+                  if (!codegenRequestEl || !codegenRequestEl.value.trim() ||
+                      !codegenSpecEl || !codegenSpecEl.value.trim() ||
+                      !codegenPlanEl || !codegenPlanEl.value.trim()) {
+                    alert('Please fill in the request, specification, and implementation plan fields.');
+                    return;
+                  }
+
+                  inputData['request'] = codegenRequestEl.value.trim();
+                  inputData['PROJECT_RULES'] = codegenRulesEl ? codegenRulesEl.value.trim() : '';
+                  inputData['spec'] = codegenSpecEl.value.trim();
+                  inputData['planner'] = codegenPlanEl.value.trim();
+                  inputData['YOUR_CODE'] = codegenCodeEl ? codegenCodeEl.value.trim() : '';
+                  break;
+
+                case 'review':
+                  const reviewRequestEl = document.getElementById('review-request');
+                  const reviewRulesEl = document.getElementById('review-rules');
+                  const reviewSpecEl = document.getElementById('review-spec');
+                  const reviewPlanEl = document.getElementById('review-plan');
+                  const reviewCodeEl = document.getElementById('review-code');
+
+                  if (!reviewRequestEl || !reviewRequestEl.value.trim() ||
+                      !reviewSpecEl || !reviewSpecEl.value.trim() ||
+                      !reviewPlanEl || !reviewPlanEl.value.trim() ||
+                      !reviewCodeEl || !reviewCodeEl.value.trim()) {
+                    alert('Please fill in all required fields.');
+                    return;
+                  }
+
+                  inputData['request'] = reviewRequestEl.value.trim();
+                  inputData['PROJECT_RULES'] = reviewRulesEl ? reviewRulesEl.value.trim() : '';
+                  inputData['spec'] = reviewSpecEl.value.trim();
+                  inputData['planner'] = reviewPlanEl.value.trim();
+                  inputData['EXISTING_CODE'] = reviewCodeEl.value.trim();
+                  break;
+
+                default:
+                  alert('Unknown step type');
+                  return;
               }
 
-              // Simple validation for the current step
-              if (!inputData[stepType]) {
-                alert(\`Oops, you need to fill in the \${stepType.charAt(0).toUpperCase() + stepType.slice(1)} field!\`);
-                return;
-              }
-
-              // Show preview container
-              previewDiv.style.display = 'block';
-
-              // Send message to extension to generate prompt for this specific step
-              const vscode = acquireVsCodeApi();
-              vscode.postMessage({
-                command: 'generatePrompt',
-                step: stepType,
-                data: inputData
-              });
-
-              // Enable copy button
-              copyButton.disabled = false;
-            });
-
-            // Copy to clipboard for this step
-            copyButton.addEventListener('click', () => {
-              // Get the generated prompt text from the preview
-              const previewContent = previewDiv.querySelector('.preview-content');
-              if (previewContent) {
-                const promptText = previewContent.textContent || '';
-
-                // Send message to extension
+                // Send message to extension to generate prompt for this specific step
                 const vscode = acquireVsCodeApi();
-                vscode.postMessage({
-                  command: 'copyToClipboard',
-                  text: promptText
+
+                // Generate the prompt
+                console.log("Generating prompt for " + stepType);
+
+                // Use a local variable to store the generated prompt
+                const generatedPromptResponse = await new Promise((resolve) => {
+                  // Set up a one-time listener for the response
+                  const messageHandler = (event) => {
+                    const msg = event.data;
+                    if (msg.command === 'promptGenerated' && msg.step === stepType) {
+                      // Remove the listener once we get our response
+                      window.removeEventListener('message', messageHandler);
+                      resolve(msg.content);
+                    }
+                  };
+
+                  // Add the listener
+                  window.addEventListener('message', messageHandler);
+
+                  // Send the request
+                  vscode.postMessage({
+                    command: 'generatePrompt',
+                    step: stepType,
+                    data: inputData
+                  });
                 });
 
-                // Add pulse animation to button
-                copyButton.classList.add('pulse');
+                // Now copy the generated prompt to clipboard
+                if (generatedPromptResponse) {
+                  vscode.postMessage({
+                    command: 'copyToClipboard',
+                    text: generatedPromptResponse
+                  });
+
+                  // Show success state
+                  generateCopyButton.textContent = "COPIED TO CLIPBOARD!";
+                  generateCopyButton.classList.add('pulse');
+
+                  // Reset button after a delay
+                  setTimeout(() => {
+                    generateCopyButton.textContent = "GENERATE & COPY PROMPT";
+                    generateCopyButton.disabled = false;
+                    generateCopyButton.classList.remove('pulse');
+                  }, 2000);
+                }
+              } catch (error) {
+                // Handle errors
+                console.error("Error generating or copying prompt:", error);
+                generateCopyButton.textContent = "ERROR - TRY AGAIN";
+
+                // Reset button after a delay
                 setTimeout(() => {
-                  copyButton.classList.remove('pulse');
-                }, 300);
+                  generateCopyButton.textContent = "GENERATE & COPY PROMPT";
+                  generateCopyButton.disabled = false;
+                }, 2000);
               }
             });
           }

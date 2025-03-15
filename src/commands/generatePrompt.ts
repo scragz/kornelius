@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+  import * as vscode from 'vscode';
 import { PromptManager } from '../utils/promptManager';
 
 /**
@@ -10,6 +10,7 @@ export interface PromptUserInputs {
   planner: string;
   codegen: string;
   review: string;
+  [key: string]: string; // Add index signature to allow dynamic access
 }
 
 /**
@@ -41,40 +42,48 @@ export async function generatePrompt(
     // Map appropriate values based on the current step
     switch (step) {
       case 'request':
+        // For request step, just use the IDEA placeholder
         placeholderMap['IDEA'] = userInputs.request || '';
         break;
+
       case 'spec':
+        // For spec step, use previous step's input plus any spec-specific input
         placeholderMap['insert_request_here'] = userInputs.request || '';
         placeholderMap['insert_rules_here'] = ''; // This would come from a rules file
         placeholderMap['insert_template_here'] = ''; // This would come from a template
         break;
+
       case 'planner':
+        // For planner step, use request and spec inputs
         placeholderMap['PROJECT_REQUEST'] = userInputs.request || '';
         placeholderMap['PROJECT_RULES'] = ''; // Optional
         placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.spec || '';
         placeholderMap['STARTER_TEMPLATE'] = ''; // Optional
         break;
+
       case 'codegen':
+        // For codegen step, use request, spec and planner inputs
         placeholderMap['PROJECT_REQUEST'] = userInputs.request || '';
         placeholderMap['PROJECT_RULES'] = ''; // Optional
         placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.spec || '';
         placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.planner || '';
         placeholderMap['YOUR_CODE'] = ''; // This would be the user's existing code
         break;
+
       case 'review':
+        // For review step, use all previous inputs
         placeholderMap['PROJECT_REQUEST'] = userInputs.request || '';
         placeholderMap['PROJECT_RULES'] = ''; // Optional
         placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.spec || '';
         placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.planner || '';
         placeholderMap['EXISTING_CODE'] = userInputs.codegen || '';
         break;
+
       default:
-        // For unknown steps, just map all inputs
-        placeholderMap['request'] = userInputs.request || '';
-        placeholderMap['spec'] = userInputs.spec || '';
-        placeholderMap['planner'] = userInputs.planner || '';
-        placeholderMap['codegen'] = userInputs.codegen || '';
-        placeholderMap['review'] = userInputs.review || '';
+        // For unknown steps, use whatever inputs are provided
+        Object.keys(userInputs).forEach(key => {
+          placeholderMap[key.toUpperCase()] = userInputs[key] || '';
+        });
     }
 
     // Generate the prompt using the template and user inputs

@@ -91,50 +91,42 @@
   border-color: var(--vscode-panel-border);
 }
 
-/* Make the Generate Prompt button more prominent */
-#generate-request,
-#generate-spec,
-#generate-planner,
-#generate-codegen,
-#generate-review {
+/* The combined generate & copy buttons */
+.generate-copy-btn {
   background: linear-gradient(-45deg,
     color-mix(in srgb, var(--keyword-color) 50%, var(--vscode-button-background)) 0%,
-    color-mix(in srgb, var(--function-color) 50%, var(--vscode-button-background)) 50%,
-    color-mix(in srgb, var(--type-color) 50%, var(--vscode-button-background)) 100%);
+    color-mix(in srgb, var(--function-color) 70%, var(--vscode-button-background)) 50%,
+    color-mix(in srgb, var(--type-color) 50%, var(--vscode-button-background)) 100%) !important;
+  font-size: 1.1em !important;
+  border: 1px solid var(--function-color) !important;
   box-shadow:
     0 4px 0 rgba(0, 0, 0, 0.3),
     0 5px 15px rgba(0, 0, 0, 0.2),
-    0 0 8px var(--function-color);
-  position: relative;
-  border: 1px solid var(--function-color);
+    0 0 8px var(--function-color) !important;
+  letter-spacing: 1px;
+  font-weight: 900 !important;
+  padding: 12px 20px !important;
 }
 
-#generate-request:hover,
-#generate-spec:hover,
-#generate-planner:hover,
-#generate-codegen:hover,
-#generate-review:hover {
+.generate-copy-btn:hover:not(:disabled) {
   background: linear-gradient(-45deg,
     color-mix(in srgb, var(--keyword-color) 70%, var(--vscode-button-background)) 0%,
-    color-mix(in srgb, var(--function-color) 70%, var(--vscode-button-background)) 50%,
-    color-mix(in srgb, var(--type-color) 70%, var(--vscode-button-background)) 100%);
+    color-mix(in srgb, var(--function-color) 100%, var(--vscode-button-background)) 50%,
+    color-mix(in srgb, var(--type-color) 70%, var(--vscode-button-background)) 100%) !important;
   box-shadow:
     0 6px 0 rgba(0, 0, 0, 0.3),
     0 8px 20px rgba(0, 0, 0, 0.2),
-    0 0 12px var(--function-color);
+    0 0 12px var(--function-color) !important;
+  transform: perspective(500px) rotateX(5deg) translateY(-4px) scale(1.05) !important;
 }
 
-#generate-request:active,
-#generate-spec:active,
-#generate-planner:active,
-#generate-codegen:active,
-#generate-review:active {
+.generate-copy-btn:active:not(:disabled) {
   background: linear-gradient(-45deg,
     color-mix(in srgb, var(--keyword-color) 30%, var(--vscode-button-background)) 0%,
     color-mix(in srgb, var(--function-color) 30%, var(--vscode-button-background)) 50%,
-    color-mix(in srgb, var(--type-color) 30%, var(--vscode-button-background)) 100%);
+    color-mix(in srgb, var(--type-color) 30%, var(--vscode-button-background)) 100%) !important;
   box-shadow:
     0 2px 0 rgba(0, 0, 0, 0.3),
     0 3px 8px rgba(0, 0, 0, 0.2),
-    0 0 5px var(--function-color);
+    0 0 5px var(--function-color) !important;
 }

@@ -1,0 +1,139 @@
+/* KoЯnelius - Form & Input Styling */
+
+/* Input group container - provides consistent spacing */
+.input-group {
+  margin-bottom: 15px;
+  position: relative;
+}
+
+/* Label styling - mimics a tape label */
+.input-group label {
+  display: block;
+  font-family: 'Permanent Marker', cursive;
+  font-size: 0.9em;
+  color: var(--keyword-color);
+  margin-bottom: 5px;
+  padding: 2px 5px;
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 90%, var(--keyword-color));
+  border-radius: 3px;
+  width: fit-content;
+  transform: rotate(-1deg);
+  border-left: 3px solid var(--keyword-color);
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.4);
+}
+
+/* Main, single primary textarea */
+.main-input {
+  width: 100%;
+  min-height: 120px;
+  padding: 10px;
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 90%, var(--type-color));
+  color: var(--vscode-editor-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 5px;
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+/* Regular textareas for multi-input sections */
+textarea:not(.main-input) {
+  width: 100%;
+  padding: 8px;
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 95%, var(--keyword-color));
+  color: var(--vscode-editor-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 4px;
+  font-family: var(--vscode-editor-font-family);
+  font-size: calc(var(--vscode-editor-font-size) * 0.95);
+  resize: vertical;
+  transition: all 0.3s ease;
+}
+
+/* Hover state for all textareas */
+textarea:hover {
+  border-color: var(--function-color);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--function-color) 50%, transparent);
+}
+
+/* Focus state for all textareas */
+textarea:focus {
+  outline: none;
+  border-color: var(--function-color);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--function-color) 70%, transparent);
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 98%, var(--function-color));
+}
+
+/* Container for multiple input fields */
+.multi-input-container {
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 97%, var(--function-color));
+  padding: 15px;
+  border-radius: 6px;
+  border: 1px dashed var(--variable-color);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.multi-input-container::before {
+  content: "✓ MULTI-FIELD INPUT";
+  font-family: 'Anton', sans-serif;
+  font-size: 0.7em;
+  color: var(--variable-color);
+  position: absolute;
+  top: -8px;
+  left: 15px;
+  background-color: var(--vscode-editor-background);
+  padding: 0 8px;
+  border-radius: 10px;
+  letter-spacing: 0.5px;
+}
+
+/* Prompt preview section */
+.prompt-preview {
+  margin: 15px 0;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.prompt-preview h3 {
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 90%, var(--type-color));
+  color: var(--type-color);
+  padding: 8px 15px;
+  margin: 0;
+  font-size: 0.9em;
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.prompt-preview .preview-content {
+  padding: 10px 15px;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 98%, var(--type-color));
+  font-family: var(--vscode-editor-font-family);
+  font-size: calc(var(--vscode-editor-font-size) * 0.9);
+  line-height: 1.4;
+  white-space: pre-wrap;
+}
+
+/* Pulse animation for preview updates */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--function-color) 40%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--function-color) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--function-color) 0%, transparent);
+  }
+}
+
+.pulse {
+  animation: pulse 0.5s 1;
+}
