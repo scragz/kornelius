@@ -26,35 +26,41 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PromptManager = void 0;
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const vscode = __importStar(require("vscode"));
 const debugLogger_1 = require("./debugLogger");
 class PromptManager {
     constructor() {
-        // Get the extension's directory path
-        // In production builds, __dirname would be something like:
-        // c:\Users\username\.vscode\extensions\extension-name\dist
-        const extensionRoot = path.resolve(path.dirname(require.main?.filename || ''), '../../..');
-        this._promptsDirectory = path.join(extensionRoot, 'prompts');
+        // Get extension context using the publisher.name format from package.json
+        const extensionId = 'kornelius.kornelius';
+        debugLogger_1.DebugLogger.log(`Looking for extension with ID: ${extensionId}`);
+        const extension = vscode.extensions.getExtension(extensionId);
+        if (!extension) {
+            const availableExtensions = vscode.extensions.all.map(ext => ext.id).join(', ');
+            debugLogger_1.DebugLogger.error(`Could not find extension ${extensionId}. Available extensions: ${availableExtensions}`);
+            throw new Error(`Could not find extension ${extensionId}`);
+        }
+        this._promptsDirectory = path.join(extension.extensionPath, 'prompts');
         debugLogger_1.DebugLogger.log('PromptManager initialized');
-        debugLogger_1.DebugLogger.log('Extension root directory determined as:', extensionRoot);
+        debugLogger_1.DebugLogger.log('Extension path:', extension.extensionPath);
         debugLogger_1.DebugLogger.log('Prompt directory set to:', this._promptsDirectory);
         // Additional logging to help diagnose path issues
         try {
             if (fs.existsSync(this._promptsDirectory)) {
-                console.log('✓ Prompts directory exists');
+                debugLogger_1.DebugLogger.log('✓ Prompts directory exists');
                 const promptFiles = fs.readdirSync(this._promptsDirectory);
-                console.log(`Found ${promptFiles.length} files in prompts directory:`, promptFiles);
+                debugLogger_1.DebugLogger.log(`Found ${promptFiles.length} files in prompts directory:`, promptFiles);
             }
             else {
-                console.error('✗ Prompts directory does not exist at:', this._promptsDirectory);
+                debugLogger_1.DebugLogger.error('✗ Prompts directory does not exist at:', this._promptsDirectory);
                 // Try to list parent directory to aid in debugging
                 const parentDir = path.dirname(this._promptsDirectory);
                 if (fs.existsSync(parentDir)) {
-                    console.log(`Parent directory exists, contents:`, fs.readdirSync(parentDir));
+                    debugLogger_1.DebugLogger.log(`Parent directory exists, contents:`, fs.readdirSync(parentDir));
                 }
             }
         }
         catch (error) {
-            console.error('Error checking prompts directory:', error);
+            debugLogger_1.DebugLogger.error('Error checking prompts directory:', error);
         }
     }
     /**

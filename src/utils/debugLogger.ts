@@ -4,7 +4,7 @@
 
 export class DebugLogger {
   private static logEnabled = true;
-  private static logToFile = false;
+  private static logToFile = true; // Changed to true to enable file logging by default
   private static logQueue: string[] = [];
 
   /**
@@ -12,7 +12,7 @@ export class DebugLogger {
    */
   public static initialize(): void {
     this.logEnabled = true;
-    this.logToFile = false;
+    this.logToFile = true; // Changed to true to ensure file logging is on after initialization
     this.logQueue = [];
     this.log('DebugLogger initialized');
   }
@@ -82,7 +82,7 @@ export class DebugLogger {
     // This function would normally write logs to a file
     // But for simplicity, we'll just keep the logs in memory
     // and not actually write to a file
-    console.log('Would write logs to file:', this.logQueue.length, 'entries');
+    // console.log('Would write logs to file:', this.logQueue.length, 'entries');
   }
 
   /**

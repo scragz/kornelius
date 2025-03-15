@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as path from 'path';
+import * as fs from 'fs';
 import { PromptManager } from '../utils/promptManager';
 import { DebugLogger } from '../utils/debugLogger';
 
@@ -30,11 +32,10 @@ export async function generatePrompt(
     // Show message to user for debugging
     vscode.window.showInformationMessage(`Generating prompt for: ${step}`);
 
-    // Create prompt manager
+    // Create prompt manager - no need to calculate paths manually now
     const promptManager = new PromptManager();
 
     // Get all templates
-    DebugLogger.log(`Looking for templates in: ${promptManager['_promptsDirectory']}`);
     const templates = await promptManager.getPromptTemplates();
     DebugLogger.log(`Found ${templates.length} templates:`, templates.map(t => t.name).join(', '));
 
@@ -42,8 +43,23 @@ export async function generatePrompt(
     const matchingTemplate = templates.find(template => template.type === step);
 
     if (!matchingTemplate) {
-      DebugLogger.error(`No template found for step: ${step}. Available: ${templates.map(t => t.name).join(', ')}`);
-      throw new Error(`No template found for step: ${step}. Available templates: ${templates.map(t => t.name).join(', ')}`);
+      // Try a more direct approach to find the prompt file
+      const promptsDirectory = path.join(vscode.extensions.getExtension('kornelius')?.extensionPath || '', 'prompts');
+      const directPromptPath = path.join(promptsDirectory, `${step}.prompt`);
+      DebugLogger.log(`No template found for step: ${step}. Trying direct path: ${directPromptPath}`);
+
+      if (fs.existsSync(directPromptPath)) {
+        DebugLogger.log(`Found prompt file directly at: ${directPromptPath}`);
+        // Create an ad-hoc template
+        const templateContent = fs.readFileSync(directPromptPath, 'utf-8');
+        DebugLogger.log(`Loaded template content directly, length: ${templateContent.length} characters`);
+
+        // Generate the prompt using our placeholder values
+        return processPromptWithPlaceholders(step, templateContent, userInputs);
+      } else {
+        DebugLogger.error(`No template found for step: ${step}. Available: ${templates.map(t => t.name).join(', ')}`);
+        throw new Error(`No template found for step: ${step}. Available templates: ${templates.map(t => t.name).join(', ')}`);
+      }
     }
 
     DebugLogger.log(`Found matching template: ${matchingTemplate.name} at ${matchingTemplate.fullPath}`);
@@ -52,86 +68,84 @@ export async function generatePrompt(
     const templateContent = await promptManager.getPromptContent(matchingTemplate.fullPath);
     DebugLogger.log(`Loaded template content, length: ${templateContent.length} characters`);
 
-    // Convert the structured user inputs to a flat record of key-value pairs
-    const placeholderMap: Record<string, string> = {};
-
-    // Map appropriate values based on the current step
-    switch (step) {
-      case 'request':
-        // For request step, just use the IDEA placeholder
-        placeholderMap['IDEA'] = userInputs.request || '';
-        break;
-
-      case 'spec':
-        // For spec step, use previous step's input plus any spec-specific input
-        placeholderMap['insert_request_here'] = userInputs.request || '';
-        placeholderMap['insert_rules_here'] = ''; // This would come from a rules file
-        placeholderMap['insert_template_here'] = ''; // This would come from a template
-        break;
-
-      case 'planner':
-        // For planner step, use request and spec inputs
-        placeholderMap['PROJECT_REQUEST'] = userInputs.request || '';
-        placeholderMap['PROJECT_RULES'] = ''; // Optional
-        placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.spec || '';
-        placeholderMap['STARTER_TEMPLATE'] = ''; // Optional
-        break;
-
-      case 'codegen':
-        // For codegen step, use request, spec and planner inputs
-        placeholderMap['PROJECT_REQUEST'] = userInputs.request || '';
-        placeholderMap['PROJECT_RULES'] = ''; // Optional
-        placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.spec || '';
-        placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.planner || '';
-        placeholderMap['YOUR_CODE'] = ''; // This would be the user's existing code
-        break;
-
-      case 'review':
-        // For review step, use all previous inputs
-        placeholderMap['PROJECT_REQUEST'] = userInputs.request || '';
-        placeholderMap['PROJECT_RULES'] = ''; // Optional
-        placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.spec || '';
-        placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.planner || '';
-        placeholderMap['EXISTING_CODE'] = userInputs.codegen || '';
-        break;
-
-      default:
-        // For unknown steps, use whatever inputs are provided
-        Object.keys(userInputs).forEach(key => {
-          placeholderMap[key.toUpperCase()] = userInputs[key] || '';
-        });
-    }
-
-    // Generate the prompt using the template and user inputs
-    const generatedPrompt = promptManager.generatePrompt(templateContent, placeholderMap);
-
-    // Return the generated prompt
-    return generatedPrompt;
+    // Process the prompt with the appropriate placeholders
+    return processPromptWithPlaceholders(step, templateContent, userInputs);
   } catch (error) {
+    DebugLogger.error(`Failed to generate prompt: ${error instanceof Error ? error.message : String(error)}`);
     vscode.window.showErrorMessage(`Failed to generate prompt: ${error instanceof Error ? error.message : String(error)}`);
-    return '';
+
+    // Rethrow the error to ensure the webview gets the error message
+    throw error;
   }
 }
 
 /**
- * Command to save the generated prompt to a file
+ * Process the template content with the appropriate placeholders based on the step
  */
-export async function saveGeneratedPrompt(content: string): Promise<string | undefined> {
-  try {
-    // Get a filename for the generated prompt
-    const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\..+/, '');
-    const filename = `generated-prompt-${timestamp}.md`;
+function processPromptWithPlaceholders(
+  step: string,
+  templateContent: string,
+  userInputs: PromptUserInputs
+): string {
+  // Convert the structured user inputs to a flat record of key-value pairs
+  const placeholderMap: Record<string, string> = {};
 
-    const promptManager = new PromptManager();
+  DebugLogger.log(`Processing template for step: ${step}`);
 
-    // Save the generated prompt to a file
-    const filePath = await promptManager.saveGeneratedPrompt(content, filename);
+  // Map appropriate values based on the current step
+  switch (step) {
+    case 'request':
+      // For request step, just use the IDEA placeholder
+      placeholderMap['PROJECT_REQUEST'] = userInputs.request || '';
+      break;
 
-    vscode.window.showInformationMessage(`Prompt saved to: ${filePath}`);
+    case 'spec':
+      // For spec step, use previous step's input plus any spec-specific input
+      placeholderMap['PROJECT_REQUEST'] = userInputs.REQUEST || '';
+      placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
+      placeholderMap['STARTER_TEMPLATE'] = userInputs.STARTER_TEMPLATE || '';
+      break;
 
-    return filePath;
-  } catch (error) {
-    vscode.window.showErrorMessage(`Failed to save generated prompt: ${error instanceof Error ? error.message : String(error)}`);
-    return undefined;
+    case 'planner':
+      // For planner step, use request and spec inputs
+      placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';
+      placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
+      placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.spec || '';
+      placeholderMap['STARTER_TEMPLATE'] = userInputs.STARTER_TEMPLATE || '';
+      break;
+
+    case 'codegen':
+      // For codegen step, use request, spec and planner inputs
+      placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';
+      placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
+      placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.TECHNICAL_SPECIFICATION || '';
+      placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.IMPLEMENTATION_PLAN || '';
+      placeholderMap['YOUR_CODE'] = userInputs.YOUR_CODE || '';
+      break;
+
+    case 'review':
+      // For review step, use all previous inputs
+      placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';
+      placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
+      placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.TECHNICAL_SPECIFICATION || '';
+      placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.IMPLEMENTATION_PLAN || '';
+      placeholderMap['EXISTING_CODE'] = userInputs.EXISTING_CODE || '';
+      break;
+
+    default:
+      // For unknown steps, use whatever inputs are provided
+      Object.keys(userInputs).forEach(key => {
+        placeholderMap[key.toUpperCase()] = userInputs[key] || '';
+      });
   }
+
+  DebugLogger.log('Placeholder map:', placeholderMap);
+
+  // Create a new prompt manager to generate the prompt
+  const promptManager = new PromptManager();
+  const generatedPrompt = promptManager.generatePrompt(templateContent, placeholderMap);
+
+  DebugLogger.log(`Generated prompt for step ${step}, length: ${generatedPrompt.length} characters`);
+
+  return generatedPrompt;
 }

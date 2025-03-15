@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { SidebarViewProvider } from './views/sidebarViewProvider';
 import { JinaReader } from './utils/jinaReader';
 import { browsePrompts, selectPromptTemplate, getTemplateContent } from './commands/browsePrompts';
-import { generatePrompt, saveGeneratedPrompt } from './commands/generatePrompt';
+import { generatePrompt } from './commands/generatePrompt';
 import { copyToClipboard } from './commands/copyPrompt';
 import { DebugLogger } from './utils/debugLogger';
 

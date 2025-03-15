@@ -1,12 +1,9 @@
 import * as vscode from 'vscode';
+import { DebugLogger } from '../utils/debugLogger';
 
 export class SidebarViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'kornelius-sidebar';
   public static readonly viewId = 'kornelius-sidebar';
-
-  // Keep this reference for potential future updates
-  // @ts-ignore
-  private _view?: vscode.WebviewView;
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
@@ -15,8 +12,6 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
     _context: vscode.WebviewViewResolveContext,
     _token: vscode.CancellationToken
   ) {
-    this._view = webviewView;
-
     webviewView.webview.options = {
       // Enable JavaScript in the webview
       enableScripts: true,
@@ -28,39 +23,58 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
     // Handle messages from the webview
     webviewView.webview.onDidReceiveMessage(async (message) => {
-      switch (message.command) {
-        case 'stepChange':
-          // Handle step change
-          console.log(`Changed to step: ${message.step}`);
-          break;
-        case 'generatePrompt':
-          // Handle prompt generation based on the step
-          try {
-            console.log(`Generating prompt for step ${message.step} with data:`, message.data);
+      try {
+        switch (message.command) {
+          case 'stepChange':
+            // Handle step change
+            DebugLogger.log(`Changed to step: ${message.step}`);
+            break;
+          case 'generatePrompt':
+            // Handle prompt generation based on the step
+            try {
+              DebugLogger.log(`Sidebar: Received generatePrompt request for step ${message.step} with data:`, message.data);
 
-            // Call the command to generate the prompt
-            const generatedPrompt = await vscode.commands.executeCommand(
-              'kornelius.generatePrompt',
-              message.step,
-              message.data
-            );
+              // Call the command to generate the prompt
+              const generatedPrompt = await vscode.commands.executeCommand(
+                'kornelius.generatePrompt',
+                message.step,
+                message.data
+              );
 
-            // Send the generated prompt back to the webview
-            webviewView.webview.postMessage({
-              command: 'promptGenerated',
-              step: message.step,
-              content: generatedPrompt
-            });
-          } catch (error) {
-            console.error('Error generating prompt:', error);
-            vscode.window.showErrorMessage(`Failed to generate prompt: ${error instanceof Error ? error.message : String(error)}`);
-          }
-          break;
-        case 'copyToClipboard':
-          // Handle copy to clipboard
-          vscode.env.clipboard.writeText(message.text);
-          vscode.window.showInformationMessage('Prompt copied to clipboard!');
-          break;
+              DebugLogger.log(`Sidebar: Successfully generated prompt for step ${message.step}, sending back to webview`);
+
+              // Send the generated prompt back to the webview
+              webviewView.webview.postMessage({
+                command: 'promptGenerated',
+                step: message.step,
+                content: generatedPrompt
+              });
+            } catch (error) {
+              DebugLogger.error(`Sidebar: Error generating prompt for step ${message.step}:`, error);
+              vscode.window.showErrorMessage(`Failed to generate prompt: ${error instanceof Error ? error.message : String(error)}`);
+
+              // Send error back to webview
+              webviewView.webview.postMessage({
+                command: 'promptError',
+                step: message.step,
+                error: error instanceof Error ? error.message : String(error)
+              });
+            }
+            break;
+          case 'copyToClipboard':
+            // Handle copy to clipboard
+            vscode.env.clipboard.writeText(message.text);
+            vscode.window.showInformationMessage('Prompt copied to clipboard!');
+            break;
+          case 'logError':
+            // Handle error logging from webview
+            DebugLogger.error(`Error in webview: ${message.error}`);
+            vscode.window.showErrorMessage(`Webview error: ${message.error}`);
+            break;
+        }
+      } catch (error) {
+        DebugLogger.error('Error handling webview message:', error);
+        vscode.window.showErrorMessage(`Error in extension: ${error instanceof Error ? error.message : String(error)}`);
       }
     });
   }
@@ -251,6 +265,80 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
       </div>
 
       <script nonce="${nonce}">
+        // Initialize VS Code API once and store the reference
+        const vscode = acquireVsCodeApi();
+
+        // Function to log errors to extension
+        function logToExtension(error) {
+          vscode.postMessage({
+            command: 'logError',
+            error: typeof error === 'object' ? JSON.stringify(error) : String(error)
+          });
+        }
+
+        // Set global error handler
+        window.onerror = function(message, source, lineno, colno, error) {
+          logToExtension(\`\${message} at \${source}:\${lineno}:\${colno}\`);
+          return true;
+        };
+
+        // Unhandled promise rejection handler
+        window.addEventListener('unhandledrejection', event => {
+          logToExtension(\`Unhandled Promise rejection: \${event.reason}\`);
+        });
+
+        // Message handler for extension responses
+        window.addEventListener('message', event => {
+          const message = event.data;
+
+          // Log message receipt at debug level
+          console.log('Received message:', message);
+
+          switch (message.command) {
+            case 'promptGenerated':
+              const { step, content } = message;
+              if (!content) {
+                logToExtension('Received empty content in promptGenerated message');
+                return;
+              }
+
+              console.log(\`Successfully generated prompt for \${step}\`);
+              const generateButton = document.getElementById(\`generate-copy-\${step}\`);
+              if (generateButton) {
+                // Copy content to clipboard
+                vscode.postMessage({
+                  command: 'copyToClipboard',
+                  text: content
+                });
+
+                generateButton.textContent = "COPIED TO CLIPBOARD!";
+                generateButton.classList.add('pulse');
+
+                setTimeout(() => {
+                  generateButton.textContent = "GET PROMPT";
+                  generateButton.disabled = false;
+                  generateButton.classList.remove('pulse');
+                }, 2000);
+              }
+              break;
+
+            case 'promptError':
+              logToExtension(\`Error generating prompt: \${message.error}\`);
+              const errorButton = document.getElementById(\`generate-copy-\${message.step}\`);
+              if (errorButton) {
+                errorButton.textContent = "ERROR - TRY AGAIN";
+                setTimeout(() => {
+                  errorButton.textContent = "GET PROMPT";
+                  errorButton.disabled = false;
+                }, 2000);
+              }
+              break;
+
+            default:
+              console.log('Received unknown message type:', message.command);
+          }
+        });
+
         // Current step tracking
         let currentStep = 1;
         const totalSteps = 5;
@@ -259,32 +347,27 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         // Get UI elements
         const prevButton = document.getElementById('prev-step');
         const nextButton = document.getElementById('next-step');
-        const stepIndicator = document.getElementById('step-indicator');
-
-        // Step elements
         const steps = document.querySelectorAll('.step');
 
         // Function to update the visible step
         function updateStep(newStep) {
-          // Hide all steps
-          steps.forEach(step => step.style.display = 'none');
+          try {
+            steps.forEach(step => step.style.display = 'none');
+            document.querySelector(\`[data-step="\${newStep}"]\`).style.display = 'block';
 
-          // Show the current step
-          document.querySelector(\`[data-step="\${newStep}"]\`).style.display = 'block';
+            prevButton.disabled = newStep === 1;
+            nextButton.disabled = newStep === totalSteps;
 
-          // Update button states
-          prevButton.disabled = newStep === 1;
-          nextButton.disabled = newStep === totalSteps;
+            currentStep = newStep;
 
-          // Track current step
-          currentStep = newStep;
-
-          // Send message to extension
-          const vscode = acquireVsCodeApi();
-          vscode.postMessage({
-            command: 'stepChange',
-            step: currentStep
-          });
+            // Notify extension of step change
+            vscode.postMessage({
+              command: 'stepChange',
+              step: currentStep
+            });
+          } catch (error) {
+            logToExtension(error);
+          }
         }
 
         // Event listeners for navigation
@@ -301,13 +384,10 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         });
 
         // Setup generate-and-copy buttons for each step
-        stepTypes.forEach((stepType, index) => {
+        stepTypes.forEach((stepType) => {
           const generateCopyButton = document.getElementById(\`generate-copy-\${stepType}\`);
-
           if (generateCopyButton) {
-            // Handle generate and copy in one click
             generateCopyButton.addEventListener('click', async () => {
-              // Get the current data from all the input fields for this step
               const inputData = {};
 
               // Show loading state
@@ -317,184 +397,95 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
               try {
                 // Each step has different input fields
                 switch(stepType) {
-                case 'request':
-                  const requestIdeaEl = document.getElementById('request-idea');
-                  if (!requestIdeaEl || !requestIdeaEl.value.trim()) {
-                    alert('Please enter your request or idea first.');
-                    return;
-                  }
-                  inputData['request'] = requestIdeaEl.value.trim();
-                  break;
-
-                case 'spec':
-                  const specRequestEl = document.getElementById('spec-request');
-                  const specRulesEl = document.getElementById('spec-rules');
-                  const specTemplateEl = document.getElementById('spec-template');
-
-                  if (!specRequestEl || !specRequestEl.value.trim()) {
-                    alert('Please paste in the project request first.');
-                    return;
-                  }
-
-                  inputData['request'] = specRequestEl.value.trim();
-                  inputData['insert_rules_here'] = specRulesEl ? specRulesEl.value.trim() : '';
-                  inputData['insert_template_here'] = specTemplateEl ? specTemplateEl.value.trim() : '';
-                  break;
-
-                case 'planner':
-                  const plannerRequestEl = document.getElementById('planner-request');
-                  const plannerRulesEl = document.getElementById('planner-rules');
-                  const plannerSpecEl = document.getElementById('planner-spec');
-                  const plannerTemplateEl = document.getElementById('planner-template');
-
-                  if (!plannerRequestEl || !plannerRequestEl.value.trim() ||
-                      !plannerSpecEl || !plannerSpecEl.value.trim()) {
-                    alert('Please fill in both the request and specification fields.');
-                    return;
-                  }
-
-                  inputData['request'] = plannerRequestEl.value.trim();
-                  inputData['PROJECT_RULES'] = plannerRulesEl ? plannerRulesEl.value.trim() : '';
-                  inputData['spec'] = plannerSpecEl.value.trim();
-                  inputData['STARTER_TEMPLATE'] = plannerTemplateEl ? plannerTemplateEl.value.trim() : '';
-                  break;
-
-                case 'codegen':
-                  const codegenRequestEl = document.getElementById('codegen-request');
-                  const codegenRulesEl = document.getElementById('codegen-rules');
-                  const codegenSpecEl = document.getElementById('codegen-spec');
-                  const codegenPlanEl = document.getElementById('codegen-plan');
-                  const codegenCodeEl = document.getElementById('codegen-code');
-
-                  if (!codegenRequestEl || !codegenRequestEl.value.trim() ||
-                      !codegenSpecEl || !codegenSpecEl.value.trim() ||
-                      !codegenPlanEl || !codegenPlanEl.value.trim()) {
-                    alert('Please fill in the request, specification, and implementation plan fields.');
-                    return;
-                  }
-
-                  inputData['request'] = codegenRequestEl.value.trim();
-                  inputData['PROJECT_RULES'] = codegenRulesEl ? codegenRulesEl.value.trim() : '';
-                  inputData['spec'] = codegenSpecEl.value.trim();
-                  inputData['planner'] = codegenPlanEl.value.trim();
-                  inputData['YOUR_CODE'] = codegenCodeEl ? codegenCodeEl.value.trim() : '';
-                  break;
-
-                case 'review':
-                  const reviewRequestEl = document.getElementById('review-request');
-                  const reviewRulesEl = document.getElementById('review-rules');
-                  const reviewSpecEl = document.getElementById('review-spec');
-                  const reviewPlanEl = document.getElementById('review-plan');
-                  const reviewCodeEl = document.getElementById('review-code');
-
-                  if (!reviewRequestEl || !reviewRequestEl.value.trim() ||
-                      !reviewSpecEl || !reviewSpecEl.value.trim() ||
-                      !reviewPlanEl || !reviewPlanEl.value.trim() ||
-                      !reviewCodeEl || !reviewCodeEl.value.trim()) {
-                    alert('Please fill in all required fields.');
-                    return;
-                  }
-
-                  inputData['request'] = reviewRequestEl.value.trim();
-                  inputData['PROJECT_RULES'] = reviewRulesEl ? reviewRulesEl.value.trim() : '';
-                  inputData['spec'] = reviewSpecEl.value.trim();
-                  inputData['planner'] = reviewPlanEl.value.trim();
-                  inputData['EXISTING_CODE'] = reviewCodeEl.value.trim();
-                  break;
-
-                default:
-                  alert('Unknown step type');
-                  return;
-              }
-
-                // Send message to extension to generate prompt for this specific step
-                const vscode = acquireVsCodeApi();
-
-                // Generate the prompt
-                console.log("Generating prompt for " + stepType);
-
-                // Use a local variable to store the generated prompt
-                const generatedPromptResponse = await new Promise((resolve) => {
-                  // Set up a one-time listener for the response
-                  const messageHandler = (event) => {
-                    const msg = event.data;
-                    if (msg.command === 'promptGenerated' && msg.step === stepType) {
-                      // Remove the listener once we get our response
-                      window.removeEventListener('message', messageHandler);
-                      resolve(msg.content);
+                  case 'request':
+                    const requestIdeaEl = document.getElementById('request-idea');
+                    if (!requestIdeaEl?.value.trim()) {
+                      throw new Error('Please enter your request or idea first.');
                     }
-                  };
+                    inputData.PROJECT_REQUEST = requestIdeaEl.value.trim();
+                    break;
 
-                  // Add the listener
-                  window.addEventListener('message', messageHandler);
+                  case 'spec':
+                    const specRequestEl = document.getElementById('spec-request');
+                    if (!specRequestEl?.value.trim()) {
+                      throw new Error('Please paste in the project request first.');
+                    }
+                    inputData.PROJECT_REQUEST = specRequestEl.value.trim();
+                    inputData.PROJECT_RULES = document.getElementById('spec-rules')?.value.trim() || '';
+                    inputData.STARTER_TEMPLATE = document.getElementById('spec-template')?.value.trim() || '';
+                    break;
 
-                  // Send the request
-                  vscode.postMessage({
-                    command: 'generatePrompt',
-                    step: stepType,
-                    data: inputData
-                  });
+                  case 'planner':
+                    const plannerRequestEl = document.getElementById('planner-request');
+                    const plannerSpecEl = document.getElementById('planner-spec');
+                    if (!plannerRequestEl?.value.trim() || !plannerSpecEl?.value.trim()) {
+                      throw new Error('Please fill in both the request and specification fields.');
+                    }
+                    inputData.PROJECT_REQUEST = plannerRequestEl.value.trim();
+                    inputData.PROJECT_RULES = document.getElementById('planner-rules')?.value.trim() || '';
+                    inputData.TECHNICAL_SPECIFICATION = plannerSpecEl.value.trim();
+                    inputData.STARTER_TEMPLATE = document.getElementById('planner-template')?.value.trim() || '';
+                    break;
+
+                  case 'codegen':
+                    const codegenRequestEl = document.getElementById('codegen-request');
+                    const codegenSpecEl = document.getElementById('codegen-spec');
+                    const codegenPlanEl = document.getElementById('codegen-plan');
+                    if (!codegenRequestEl?.value.trim() || !codegenSpecEl?.value.trim() || !codegenPlanEl?.value.trim()) {
+                      throw new Error('Please fill in the request, specification, and implementation plan fields.');
+                    }
+                    inputData.PROJECT_REQUEST = codegenRequestEl.value.trim();
+                    inputData.PROJECT_RULES = document.getElementById('codegen-rules')?.value.trim() || '';
+                    inputData.TECHNICAL_SPECIFICATION = codegenSpecEl.value.trim();
+                    inputData.IMPLEMENTATION_PLAN = codegenPlanEl.value.trim();
+                    inputData.YOUR_CODE = document.getElementById('codegen-code')?.value.trim() || '';
+                    break;
+
+                  case 'review':
+                    const reviewRequestEl = document.getElementById('review-request');
+                    const reviewSpecEl = document.getElementById('review-spec');
+                    const reviewPlanEl = document.getElementById('review-plan');
+                    const reviewCodeEl = document.getElementById('review-code');
+                    if (!reviewRequestEl?.value.trim() || !reviewSpecEl?.value.trim() ||
+                        !reviewPlanEl?.value.trim() || !reviewCodeEl?.value.trim()) {
+                      throw new Error('Please fill in all required fields.');
+                    }
+                    inputData.PROJECT_REQUEST = reviewRequestEl.value.trim();
+                    inputData.PROJECT_RULES = document.getElementById('review-rules')?.value.trim() || '';
+                    inputData.TECHNICAL_SPECIFICATION = reviewSpecEl.value.trim();
+                    inputData.IMPLEMENTATION_PLAN = reviewPlanEl.value.trim();
+                    inputData.EXISTING_CODE = reviewCodeEl.value.trim();
+                    break;
+
+                  default:
+                    throw new Error('Unknown step type');
+                }
+
+                logToExtension(\`Sending generatePrompt request for \${stepType}\`);
+
+                // Send message to extension
+                vscode.postMessage({
+                  command: 'generatePrompt',
+                  step: stepType,
+                  data: inputData
                 });
 
-                // Now copy the generated prompt to clipboard
-                if (generatedPromptResponse) {
-                  vscode.postMessage({
-                    command: 'copyToClipboard',
-                    text: generatedPromptResponse
-                  });
-
-                  // Show success state
-                  generateCopyButton.textContent = "COPIED TO CLIPBOARD!";
-                  generateCopyButton.classList.add('pulse');
-
-                  // Reset button after a delay
-                  setTimeout(() => {
-                    generateCopyButton.textContent = "GET PROMPT";
-                    generateCopyButton.disabled = false;
-                    generateCopyButton.classList.remove('pulse');
-                  }, 2000);
-                }
               } catch (error) {
-                // Handle errors
-                console.error("Error generating or copying prompt:", error);
+                logToExtension(\`Error preparing inputs: \${error.message || String(error)}\`);
+                alert(error.message || 'Failed to prepare inputs');
                 generateCopyButton.textContent = "ERROR - TRY AGAIN";
-
-                // Reset button after a delay
-                setTimeout(() => {
-                  generateCopyButton.textContent = "GET PROMPT";
-                  generateCopyButton.disabled = false;
-                }, 2000);
+                generateCopyButton.disabled = false;
               }
             });
           }
         });
 
-        // Handle messages from the extension
-        window.addEventListener('message', event => {
-          const message = event.data;
-
-          // Handle prompt generation response
-          if (message.command === 'promptGenerated') {
-            const { step, content } = message;
-            const previewDiv = document.getElementById(\`\${step}-preview\`);
-
-            if (previewDiv) {
-              const contentDiv = previewDiv.querySelector('.preview-content');
-              if (contentDiv) {
-                contentDiv.textContent = content;
-
-                // Add pulse animation
-                previewDiv.classList.add('pulse');
-                setTimeout(() => {
-                  previewDiv.classList.remove('pulse');
-                }, 300);
-              }
-            }
-          }
-        });
-
         // Initialize first step
-        updateStep(1);
+        try {
+          updateStep(1);
+        } catch (error) {
+          logToExtension(\`Error initializing first step: \${error}\`);
+        }
       </script>
     </body>
     </html>`;

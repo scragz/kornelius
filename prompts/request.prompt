@@ -62,8 +62,8 @@ This ensures you iterate toward a final, clear “Project Request” doc.
 
 ## **Context**
 
-<idea>
-{IDEA}
-</idea>
+<project_request>
+{PROJECT_REQUEST}
+</project_request>
 
 ---

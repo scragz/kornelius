@@ -139,15 +139,15 @@ We'll keep refining the request until I indicate it's complete and ready.
 ## **Context**
 
 <project_request>
-{{insert_request_here}}
+{{PROJECT_REQUEST}}
 </project_request>
 
 <project_rules>
-{{insert_rules_here}}
+{{PROJECT_RULES}}
 </project_rules>
 
 <starter_template>
-{{insert_template_here}}
+{{STARTER_TEMPLATE}}
 </starter_template>
 
 ---

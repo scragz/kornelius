@@ -10,7 +10,7 @@ class DebugLogger {
      */
     static initialize() {
         this.logEnabled = true;
-        this.logToFile = false;
+        this.logToFile = true; // Changed to true to ensure file logging is on after initialization
         this.logQueue = [];
         this.log('DebugLogger initialized');
     }
@@ -68,7 +68,7 @@ class DebugLogger {
         // This function would normally write logs to a file
         // But for simplicity, we'll just keep the logs in memory
         // and not actually write to a file
-        console.log('Would write logs to file:', this.logQueue.length, 'entries');
+        // console.log('Would write logs to file:', this.logQueue.length, 'entries');
     }
     /**
      * Enable or disable logging
@@ -97,6 +97,6 @@ class DebugLogger {
 }
 exports.DebugLogger = DebugLogger;
 DebugLogger.logEnabled = true;
-DebugLogger.logToFile = false;
+DebugLogger.logToFile = true; // Changed to true to enable file logging by default
 DebugLogger.logQueue = [];
 //# sourceMappingURL=debugLogger.js.map
