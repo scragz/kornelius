@@ -5,7 +5,6 @@
   background-color: var(--vscode-editor-background);
   padding: 20px;
   border-radius: 8px;
-  margin-top: 20px;
   position: relative;
   overflow: hidden;
   border: 1px solid var(--vscode-panel-border);
@@ -156,16 +155,6 @@
   padding: 0 15px;
   text-align: center;
   white-space: nowrap;
-}
-
-/* Barbed wire divider */
-.barbed-divider {
-  height: 30px;
-  margin: 20px 0;
-  background: url('../media/barbed-wire.svg') repeat-x;
-  background-size: contain;
-  opacity: 0.6;
-  position: relative;
 }
 
 /* Ensure textarea and all inputs are clickable */

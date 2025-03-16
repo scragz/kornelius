@@ -141,8 +141,8 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
   <div class="container">
     <div class="logo">
       <h1>Ko<span class="reversed">Я</span>nelius</h1>
+      <p class="tagline">Your vibe coding companion</p>
     </div>
-    <p class="tagline">Your vibe coding companion</p>
 
     <div class="step-navigation">
       <button id="prev-step" disabled>◀ PREV</button>
@@ -301,17 +301,17 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
       </div>
     </div>
 
-    <!-- Jina Integration Section -->
-    <div id="jina-section" class="jina-section" style="display: none; margin-top: 20px;">
+    <!-- Cat Section -->
+    <div id="cat-section" class="cat-section">
       <div class="button-group">
-        <button id="fetchJinaBtn" class="generate-copy-btn">FETCH MARKDOWN</button>
+        <button id="catFilesBtn" class="generate-copy-btn">CAT FILES</button>
       </div>
     </div>
 
-    <!-- Cat Section -->
-    <div id="cat-section" class="jina-section" style="margin-top: 20px;">
+    <!-- Jina Integration Section -->
+    <div id="jina-section" class="jina-section" style="display: none;">
       <div class="button-group">
-        <button id="catFilesBtn" class="generate-copy-btn">CAT FILES</button>
+        <button id="fetchJinaBtn" class="generate-copy-btn">FETCH MARKDOWN</button>
       </div>
     </div>
   </div>
