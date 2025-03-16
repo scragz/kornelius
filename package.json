@@ -91,6 +91,6 @@
     "vscode-test": "^1.5.2"
   },
   "dependencies": {
-    "ignore": "^5.2.1"
+    "ignore": "^7.0.3"
   }
 }
