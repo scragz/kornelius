@@ -278,15 +278,9 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
       </div>
     </div>
 
-    <!-- Jina Integration Section (Placed below the steps) -->
+    <!-- Jina Integration Section -->
     <div id="jina-section" class="jina-section" style="display: none; margin-top: 20px;">
       <h3>Jina</h3>
-      <div class="multi-input-container">
-        <div class="input-group">
-          <label for="jinaUrls">URLs (one per line):</label>
-          <textarea id="jinaUrls" rows="4" placeholder="Enter URLs to fetch markdown from..."></textarea>
-        </div>
-      </div>
       <div class="button-group">
         <button id="fetchJinaBtn" class="generate-copy-btn">FETCH FROM JINA</button>
       </div>
@@ -361,7 +355,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         case 'fetchJinaSuccess': {
           const fetchJinaBtn = document.getElementById('fetchJinaBtn');
           if (fetchJinaBtn) {
-            fetchJinaBtn.textContent = 'FETCH FROM JINA';
+            fetchJinaBtn.textContent = 'FETCH';
             fetchJinaBtn.disabled = false;
           }
           if (message.results && message.results.length > 0) {
@@ -578,40 +572,13 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
     // Initialize Jina functionality
     function initJinaFunctionality() {
-      const jinaUrlsInput = document.getElementById('jinaUrls');
       const fetchJinaBtn = document.getElementById('fetchJinaBtn');
-
-      if (!jinaUrlsInput || !fetchJinaBtn) return;
-
-      // Disable button initially
-      fetchJinaBtn.disabled = true;
-
-      // Enable/disable button based on input
-      jinaUrlsInput.addEventListener('input', () => {
-        fetchJinaBtn.disabled = !jinaUrlsInput.value.trim();
-      });
+      if (!fetchJinaBtn) return;
 
       // Handle fetch button click
-      fetchJinaBtn.addEventListener('click', async () => {
-        if (fetchJinaBtn.disabled) return;
-
-        const url = jinaUrlsInput.value.trim();
-        if (!url) return;
-
-        try {
-          // Validate URL
-          new URL(url);
-        } catch {
-          alert('Please enter a valid URL');
-          return;
-        }
-
-        fetchJinaBtn.disabled = true;
-        fetchJinaBtn.textContent = 'FETCHING...';
-
+      fetchJinaBtn.addEventListener('click', () => {
         vscode.postMessage({
-          command: 'fetchJina',
-          url: url
+          command: 'kornelius.fetchJina'
         });
       });
     }
