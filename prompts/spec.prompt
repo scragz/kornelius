@@ -11,7 +11,7 @@ Your task is to **generate a comprehensive technical specification** based on an
 
 ## **Optional Inputs**
 
-1. **TEMPLATE**: A starter template or reference design in `<starter_template>`.
+1. **REFERENCE**: A starter template or reference design in `<reference_code>`.
 
 ---
 
@@ -27,7 +27,7 @@ This prompt instructs the AI to:
 
 ## **Detailed Process Outline**
 
-1. **Review Inputs**: The AI reviews `<project_request>`, `<project_rules>`, and (optionally) `<starter_template>`.
+1. **Review Inputs**: The AI reviews `<project_request>`, `<project_rules>`, and (optionally) `<reference_code>`.
 2. **Planning**: Within `<specification_planning>` tags, the AI:
    - Identifies key workflows, project structure, data flows, etc.
    - Pinpoints challenges and clarifies requirements.
@@ -146,8 +146,8 @@ We'll keep refining the request until I indicate it's complete and ready.
 {{PROJECT_RULES}}
 </project_rules>
 
-<starter_template>
-{{STARTER_TEMPLATE}}
-</starter_template>
+<reference_code>
+{{REFERENCE_CODE}}
+</reference_code>
 
 ---

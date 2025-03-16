@@ -13,7 +13,7 @@ export interface PromptUserInputs {
   PROJECT_RULES?: string;
   TECHNICAL_SPECIFICATION?: string;
   IMPLEMENTATION_PLAN?: string;
-  STARTER_TEMPLATE?: string;
+  REFERENCE_CODE?: string;
   YOUR_CODE?: string;
   EXISTING_CODE?: string;
   [key: string]: string | undefined; // Add index signature to allow dynamic access
@@ -103,7 +103,7 @@ function processPromptWithPlaceholders(
       // For spec step, use previous step's input plus any spec-specific input
       placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';  // Fixed: Use PROJECT_REQUEST instead of REQUEST
       placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
-      placeholderMap['STARTER_TEMPLATE'] = userInputs.STARTER_TEMPLATE || '';
+      placeholderMap['REFERENCE_CODE'] = userInputs.REFERENCE_CODE || '';
       break;
 
     case 'planner':
@@ -111,7 +111,7 @@ function processPromptWithPlaceholders(
       placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';
       placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
       placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.TECHNICAL_SPECIFICATION || '';  // Fixed: Use TECHNICAL_SPECIFICATION instead of spec
-      placeholderMap['STARTER_TEMPLATE'] = userInputs.STARTER_TEMPLATE || '';
+      placeholderMap['REFERENCE_CODE'] = userInputs.REFERENCE_CODE || '';
       break;
 
     case 'codegen':

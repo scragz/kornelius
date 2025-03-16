@@ -95,14 +95,14 @@ function processPromptWithPlaceholders(step, templateContent, userInputs) {
             // For spec step, use previous step's input plus any spec-specific input
             placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || ''; // Fixed: Use PROJECT_REQUEST instead of REQUEST
             placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
-            placeholderMap['STARTER_TEMPLATE'] = userInputs.STARTER_TEMPLATE || '';
+            placeholderMap['REFERENCE_CODE'] = userInputs.REFERENCE_CODE || '';
             break;
         case 'planner':
             // For planner step, use request and spec inputs
             placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';
             placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
             placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.TECHNICAL_SPECIFICATION || ''; // Fixed: Use TECHNICAL_SPECIFICATION instead of spec
-            placeholderMap['STARTER_TEMPLATE'] = userInputs.STARTER_TEMPLATE || '';
+            placeholderMap['REFERENCE_CODE'] = userInputs.REFERENCE_CODE || '';
             break;
         case 'codegen':
             // For codegen step, use request, spec and planner inputs

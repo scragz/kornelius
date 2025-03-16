@@ -7,7 +7,7 @@ Your task is to **create a comprehensive, step-by-step implementation plan** for
 1. **PROJECT_REQUEST**: An overview of the project requirements or user request.
 2. **PROJECT_RULES**: Any specific rules, guidelines, or best practices to follow.
 3. **TECHNICAL_SPECIFICATION**: A thorough technical spec outlining architecture, data flows, features, etc.
-4. **STARTER_TEMPLATE**: Any initial code or directory structure templates that should be referenced or expanded.
+4. **REFERENCE_CODE**: Any initial code or directory structure templates that should be referenced or expanded.
 
 ---
 
@@ -29,7 +29,7 @@ Upon completion, the AI will produce a final **Implementation Plan**—a single 
 
 ## **Detailed Process Outline**
 
-1. **Review Inputs**: The AI reads `<project_request>`, `<project_rules>`, `<technical_specification>`, and `<starter_template>` to form a complete understanding of the project.
+1. **Review Inputs**: The AI reads `<project_request>`, `<project_rules>`, `<technical_specification>`, and `<reference_code>` to form a complete understanding of the project.
 2. **Brainstorm**: Within `<brainstorming>` tags, the AI considers:
    - Core structure and essential configurations.
    - Database schema, server actions, and API routes.
@@ -83,8 +83,8 @@ After listing all steps, provide a **brief summary** of your overall approach an
 {{TECHNICAL_SPECIFICATION}}
 </technical_specification>
 
-<starter_template>
-{{STARTER_TEMPLATE}}
-</starter_template>
+<reference_code>
+{{REFERENCE_CODE}}
+</reference_code>
 
 ---

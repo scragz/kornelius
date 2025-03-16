@@ -1,4 +1,4 @@
-Here's a **VSCode Extension Starter Template** with **TypeScript**, **ESLint**, and **Prettier** configured. This template follows best practices and provides a solid foundation for extension development.
+Here's a **VSCode Extension Reference Code** with **TypeScript**, **ESLint**, and **Prettier** configured. This template follows best practices and provides a solid foundation for extension development.
 
 ---
 

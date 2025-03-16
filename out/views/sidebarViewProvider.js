@@ -195,8 +195,8 @@ class SidebarViewProvider {
           <textarea id="spec-rules" rows="3" placeholder="Enter any project rules..."></textarea>
         </div>
         <div class="input-group">
-          <label for="spec-template">Starter Template (optional):</label>
-          <textarea id="spec-template" rows="3" placeholder="Enter any starter template..."></textarea>
+          <label for="spec-template">Reference Code (optional):</label>
+          <textarea id="spec-template" rows="3" placeholder="Enter any reference code..."></textarea>
         </div>
       </div>
       <div class="button-group">
@@ -227,7 +227,7 @@ class SidebarViewProvider {
           <textarea id="planner-rules" rows="3" placeholder="Enter project rules..."></textarea>
         </div>
         <div class="input-group">
-          <label for="planner-template">Starter Template (optional):</label>
+          <label for="planner-template">Reference Code (optional):</label>
           <textarea id="planner-template" rows="3" placeholder="Enter starter template..."></textarea>
         </div>
       </div>
@@ -584,7 +584,7 @@ class SidebarViewProvider {
                 }
                 inputData.PROJECT_REQUEST = specRequestEl.value.trim();
                 inputData.PROJECT_RULES = document.getElementById('spec-rules')?.value.trim() || '';
-                inputData.STARTER_TEMPLATE = document.getElementById('spec-template')?.value.trim() || '';
+                inputData.REFERENCE_CODE = document.getElementById('spec-template')?.value.trim() || '';
                 break;
               }
               case 'planner': {
@@ -596,7 +596,7 @@ class SidebarViewProvider {
                 inputData.PROJECT_REQUEST = plannerRequestEl.value.trim();
                 inputData.PROJECT_RULES = document.getElementById('planner-rules')?.value.trim() || '';
                 inputData.TECHNICAL_SPECIFICATION = plannerSpecEl.value.trim();
-                inputData.STARTER_TEMPLATE = document.getElementById('planner-template')?.value.trim() || '';
+                inputData.REFERENCE_CODE = document.getElementById('planner-template')?.value.trim() || '';
                 break;
               }
               case 'codegen': {
