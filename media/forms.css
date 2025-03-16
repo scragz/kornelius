@@ -80,21 +80,6 @@ textarea:focus {
   width: 100%; /* Fix width calculation */
 }
 
-.multi-input-container::before {
-  content: "✓ CONTEXT";
-  font-family: 'Anton', sans-serif;
-  font-size: 0.7em;
-  color: var(--variable-color);
-  position: absolute;
-  top: -8px;
-  left: 15px;
-  right: 15px;
-  background-color: var(--vscode-editor-background);
-  padding: 0 8px;
-  border-radius: 10px;
-  letter-spacing: 0.5px;
-}
-
 /* Prompt preview section */
 .prompt-preview {
   margin: 15px 0;

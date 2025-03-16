@@ -151,7 +151,10 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
     <!-- Step 1: Request -->
     <div class="step" id="step-request" data-step="1">
-      <h2>REQUEST</h2>
+      <div class="step-title">
+        <span>REQUEST</span>
+        <button class="reset-btn-small" title="Reset all fields">⟲</button>
+      </div>
       <div class="multi-input-container">
         <div class="input-group">
           <label for="request-idea">Your initial idea:</label>
@@ -168,7 +171,10 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
     <!-- Step 2: Spec -->
     <div class="step" id="step-spec" data-step="2" style="display: none;">
-      <h2>SPEC</h2>
+      <div class="step-title">
+        <span>SPEC</span>
+        <button class="reset-btn-small" title="Reset all fields">⟲</button>
+      </div>
       <div class="multi-input-container">
         <div class="input-group">
           <label for="spec-request">Project Request:</label>
@@ -193,7 +199,10 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
     <!-- Step 3: Planner -->
     <div class="step" id="step-planner" data-step="3" style="display: none;">
-      <h2>PLANNER</h2>
+      <div class="step-title">
+        <span>PLANNER</span>
+        <button class="reset-btn-small" title="Reset all fields">⟲</button>
+      </div>
       <div class="multi-input-container">
         <div class="input-group">
           <label for="planner-spec">Technical Specification:</label>
@@ -222,7 +231,10 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
     <!-- Step 4: Codegen -->
     <div class="step" id="step-codegen" data-step="4" style="display: none;">
-      <h2>CODEGEN</h2>
+      <div class="step-title">
+        <span>CODEGEN</span>
+        <button class="reset-btn-small" title="Reset all fields">⟲</button>
+      </div>
       <div class="multi-input-container">
         <div class="input-group">
           <label for="codegen-plan">Implementation Plan:</label>
@@ -255,7 +267,10 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
     <!-- Step 5: Review -->
     <div class="step" id="step-review" data-step="5" style="display: none;">
-      <h2>REVIEW</h2>
+      <div class="step-title">
+        <span>REVIEW</span>
+        <button class="reset-btn-small" title="Reset all fields">⟲</button>
+      </div>
       <div class="multi-input-container">
         <div class="input-group">
           <label for="review-code">Existing Code:</label>
@@ -655,6 +670,28 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
     // Save values to localStorage on input change
     document.querySelectorAll('textarea').forEach(textarea => {
       textarea.addEventListener('input', saveToLocalStorage);
+    });
+
+    // Reset button functionality for small reset buttons in step headers
+    document.querySelectorAll('.reset-btn-small').forEach(resetBtn => {
+      resetBtn.addEventListener('click', () => {
+        // Clear all textarea values
+        document.querySelectorAll('textarea').forEach(textarea => {
+          textarea.value = '';
+        });
+        // Remove saved values from localStorage
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        // Reset the state of all generate buttons
+        document.querySelectorAll('.generate-copy-btn').forEach(btn => {
+          btn.textContent = "GET PROMPT";
+          btn.disabled = true;
+        });
+        // Revalidate each step since inputs are cleared
+        stepTypes.forEach(stepType => {
+          validateStep(stepType);
+        });
+        vscode.postMessage({ command: 'resetForm' });
+      });
     });
   </script>
 </body>
