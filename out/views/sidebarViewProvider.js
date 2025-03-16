@@ -300,7 +300,7 @@ class SidebarViewProvider {
     <div id="jina-section" class="jina-section" style="display: none; margin-top: 20px;">
       <h3>Jina</h3>
       <div class="button-group">
-        <button id="fetchJinaBtn" class="generate-copy-btn">FETCH FROM JINA</button>
+        <button id="fetchJinaBtn" class="generate-copy-btn">FETCH MARKDOWN</button>
       </div>
     </div>
 

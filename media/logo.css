@@ -11,22 +11,6 @@
   overflow: hidden;
 }
 
-.logo::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg,
-    rgba(0,0,0,0.1) 0%,
-    rgba(0,0,0,0) 40%,
-    rgba(0,0,0,0) 60%,
-    rgba(0,0,0,0.1) 100%);
-  z-index: -1;
-  animation: shimmer 2.5s infinite;
-}
-
 .logo h1 {
   margin: 0;
 }
