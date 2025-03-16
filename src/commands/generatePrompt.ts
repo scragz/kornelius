@@ -15,7 +15,6 @@ export interface PromptUserInputs {
   IMPLEMENTATION_PLAN?: string;
   REFERENCE_CODE?: string;
   EXISTING_CODE?: string;
-  EXISTING_CODE?: string;
   [key: string]: string | undefined; // Add index signature to allow dynamic access
 }
 
