@@ -4,7 +4,7 @@
   "description": "A guided flow for AI-based prompt creation",
   "version": "0.1.1",
   "publisher": "scragz",
-  "icon": "media/barbed-wire-color.svg",
+  "icon": "media/barbed-wire-color.png",
   "repository": {
     "type": "git",
     "url": "https://github.com/scragz/kornelius.git"
