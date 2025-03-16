@@ -313,6 +313,47 @@ class SidebarViewProvider {
 
   <script nonce="${nonce}">
     const vscode = acquireVsCodeApi();
+    const LOCAL_STORAGE_KEY = 'kornelius_sidebar_values';
+
+    // Function to save all textarea values to localStorage
+    function saveToLocalStorage() {
+      try {
+        const allInputs = {};
+        document.querySelectorAll('textarea').forEach(textarea => {
+          if (textarea.id) {
+            allInputs[textarea.id] = textarea.value;
+          }
+        });
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allInputs));
+        logToExtension('Saved form values to localStorage');
+      } catch (error) {
+        logToExtension('Error saving to localStorage: ' + error, 'error');
+      }
+    }
+
+    // Function to load values from localStorage
+    function loadFromLocalStorage() {
+      try {
+        const savedValues = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (savedValues) {
+          const parsedValues = JSON.parse(savedValues);
+          for (const [id, value] of Object.entries(parsedValues)) {
+            const element = document.getElementById(id);
+            if (element && element.tagName === 'TEXTAREA') {
+              element.value = value;
+            }
+          }
+          logToExtension('Restored form values from localStorage');
+
+          // Validate all steps after loading data
+          stepTypes.forEach(stepType => {
+            validateStep(stepType);
+          });
+        }
+      } catch (error) {
+        logToExtension('Error loading from localStorage: ' + error, 'error');
+      }
+    }
 
     function logToExtension(message, level = 'log') {
       vscode.postMessage({
@@ -617,6 +658,14 @@ class SidebarViewProvider {
         vscode.postMessage({ command: 'runCat' });
       });
     }
+
+    // Load values from localStorage on initialization
+    loadFromLocalStorage();
+
+    // Save values to localStorage on input change
+    document.querySelectorAll('textarea').forEach(textarea => {
+      textarea.addEventListener('input', saveToLocalStorage);
+    });
   </script>
 </body>
 </html>`;
