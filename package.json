@@ -1,8 +1,8 @@
 {
   "name": "kornelius",
   "displayName": "KoЯnelius",
-  "description": "A guided flow for AI-based prompt creation",
-  "version": "0.1.1",
+  "description": "Your vibe coding companion",
+  "version": "0.1.2",
   "publisher": "scragz",
   "icon": "media/barbed-wire-color.png",
   "repository": {
