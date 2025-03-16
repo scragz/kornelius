@@ -31,6 +31,7 @@ const browsePrompts_1 = require("./commands/browsePrompts");
 const generatePrompt_1 = require("./commands/generatePrompt");
 const copyPrompt_1 = require("./commands/copyPrompt");
 const debugLogger_1 = require("./utils/debugLogger");
+const catFiles_1 = require("./commands/catFiles");
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {
@@ -100,8 +101,12 @@ function activate(context) {
     const getTemplateContentCmd = vscode.commands.registerCommand('kornelius.getTemplateContent', async (templatePath) => {
         return await (0, browsePrompts_1.getTemplateContent)(templatePath);
     });
+    // Register cat files command
+    const catFilesCmd = vscode.commands.registerCommand('kornelius.catFiles', async () => {
+        return await (0, catFiles_1.catFiles)();
+    });
     // Add all commands to subscriptions
-    context.subscriptions.push(browsePromptsCmd, generatePromptCmd, copyToClipboardCmd, selectTemplateCmd, getTemplateContentCmd, focusCmd, debugCommand, 
+    context.subscriptions.push(browsePromptsCmd, generatePromptCmd, copyToClipboardCmd, selectTemplateCmd, getTemplateContentCmd, focusCmd, debugCommand, catFilesCmd, 
     // Add a command to handle log messages from webview
     vscode.commands.registerCommand('kornelius.log', (message) => {
         debugLogger_1.DebugLogger.log(message);

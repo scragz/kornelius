@@ -15,19 +15,18 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:kornelius-sidebar",
     "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "kornelius.browsePrompts",
-        "title": "KoЯnelius: Browse Prompt Templates"
+        "command": "kornelius.catFiles",
+        "title": "KoЯnelius: Concatenate Files"
       },
       {
         "command": "kornelius.fetchMarkdown",
-        "title": "KoЯnelius: Fetch Markdown from URL (Jina.ai)"
+        "title": "KoЯnelius: Fetch Markdown from URL using Jina.ai"
       },
       {
         "command": "kornelius.focus",
@@ -90,5 +89,8 @@
     "mocha": "^8.4.0",
     "typescript": "^4.3.2",
     "vscode-test": "^1.5.2"
+  },
+  "dependencies": {
+    "ignore": "^5.2.1"
   }
 }

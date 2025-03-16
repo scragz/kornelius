@@ -5,6 +5,7 @@ import { browsePrompts, selectPromptTemplate, getTemplateContent } from './comma
 import { generatePrompt } from './commands/generatePrompt';
 import { copyToClipboard } from './commands/copyPrompt';
 import { DebugLogger } from './utils/debugLogger';
+import { catFiles } from './commands/catFiles';
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -52,53 +53,6 @@ export function activate(context: vscode.ExtensionContext) {
   // Register browse prompts command
   const browsePromptsCmd = vscode.commands.registerCommand('kornelius.browsePrompts', async () => {
     return await browsePrompts();
-  });
-
-  // Register command to handle Jina fetch command from webview
-  const jinaFetchCmd = vscode.commands.registerCommand('kornelius.fetchJina', async () => {
-    DebugLogger.log('Command kornelius.fetchJina called from webview');
-    const reader = new JinaReader();
-    if (!reader.isEnabled()) {
-      const configureAction = 'Configure Settings';
-      const result = await vscode.window.showErrorMessage(
-        'Jina.ai integration is not enabled or missing API key.',
-        configureAction
-      );
-      if (result === configureAction) {
-        await vscode.commands.executeCommand('workbench.action.openSettings', 'kornelius');
-      }
-      return;
-    }
-
-    const url = await vscode.window.showInputBox({
-      prompt: 'Enter URL to fetch markdown from',
-      placeHolder: 'https://example.com/article',
-      validateInput: (value) => {
-        try {
-          new URL(value);
-          return null;
-        } catch {
-          return 'Please enter a valid URL';
-        }
-      }
-    });
-
-    if (!url) return;
-
-    await vscode.window.withProgress({
-      location: vscode.ProgressLocation.Notification,
-      title: 'Fetching markdown content...',
-      cancellable: false
-    }, async () => {
-      const markdown = await reader.fetchMarkdown(url);
-      const document = await vscode.workspace.openTextDocument({
-        content: markdown,
-        language: 'markdown'
-      });
-      await vscode.window.showTextDocument(document);
-      await vscode.env.clipboard.writeText(markdown);
-      vscode.window.showInformationMessage('Content fetched and copied to clipboard');
-    });
   });
 
   // Register generate prompt command
@@ -149,6 +103,11 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  // Register cat files command
+  const catFilesCmd = vscode.commands.registerCommand('kornelius.catFiles', async () => {
+    return await catFiles();
+  });
+
   // Add all commands to subscriptions
   context.subscriptions.push(
     browsePromptsCmd,
@@ -158,7 +117,7 @@ export function activate(context: vscode.ExtensionContext) {
     getTemplateContentCmd,
     focusCmd,
     debugCommand,
-    jinaFetchCmd,  // Add the new command
+    catFilesCmd,
     // Add a command to handle log messages from webview
     vscode.commands.registerCommand('kornelius.log', (message: string) => {
       DebugLogger.log(message);

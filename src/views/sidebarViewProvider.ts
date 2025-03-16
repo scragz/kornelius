@@ -52,6 +52,14 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
             });
           }
           return;
+        } else if (message.command === 'runCat') {
+          try {
+            await vscode.commands.executeCommand('kornelius.catFiles');
+          } catch (error) {
+            DebugLogger.error('Error running cat files:', error);
+            vscode.window.showErrorMessage(`Error running cat files: ${error instanceof Error ? error.message : String(error)}`);
+          }
+          return;
         }
 
         // Handle other messages (step navigation, prompt generation, etc.)
@@ -283,6 +291,14 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
       <h3>Jina</h3>
       <div class="button-group">
         <button id="fetchJinaBtn" class="generate-copy-btn">FETCH FROM JINA</button>
+      </div>
+    </div>
+
+    <!-- Cat Section -->
+    <div id="cat-section" class="jina-section" style="margin-top: 20px;">
+      <h3>Cat</h3>
+      <div class="button-group">
+        <button id="catFilesBtn" class="generate-copy-btn">CAT FILES</button>
       </div>
     </div>
   </div>
@@ -585,6 +601,14 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
     // Request Jina integration status on initialization
     vscode.postMessage({ command: 'checkJinaEnabled' });
+
+    // Initialize Cat Files functionality
+    const catFilesBtn = document.getElementById('catFilesBtn');
+    if (catFilesBtn) {
+      catFilesBtn.addEventListener('click', () => {
+        vscode.postMessage({ command: 'runCat' });
+      });
+    }
   </script>
 </body>
 </html>`;
