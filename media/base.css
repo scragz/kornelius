@@ -54,6 +54,4 @@ body {
   padding: 15px 10px;
   max-width: 100%;
   position: relative;
-  /* Add a subtle glitch animation to the container */
-  animation: glitch 60s ease-in-out infinite;
 }
