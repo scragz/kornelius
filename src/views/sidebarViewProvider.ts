@@ -288,7 +288,6 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
     <!-- Jina Integration Section -->
     <div id="jina-section" class="jina-section" style="display: none; margin-top: 20px;">
-      <h3>Jina</h3>
       <div class="button-group">
         <button id="fetchJinaBtn" class="generate-copy-btn">FETCH MARKDOWN</button>
       </div>
@@ -296,7 +295,6 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
     <!-- Cat Section -->
     <div id="cat-section" class="jina-section" style="margin-top: 20px;">
-      <h3>Cat</h3>
       <div class="button-group">
         <button id="catFilesBtn" class="generate-copy-btn">CAT FILES</button>
       </div>
