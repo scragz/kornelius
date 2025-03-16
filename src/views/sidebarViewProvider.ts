@@ -600,7 +600,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
                 inputData.PROJECT_RULES = document.getElementById('codegen-rules')?.value.trim() || '';
                 inputData.TECHNICAL_SPECIFICATION = codegenSpecEl.value.trim();
                 inputData.IMPLEMENTATION_PLAN = codegenPlanEl.value.trim();
-                inputData.YOUR_CODE = document.getElementById('codegen-code')?.value.trim() || '';
+                inputData.EXISTING_CODE = document.getElementById('codegen-code')?.value.trim() || '';
                 break;
               }
               case 'review': {

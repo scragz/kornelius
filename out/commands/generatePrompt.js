@@ -110,7 +110,7 @@ function processPromptWithPlaceholders(step, templateContent, userInputs) {
             placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
             placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.TECHNICAL_SPECIFICATION || '';
             placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.IMPLEMENTATION_PLAN || '';
-            placeholderMap['YOUR_CODE'] = userInputs.YOUR_CODE || '';
+            placeholderMap['EXISTING_CODE'] = userInputs.EXISTING_CODE || '';
             break;
         case 'review':
             // For review step, use all previous inputs

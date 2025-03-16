@@ -14,7 +14,7 @@ export interface PromptUserInputs {
   TECHNICAL_SPECIFICATION?: string;
   IMPLEMENTATION_PLAN?: string;
   REFERENCE_CODE?: string;
-  YOUR_CODE?: string;
+  EXISTING_CODE?: string;
   EXISTING_CODE?: string;
   [key: string]: string | undefined; // Add index signature to allow dynamic access
 }
@@ -120,7 +120,7 @@ function processPromptWithPlaceholders(
       placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
       placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.TECHNICAL_SPECIFICATION || '';
       placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.IMPLEMENTATION_PLAN || '';
-      placeholderMap['YOUR_CODE'] = userInputs.YOUR_CODE || '';
+      placeholderMap['EXISTING_CODE'] = userInputs.EXISTING_CODE || '';
       break;
 
     case 'review':

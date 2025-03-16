@@ -1,8 +1,4 @@
-Below is the **transformed prompt** in your requested format. You can copy, paste, and adapt it as needed.
-
----
-
-# **High-Level Overview of Prompt**
+# Code Generation
 
 Your task is to **serve as an AI code generator** responsible for systematically implementing a web application, one step at a time, based on a provided **technical specification** and **implementation plan**.
 
@@ -16,15 +12,20 @@ You will:
 
 ## **Required Inputs**
 
-1. **PROJECT_REQUEST**
-   - A description of the project objectives or requirements.
-2. **PROJECT_RULES**
-   - Any constraints, conventions, or “rules” you must follow.
-3. **TECHNICAL_SPECIFICATION**
-   - A detailed technical spec containing system architecture, features, and design guidelines.
-4. **IMPLEMENTATION_PLAN**
+1. **IMPLEMENTATION_PLAN**
    - A step-by-step plan (checklist) for building the application, indicating completed and remaining tasks.
-5. **YOUR_CODE**
+2. **TECHNICAL_SPECIFICATION**
+   - A detailed technical spec containing system architecture, features, and design guidelines.
+3. **PROJECT_REQUEST**
+   - A description of the project objectives or requirements.
+
+---
+
+## **Optional Inputs**
+
+1. **PROJECT_RULES**
+   - Any constraints, conventions, or “rules” you must follow.
+2. **EXISTING_CODE**
    - Any existing codebase or partial implementation.
 
 ---
@@ -93,14 +94,13 @@ If you updated the implementation plan, record it here:
 ## [Section Name]
 - [x] Step 1: [Completed or updated step with notes]
 - [ ] Step 2: [Still pending]
-
 ```
 
 ---
 
 ## **File Changes**
 
-Filepath: src/path/to/FileExample.ts
+Example of a new Typescript file: src/path/to/FileExample.ts
 
 ```typescript
 /**
@@ -123,25 +123,30 @@ Filepath: src/path/to/FileExample.ts
 
 ---
 
-Filepath: src/path/to/AnotherFile.ts
+Example of a new Python file: src/path/to/another_file.py
 
-```typescript
-/**
-
+```python
+"""
 - @description
-- Another file for implementing the step.
+- Explains the file purpose, responsibilities, and any additional info.
 -
 - Key features:
-- - ...
+- - Feature A: Describe feature A.
+- - Feature B: Describe feature B.
 -
 - @dependencies
-- - ...
+- - [List relevant libraries or modules]
 -
 - @notes
-- - ...
- */
+- - Implementation detail or limitation
+"""
 
-// Full code here...
+def main():
+    # TODO: Implement the main functionality of this module
+    print("Hello from FileExample.py")
+
+if __name__ == "__main__":
+    main()
 ```
 
 ---
@@ -165,7 +170,7 @@ Filepath: src/path/to/AnotherFile.ts
 </project_rules>
 
 <existing_code>
-{{YOUR_CODE}}
+{{EXISTING_CODE}}
 </existing_code>
 
 ---

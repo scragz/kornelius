@@ -1,17 +1,19 @@
+# Code Review
+
 Your task is to **serve as an expert code reviewer and optimizer**, analyzing the existing code against the original plan and requirements. Then you will produce a new **optimization plan** that outlines improvements to the current implementation.
 
 ---
 
 ## **Required Inputs**
 
-1. **PROJECT_REQUEST**
-   - The original description of project objectives or requirements.
-2. **PROJECT_RULES**
-   - Any constraints, guidelines, or “rules” you must follow.
-3. **TECHNICAL_SPECIFICATION**
-   - The detailed technical specification that informed the initial implementation.
-4. **IMPLEMENTATION_PLAN**
+1. **IMPLEMENTATION_PLAN**
    - The plan used for building the current code.
+2. **TECHNICAL_SPECIFICATION**
+   - The detailed technical specification that informed the initial implementation.
+3. **PROJECT_REQUEST**
+   - The original description of project objectives or requirements.
+4. **PROJECT_RULES**
+   - Any constraints, guidelines, or “rules” you must follow.
 5. **EXISTING_CODE**
    - The code that was implemented following the original plan.
 
