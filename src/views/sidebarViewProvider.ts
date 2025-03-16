@@ -241,20 +241,20 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
           <textarea id="codegen-plan" rows="3" placeholder="Paste the implementation plan..."></textarea>
         </div>
         <div class="input-group">
-          <label for="codegen-code">Your Code (optional):</label>
-          <textarea id="codegen-code" rows="3" placeholder="Enter existing code..."></textarea>
+          <label for="codegen-spec">Technical Specification:</label>
+          <textarea id="codegen-spec" rows="3" placeholder="Paste the specification..."></textarea>
         </div>
         <div class="input-group">
           <label for="codegen-request">Project Request:</label>
           <textarea id="codegen-request" rows="3" placeholder="Paste the project request..."></textarea>
         </div>
         <div class="input-group">
-          <label for="codegen-spec">Technical Specification:</label>
-          <textarea id="codegen-spec" rows="3" placeholder="Paste the specification..."></textarea>
-        </div>
-        <div class="input-group">
           <label for="codegen-rules">Project Rules (optional):</label>
           <textarea id="codegen-rules" rows="3" placeholder="Enter project rules..."></textarea>
+        </div>
+        <div class="input-group">
+          <label for="codegen-code">Your Code (optional):</label>
+          <textarea id="codegen-code" rows="3" placeholder="Enter existing code..."></textarea>
         </div>
       </div>
       <div class="button-group">

@@ -80,6 +80,14 @@ Here is my detailed review of the current codebase:
 
 ## **Context**
 
+<implementation_plan>
+ {{IMPLEMENTATION_PLAN}}
+</implementation_plan>
+
+<technical_specification>
+{{TECHNICAL_SPECIFICATION}}
+</technical_specification>
+
 <project_request>
 {{PROJECT_REQUEST}}
 </project_request>
@@ -87,14 +95,6 @@ Here is my detailed review of the current codebase:
 <project_rules>
 {{PROJECT_RULES}}
 </project_rules>
-
-<technical_specification>
-{{TECHNICAL_SPECIFICATION}}
-</technical_specification>
-
-<implementation_plan>
- {{IMPLEMENTATION_PLAN}}
-</implementation_plan>
 
 <existing_code>
 {{EXISTING_CODE}}

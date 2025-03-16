@@ -71,6 +71,10 @@ After listing all steps, provide a **brief summary** of your overall approach an
 
 ## **Context**
 
+<technical_specification>
+{{TECHNICAL_SPECIFICATION}}
+</technical_specification>
+
 <project_request>
 {{PROJECT_REQUEST}}
 </project_request>
@@ -78,10 +82,6 @@ After listing all steps, provide a **brief summary** of your overall approach an
 <project_rules>
 {{PROJECT_RULES}}
 </project_rules>
-
-<technical_specification>
-{{TECHNICAL_SPECIFICATION}}
-</technical_specification>
 
 <reference_code>
 {{REFERENCE_CODE}}
