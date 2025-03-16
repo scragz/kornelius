@@ -90,51 +90,39 @@
   transform: perspective(500px) rotateX(5deg);
 }
 
-/* Small reset button */
+/* Small reset button - text only style */
 .reset-btn-small {
-  font-size: 0.9em;
-  width: 24px;
-  height: 24px;
+  font-size: 1.25em;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Match nav button styles for better light theme legibility */
-  background: linear-gradient(to bottom,
-    var(--vscode-button-background) 0%,
-    color-mix(in srgb, var(--vscode-button-background) 80%, black) 100%);
-  color: var(--vscode-button-foreground);
-  border: 1px solid color-mix(in srgb, var(--vscode-button-background) 70%, black);
+  background: transparent;
+  color: var(--keyword-color);
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  opacity: 0.85;
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.2),
-    inset 0 1px 3px rgba(255, 255, 255, 0.1);
-  transform: scale(0.9);
+  transition: color 0.2s ease;
+  opacity: 0.7;
   padding: 0;
-  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  box-shadow: none;
+  text-shadow: none;
 }
 
 .reset-btn-small:hover {
-  transform: scale(1);
+  color: color-mix(in srgb, var(--keyword-color) 120%, white);
   opacity: 1;
-  background: linear-gradient(to bottom,
-    color-mix(in srgb, var(--vscode-button-background) 120%, white) 0%,
-    var(--vscode-button-background) 100%);
-  box-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.3),
-    inset 0 1px 3px rgba(255, 255, 255, 0.2);
+  background: transparent;
+  box-shadow: none;
+  border: none;
 }
 
 .reset-btn-small:active {
-  transform: scale(0.85);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.3),
-    inset 0 1px 3px rgba(0, 0, 0, 0.2);
-  background: linear-gradient(to bottom,
-    color-mix(in srgb, var(--vscode-button-background) 80%, black) 0%,
-    color-mix(in srgb, var(--vscode-button-background) 90%, black) 100%);
+  color: color-mix(in srgb, var(--keyword-color) 80%, black);
+  background: transparent;
+  box-shadow: none;
+  border: none;
 }
 
 /* The combined generate & copy buttons */
