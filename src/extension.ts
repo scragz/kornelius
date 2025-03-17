@@ -132,29 +132,14 @@ export function activate(context: vscode.ExtensionContext) {
 
       switch (message.command) {
         case 'fetchJina':
-          // Get URL from user first
-          const url = await vscode.window.showInputBox({
-            prompt: 'Enter URL to fetch markdown from',
-            placeHolder: 'https://example.com/article',
-            validateInput: (value) => {
-              try {
-                new URL(value);
-                return null;
-              } catch {
-                return 'Please enter a valid URL';
-              }
-            }
-          });
-
-          if (!url) {
+          // Handle Jina fetch request with progress indicator
+          if (!message.url) {
             webviewView.webview.postMessage({
               command: 'fetchJinaError',
               error: 'No URL provided'
             });
             return;
           }
-
-          // Handle Jina fetch request with progress indicator
           await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
             title: 'Fetching from Jina...',
@@ -162,7 +147,8 @@ export function activate(context: vscode.ExtensionContext) {
           }, async () => {
             try {
               const reader = new JinaReader();
-              const markdown = await reader.fetchMarkdown(url);
+              const markdown = await reader.fetchMarkdown(message.url);
+
               // Create a new document with the content
               const document = await vscode.workspace.openTextDocument({
                 content: markdown,
@@ -170,11 +156,12 @@ export function activate(context: vscode.ExtensionContext) {
               });
               await vscode.window.showTextDocument(document);
               await vscode.env.clipboard.writeText(markdown);
+
               // Send success result back to webview
               webviewView.webview.postMessage({
                 command: 'fetchJinaSuccess',
                 results: [{
-                  url: url,
+                  url: message.url,
                   error: null
                 }]
               });
