@@ -87,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   // Register Jina.ai commands
-  JinaReader.registerCommands(context);
+  const jinaCommand = JinaReader.registerCommands();
 
   // Register template selection command
   const selectTemplateCmd = vscode.commands.registerCommand('kornelius.selectTemplate',
@@ -118,6 +118,7 @@ export function activate(context: vscode.ExtensionContext) {
     focusCmd,
     debugCommand,
     catFilesCmd,
+    jinaCommand,
     // Add a command to handle log messages from webview
     vscode.commands.registerCommand('kornelius.log', (message: string) => {
       DebugLogger.log(message);
@@ -131,6 +132,28 @@ export function activate(context: vscode.ExtensionContext) {
 
       switch (message.command) {
         case 'fetchJina':
+          // Get URL from user first
+          const url = await vscode.window.showInputBox({
+            prompt: 'Enter URL to fetch markdown from',
+            placeHolder: 'https://example.com/article',
+            validateInput: (value) => {
+              try {
+                new URL(value);
+                return null;
+              } catch {
+                return 'Please enter a valid URL';
+              }
+            }
+          });
+
+          if (!url) {
+            webviewView.webview.postMessage({
+              command: 'fetchJinaError',
+              error: 'No URL provided'
+            });
+            return;
+          }
+
           // Handle Jina fetch request with progress indicator
           await vscode.window.withProgress({
             location: vscode.ProgressLocation.Notification,
@@ -139,8 +162,7 @@ export function activate(context: vscode.ExtensionContext) {
           }, async () => {
             try {
               const reader = new JinaReader();
-              const markdown = await reader.fetchMarkdown(message.url);
-
+              const markdown = await reader.fetchMarkdown(url);
               // Create a new document with the content
               const document = await vscode.workspace.openTextDocument({
                 content: markdown,
@@ -148,12 +170,11 @@ export function activate(context: vscode.ExtensionContext) {
               });
               await vscode.window.showTextDocument(document);
               await vscode.env.clipboard.writeText(markdown);
-
               // Send success result back to webview
               webviewView.webview.postMessage({
                 command: 'fetchJinaSuccess',
                 results: [{
-                  url: message.url,
+                  url: url,
                   error: null
                 }]
               });

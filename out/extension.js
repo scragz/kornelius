@@ -92,7 +92,7 @@ function activate(context) {
         }
     });
     // Register Jina.ai commands
-    jinaReader_1.JinaReader.registerCommands(context);
+    const jinaCommand = jinaReader_1.JinaReader.registerCommands();
     // Register template selection command
     const selectTemplateCmd = vscode.commands.registerCommand('kornelius.selectTemplate', async (templates) => {
         return await (0, browsePrompts_1.selectPromptTemplate)(templates);
@@ -106,7 +106,7 @@ function activate(context) {
         return await (0, catFiles_1.catFiles)();
     });
     // Add all commands to subscriptions
-    context.subscriptions.push(browsePromptsCmd, generatePromptCmd, copyToClipboardCmd, selectTemplateCmd, getTemplateContentCmd, focusCmd, debugCommand, catFilesCmd, 
+    context.subscriptions.push(browsePromptsCmd, generatePromptCmd, copyToClipboardCmd, selectTemplateCmd, getTemplateContentCmd, focusCmd, debugCommand, catFilesCmd, jinaCommand, 
     // Add a command to handle log messages from webview
     vscode.commands.registerCommand('kornelius.log', (message) => {
         debugLogger_1.DebugLogger.log(message);
@@ -117,6 +117,27 @@ function activate(context) {
             debugLogger_1.DebugLogger.log('Handling Jina message: ' + message.command);
             switch (message.command) {
                 case 'fetchJina':
+                    // Get URL from user first
+                    const url = await vscode.window.showInputBox({
+                        prompt: 'Enter URL to fetch markdown from',
+                        placeHolder: 'https://example.com/article',
+                        validateInput: (value) => {
+                            try {
+                                new URL(value);
+                                return null;
+                            }
+                            catch {
+                                return 'Please enter a valid URL';
+                            }
+                        }
+                    });
+                    if (!url) {
+                        webviewView.webview.postMessage({
+                            command: 'fetchJinaError',
+                            error: 'No URL provided'
+                        });
+                        return;
+                    }
                     // Handle Jina fetch request with progress indicator
                     await vscode.window.withProgress({
                         location: vscode.ProgressLocation.Notification,
@@ -125,7 +146,7 @@ function activate(context) {
                     }, async () => {
                         try {
                             const reader = new jinaReader_1.JinaReader();
-                            const markdown = await reader.fetchMarkdown(message.url);
+                            const markdown = await reader.fetchMarkdown(url);
                             // Create a new document with the content
                             const document = await vscode.workspace.openTextDocument({
                                 content: markdown,
@@ -137,7 +158,7 @@ function activate(context) {
                             webviewView.webview.postMessage({
                                 command: 'fetchJinaSuccess',
                                 results: [{
-                                        url: message.url,
+                                        url: url,
                                         error: null
                                     }]
                             });

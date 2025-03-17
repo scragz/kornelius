@@ -425,7 +425,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         case 'fetchJinaSuccess': {
           const fetchJinaBtn = document.getElementById('fetchJinaBtn');
           if (fetchJinaBtn) {
-            fetchJinaBtn.textContent = 'FETCH';
+            fetchJinaBtn.textContent = 'FETCH MARKDOWN';
             fetchJinaBtn.disabled = false;
           }
           if (message.results && message.results.length > 0) {
@@ -442,7 +442,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         case 'fetchJinaError': {
           const errorBtn = document.getElementById('fetchJinaBtn');
           if (errorBtn) {
-            errorBtn.textContent = 'FETCH FROM JINA';
+            errorBtn.textContent = 'FETCH MARKDOWN';
             errorBtn.disabled = false;
           }
           alert('Error fetching from Jina: ' + message.error);
@@ -648,7 +648,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
       // Handle fetch button click
       fetchJinaBtn.addEventListener('click', () => {
         vscode.postMessage({
-          command: 'kornelius.fetchJina'
+          command: 'fetchJina'
         });
       });
     }

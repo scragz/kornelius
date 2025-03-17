@@ -27,7 +27,7 @@ export class JinaReader {
       try {
         // Validate URL
         const parsedUrl = new URL(url);
-        
+
         // Create request options with additional headers for markdown formatting
         const options = {
           hostname: 'r.jina.ai',
@@ -72,7 +72,7 @@ export class JinaReader {
     });
   }
 
-  public static registerCommands(context: vscode.ExtensionContext): void {
+  public static registerCommands(): vscode.Disposable {
     const fetchCommand = vscode.commands.registerCommand('kornelius.fetchJina', async () => {
       try {
         const reader = new JinaReader();
@@ -124,6 +124,6 @@ export class JinaReader {
       }
     });
 
-    context.subscriptions.push(fetchCommand);
+    return fetchCommand;
   }
 }

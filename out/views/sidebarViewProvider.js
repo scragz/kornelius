@@ -435,7 +435,7 @@ class SidebarViewProvider {
         case 'fetchJinaSuccess': {
           const fetchJinaBtn = document.getElementById('fetchJinaBtn');
           if (fetchJinaBtn) {
-            fetchJinaBtn.textContent = 'FETCH';
+            fetchJinaBtn.textContent = 'FETCH MARKDOWN';
             fetchJinaBtn.disabled = false;
           }
           if (message.results && message.results.length > 0) {
@@ -452,7 +452,7 @@ class SidebarViewProvider {
         case 'fetchJinaError': {
           const errorBtn = document.getElementById('fetchJinaBtn');
           if (errorBtn) {
-            errorBtn.textContent = 'FETCH FROM JINA';
+            errorBtn.textContent = 'FETCH MARKDOWN';
             errorBtn.disabled = false;
           }
           alert('Error fetching from Jina: ' + message.error);
@@ -658,7 +658,7 @@ class SidebarViewProvider {
       // Handle fetch button click
       fetchJinaBtn.addEventListener('click', () => {
         vscode.postMessage({
-          command: 'kornelius.fetchJina'
+          command: 'fetchJina'
         });
       });
     }

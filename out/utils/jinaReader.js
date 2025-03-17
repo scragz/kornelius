@@ -90,7 +90,7 @@ class JinaReader {
             }
         });
     }
-    static registerCommands(context) {
+    static registerCommands() {
         const fetchCommand = vscode.commands.registerCommand('kornelius.fetchJina', async () => {
             try {
                 const reader = new JinaReader();
@@ -136,7 +136,7 @@ class JinaReader {
                 vscode.window.showErrorMessage(`Error fetching markdown: ${error instanceof Error ? error.message : String(error)}`);
             }
         });
-        context.subscriptions.push(fetchCommand);
+        return fetchCommand;
     }
 }
 exports.JinaReader = JinaReader;
