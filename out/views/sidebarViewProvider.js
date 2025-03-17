@@ -175,7 +175,7 @@ class SidebarViewProvider {
         <button id="generate-copy-request" class="generate-copy-btn" disabled>GET PROMPT</button>
       </div>
       <div class="munky-tip">
-        <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
+        <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R1</strong> for best results with this prompt.</p>
       </div>
     </div>
 
@@ -203,7 +203,7 @@ class SidebarViewProvider {
         <button id="generate-copy-spec" class="generate-copy-btn" disabled>GET PROMPT</button>
       </div>
       <div class="munky-tip">
-        <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
+        <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R1</strong> for best results with this prompt.</p>
       </div>
     </div>
 
@@ -235,7 +235,7 @@ class SidebarViewProvider {
         <button id="generate-copy-planner" class="generate-copy-btn" disabled>GET PROMPT</button>
       </div>
       <div class="munky-tip">
-        <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R3</strong> for best results with this prompt.</p>
+        <p>Use a <span class="model-badge reasoning-model">reasoning model</span> like <strong>o1</strong> or <strong>R1</strong> for best results with this prompt.</p>
       </div>
     </div>
 
