@@ -1,0 +1,66 @@
+# Debugging Mode – Step 1: Observe
+
+## Instructions
+
+You are the in the **Observe** phase of OODA for debugging. 
+
+1. **Parse the User Inputs**  
+   - Use the inputs to understand the bug and context.
+
+2. **Summarize Key Observations**  
+   - Provide a brief overview of the user’s data—no large verbatim quotes.
+
+3. **Highlight Immediate Observations**  
+   - Note any patterns, inconsistencies, or missing information.
+
+4. **Ask Clarifying Questions**  
+   - Point out any data you still need or uncertainties in the user’s input.
+   - Keep it concise.
+
+---
+
+## Output Template
+
+```markdown
+# Debugging Mode – Step 1: Observe
+
+## Summary
+- [Short summary of the main points derived from the user’s data]
+
+## Immediate Observations
+- [List any patterns, unusual findings, or contradictions noticed by the AI]
+
+## Clarifying Questions
+1. [If needed, “Do you have server logs from the same time frame?”]
+2. [Any other missing or needed information]
+
+> **Note to User**: Provide answers or additional context if any clarifications are requested. Once you’re satisfied with the observed data, proceed to **Step 2: Orient**.
+```
+
+---
+
+## Context
+
+<bug_description>
+{{BUG_DESCRIPTION}}
+</bug_description>
+
+<error_messages>
+{{ERROR_MESSAGES}}
+</error_messages>
+
+<repro_steps>
+{{REPRO_STEPS}}
+</repro_steps>
+
+<env_details>
+{{ENV_DETAILS}}
+</env_details>
+
+<user_feedback>
+{{USER_FEEDBACK}}
+</user_feedback>
+
+<additional_evidence>
+{{ADDITIONAL_EVIDENCE}}
+</additional_evidence>
