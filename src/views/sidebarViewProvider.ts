@@ -6,7 +6,6 @@ import * as path from 'path';
 export class SidebarViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'kornelius-sidebar';
   public static readonly viewId = 'kornelius-sidebar';
-  private _view?: vscode.WebviewView; // Store the view reference
 
   constructor(
     private readonly _extensionUri: vscode.Uri,
@@ -26,8 +25,6 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
           vscode.Uri.joinPath(this._extensionUri, 'out')
       ], // Removed duplicate property
     };
-
-    this._view = webviewView; // Store the view reference
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 

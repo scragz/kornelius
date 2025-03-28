@@ -1,6 +1,6 @@
 const vscode = acquireVsCodeApi();
-const LOCAL_STORAGE_KEY = 'kornelius_sidebar_values';
-const MODE_STORAGE_KEY = 'kornelius_mode';
+// const LOCAL_STORAGE_KEY = 'kornelius_sidebar_values'; // No longer needed for fields
+const MODE_STORAGE_KEY = 'kornelius_mode'; // Keep for global mode preference
 
 class FormManager {
     constructor() {
@@ -35,7 +35,7 @@ class FormManager {
         this.initializeValidation();
         this.initializeSync();
         this.initializeResetButtons();
-        this.initializeStorage(); // Loads saved mode and values
+        this.initializeStateHandling(); // Replaces initializeStorage for fields
 
         // Constructor now primarily sets up state and listeners,
         // DOM manipulation for initial view happens in DOMContentLoaded.
@@ -278,8 +278,9 @@ class FormManager {
                     });
                 }
 
-                // Don't clear localStorage completely, just reset form values for current mode
-                this.saveToLocalStorage();
+                // Clear fields locally
+                // Send empty state to extension host
+                this.saveStateToExtensionHost({});
 
                 // Reset generate buttons in current mode
                 stepsContainer.querySelectorAll('.generate-copy-btn').forEach(btn => {
@@ -295,67 +296,55 @@ class FormManager {
         });
     }
 
-    initializeStorage() {
-        this.loadFromLocalStorage();
+    initializeStateHandling() {
+        // Listen for input changes to save state
         document.querySelectorAll('textarea').forEach(textarea => {
-            textarea.addEventListener('input', () => this.saveToLocalStorage());
+            textarea.addEventListener('input', () => this.saveStateToExtensionHost());
         });
+
+        // Restore saved mode (still uses localStorage)
+        const savedMode = localStorage.getItem(MODE_STORAGE_KEY);
+        if (savedMode) {
+            this.switchMode(savedMode);
+        }
+        // Note: Field values are loaded via 'loadState' message handled in MessageHandler
     }
 
-    saveToLocalStorage() {
+    saveStateToExtensionHost(state = null) {
         try {
-            // Get existing saved values or initialize empty object
-            let allInputs = {};
-            try {
-                const savedValues = localStorage.getItem(LOCAL_STORAGE_KEY);
-                if (savedValues) {
-                    allInputs = JSON.parse(savedValues);
-                }
-            } catch (e) {
-                // If there's an error parsing saved values, start fresh
-                allInputs = {};
+            if (state === null) {
+                // Collect current values if state is not explicitly provided (e.g., on input)
+                state = {};
+                document.querySelectorAll('textarea').forEach(textarea => {
+                    if (textarea.id) {
+                        state[textarea.id] = textarea.value;
+                    }
+                });
             }
-
-            // Update with current textarea values
-            document.querySelectorAll('textarea').forEach(textarea => {
-                if (textarea.id) {
-                    allInputs[textarea.id] = textarea.value;
-                }
-            });
-
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allInputs));
-            logToExtension('Saved form values to localStorage');
+            vscode.postMessage({ command: 'saveState', state: state });
+            logToExtension('Sent state update to extension host');
         } catch (error) {
-            logToExtension('Error saving to localStorage: ' + error, 'error');
+            logToExtension('Error sending state to extension host: ' + error, 'error');
         }
     }
 
-    loadFromLocalStorage() {
+    loadStateFromExtensionHost(state) {
         try {
-            // Restore saved mode first
-            const savedMode = localStorage.getItem(MODE_STORAGE_KEY);
-            if (savedMode) {
-                this.switchMode(savedMode);
-            }
-
-            // Then restore form values
-            const savedValues = localStorage.getItem(LOCAL_STORAGE_KEY);
-            if (savedValues) {
-                const parsedValues = JSON.parse(savedValues);
-                for (const [id, value] of Object.entries(parsedValues)) {
+            if (state) {
+                for (const [id, value] of Object.entries(state)) {
                     const element = document.getElementById(id);
                     if (element && element.tagName === 'TEXTAREA') {
                         element.value = value;
                     }
                 }
-                logToExtension('Restored form values from localStorage');
+                logToExtension('Restored form values from extension host state');
 
-                // Validate all steps in both modes
+                // Validate all steps in both modes after loading state
                 this.createStepTypes.forEach(stepType => this.validateStep(stepType));
                 this.debugStepTypes.forEach(stepType => this.validateStep(stepType));
             }
         } catch (error) {
-            logToExtension('Error loading from localStorage: ' + error, 'error');
+            logToExtension('Error loading state from extension host: ' + error, 'error');
         }
     }
 }
@@ -380,6 +369,9 @@ class MessageHandler {
 
     handleMessage(message) {
         switch (message.command) {
+            case 'loadState': // Handle receiving initial state
+                this.formManager.loadStateFromExtensionHost(message.state);
+                break;
             case 'promptGenerated':
                 this.handlePromptGenerated(message);
                 break;

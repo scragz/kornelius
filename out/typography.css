@@ -2,7 +2,7 @@
 
 /* Typography with myspace/nu-metal style */
 h1 {
-  font-family: 'Anton', sans-serif;
+  font-family: 'Bungee', sans-serif;
   font-size: 2em;
   font-weight: bold;
   margin-bottom: 0;
@@ -16,9 +16,6 @@ h1 {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow:
-    3px 3px 0px var(--vscode-editor-background),
-    5px 5px 4px rgba(0, 0, 0, 0.4);
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
   position: relative;
 }

@@ -43,7 +43,6 @@ class SidebarViewProvider {
                 vscode.Uri.joinPath(this._extensionUri, 'out')
             ], // Removed duplicate property
         };
-        this._view = webviewView; // Store the view reference
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
         // Send initial state to the webview using workspaceState
         const stateKey = `${SidebarViewProvider.viewType}.state`;
