@@ -52,7 +52,7 @@ function activate(context) {
         return 'Debug command executed';
     });
     // Register the sidebar provider and configure it to handle Jina messages
-    const sidebarProvider = new sidebarViewProvider_1.SidebarViewProvider(context.extensionUri);
+    const sidebarProvider = new sidebarViewProvider_1.SidebarViewProvider(context.extensionUri, context); // Pass context
     // Setup Jina message handling for the sidebar provider
     context.subscriptions.push(vscode.window.registerWebviewViewProvider(sidebarViewProvider_1.SidebarViewProvider.viewType, sidebarProvider));
     // Make sure the activity bar icon is visible on activation

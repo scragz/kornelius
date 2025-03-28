@@ -32,7 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
   });
 
   // Register the sidebar provider and configure it to handle Jina messages
-  const sidebarProvider = new SidebarViewProvider(context.extensionUri);
+  const sidebarProvider = new SidebarViewProvider(context.extensionUri, context); // Pass context
 
   // Setup Jina message handling for the sidebar provider
   context.subscriptions.push(

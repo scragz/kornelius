@@ -6,8 +6,12 @@ import * as path from 'path';
 export class SidebarViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'kornelius-sidebar';
   public static readonly viewId = 'kornelius-sidebar';
+  private _view?: vscode.WebviewView; // Store the view reference
 
-  constructor(private readonly _extensionUri: vscode.Uri) {}
+  constructor(
+    private readonly _extensionUri: vscode.Uri,
+    private readonly _context: vscode.ExtensionContext // Re-add context
+  ) {}
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -20,13 +24,29 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
       localResourceRoots: [
           this._extensionUri,
           vscode.Uri.joinPath(this._extensionUri, 'out')
-      ],
+      ], // Removed duplicate property
     };
+
+    this._view = webviewView; // Store the view reference
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
+    // Send initial state to the webview using workspaceState
+    const stateKey = `${SidebarViewProvider.viewType}.state`;
+    const initialState = this._context.workspaceState.get(stateKey) || {};
+    DebugLogger.log('Sending initial state to webview:', initialState);
+    webviewView.webview.postMessage({ command: 'loadState', state: initialState });
+
+
     webviewView.webview.onDidReceiveMessage(async (message) => {
       try {
+        // Handle state saving using workspaceState
+        if (message.command === 'saveState') {
+          DebugLogger.log('Received state update from webview:', message.state);
+          await this._context.workspaceState.update(stateKey, message.state);
+          return; // State saved, no further action needed for this message
+        }
+
         // Handle Jina-related messages first
         if (message.command === 'checkJinaEnabled') {
           const config = vscode.workspace.getConfiguration('kornelius');

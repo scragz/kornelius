@@ -29,8 +29,10 @@ const debugLogger_1 = require("../utils/debugLogger");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 class SidebarViewProvider {
-    constructor(_extensionUri) {
+    constructor(_extensionUri, _context // Re-add context
+    ) {
         this._extensionUri = _extensionUri;
+        this._context = _context;
     }
     resolveWebviewView(webviewView, _context, _token) {
         webviewView.webview.options = {
@@ -39,11 +41,23 @@ class SidebarViewProvider {
             localResourceRoots: [
                 this._extensionUri,
                 vscode.Uri.joinPath(this._extensionUri, 'out')
-            ],
+            ], // Removed duplicate property
         };
+        this._view = webviewView; // Store the view reference
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        // Send initial state to the webview using workspaceState
+        const stateKey = `${SidebarViewProvider.viewType}.state`;
+        const initialState = this._context.workspaceState.get(stateKey) || {};
+        debugLogger_1.DebugLogger.log('Sending initial state to webview:', initialState);
+        webviewView.webview.postMessage({ command: 'loadState', state: initialState });
         webviewView.webview.onDidReceiveMessage(async (message) => {
             try {
+                // Handle state saving using workspaceState
+                if (message.command === 'saveState') {
+                    debugLogger_1.DebugLogger.log('Received state update from webview:', message.state);
+                    await this._context.workspaceState.update(stateKey, message.state);
+                    return; // State saved, no further action needed for this message
+                }
                 // Handle Jina-related messages first
                 if (message.command === 'checkJinaEnabled') {
                     const config = vscode.workspace.getConfiguration('kornelius');
