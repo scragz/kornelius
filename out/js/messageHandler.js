@@ -153,39 +153,40 @@ export class MessageHandler {
         if (mode === 'create') {
             switch(stepType) {
                 case 'request':
-                    fieldMapping = { 'create-request-idea': 'INITIAL_IDEA' };
+                    // Map HTML element ID to the camelCase key expected by PromptUserInputs
+                    fieldMapping = { 'create-request-idea': 'initialIdea' };
                     break;
                 case 'spec':
                     fieldMapping = {
-                        'create-spec-request': 'PROJECT_REQUEST',
-                        'create-spec-rules': 'PROJECT_RULES',
-                        'create-spec-template': 'REFERENCE_CODE'
+                        'create-spec-request': 'projectRequest',
+                        'create-spec-rules': 'projectRules',
+                        'create-spec-template': 'referenceCode'
                     };
                     break;
                 case 'planner':
                     fieldMapping = {
-                        'create-planner-request': 'PROJECT_REQUEST',
-                        'create-planner-spec': 'TECHNICAL_SPECIFICATION',
-                        'create-planner-rules': 'PROJECT_RULES',
-                        'create-planner-template': 'REFERENCE_CODE'
+                        'create-planner-request': 'projectRequest',
+                        'create-planner-spec': 'technicalSpecification',
+                        'create-planner-rules': 'projectRules',
+                        'create-planner-template': 'referenceCode'
                     };
                     break;
                 case 'codegen':
                     fieldMapping = {
-                        'create-codegen-request': 'PROJECT_REQUEST',
-                        'create-codegen-spec': 'TECHNICAL_SPECIFICATION',
-                        'create-codegen-plan': 'IMPLEMENTATION_PLAN',
-                        'create-codegen-rules': 'PROJECT_RULES',
-                        'create-codegen-code': 'EXISTING_CODE'
+                        'create-codegen-request': 'projectRequest',
+                        'create-codegen-spec': 'technicalSpecification',
+                        'create-codegen-plan': 'implementationPlan',
+                        'create-codegen-rules': 'projectRules',
+                        'create-codegen-code': 'existingCode'
                     };
                     break;
                 case 'review':
                     fieldMapping = {
-                        'create-review-request': 'PROJECT_REQUEST',
-                        'create-review-spec': 'TECHNICAL_SPECIFICATION',
-                        'create-review-plan': 'IMPLEMENTATION_PLAN',
-                        'create-review-code': 'EXISTING_CODE',
-                        'create-review-rules': 'PROJECT_RULES'
+                        'create-review-request': 'projectRequest',
+                        'create-review-spec': 'technicalSpecification',
+                        'create-review-plan': 'implementationPlan',
+                        'create-review-code': 'existingCode',
+                        'create-review-rules': 'projectRules'
                     };
                     break;
             }
@@ -193,39 +194,46 @@ export class MessageHandler {
             switch(stepType) {
                 case 'observe':
                     fieldMapping = {
-                        'debug-observe-bug': 'BUG_DESCRIPTION',
-                        'debug-observe-error': 'ERROR_MESSAGES',
-                        'debug-observe-repro': 'REPRO_STEPS',
-                        'debug-observe-env': 'ENV_DETAILS',
-                        'debug-observe-feedback': 'USER_FEEDBACK',
-                        'debug-observe-evidence': 'ADDITIONAL_EVIDENCE'
+                        'debug-observe-bug': 'bugDescription',
+                        'debug-observe-error': 'errorMessages',
+                        'debug-observe-repro': 'reproSteps',
+                        'debug-observe-env': 'envDetails',
+                        'debug-observe-feedback': 'userFeedback',
+                        'debug-observe-evidence': 'additionalEvidence'
                     };
                     break;
                 case 'orient':
                     fieldMapping = {
-                        'debug-orient-summary': 'ANALYSIS_SUMMARY',
-                        'debug-orient-clarifications': 'UPDATED_CLARIFICATIONS'
+                        'debug-orient-summary': 'analysisSummary',
+                        'debug-orient-clarifications': 'updatedClarifications'
                     };
                     break;
                 case 'decide':
                     fieldMapping = {
-                        'debug-decide-analysis': 'ANALYSIS_SUMMARY',
-                        'debug-decide-constraints': 'CONSTRAINTS_OR_RISKS'
+                        'debug-decide-analysis': 'analysisSummary',
+                        'debug-decide-constraints': 'constraintsOrRisks'
                     };
                     break;
                 case 'act':
                     fieldMapping = {
-                        'debug-act-actions': 'CHOSEN_ACTIONS',
-                        'debug-act-implementation': 'IMPLEMENTATION_PLAN',
-                        'debug-act-success': 'SUCCESS_CRITERIA'
+                        'debug-act-actions': 'chosenActions',
+                        'debug-act-implementation': 'implementationPlan',
+                        'debug-act-success': 'successCriteria'
                     };
                     break;
             }
         } else if (mode === 'audit') {
-            // Audit mode currently has no specific input fields mapped here
-            // If they were added, they'd go here. Example:
-            // case 'security': fieldMapping = { 'audit-security-code': 'CODE_TO_AUDIT' }; break;
-            fieldMapping = {}; // Explicitly empty for now
+            // Audit mode mapping - ensure these match PromptUserInputs if fields are added
+            switch(stepType) {
+                case 'security':
+                    fieldMapping = { 'audit-security-code': 'codeToAudit' }; // Example if an input exists
+                    break;
+                case 'a11y':
+                    fieldMapping = { 'audit-a11y-code': 'codeToAudit' }; // Example if an input exists
+                    break;
+                default:
+                    fieldMapping = {}; // Default to empty if no specific audit step fields
+            }
         } else {
              throw new Error(`Unknown mode for data collection: ${mode}`);
         }
