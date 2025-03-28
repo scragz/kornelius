@@ -10,11 +10,13 @@ class FormManager {
 
         // Default to CREATE mode unless saved mode exists
         const savedMode = localStorage.getItem(MODE_STORAGE_KEY) || 'create';
-        this.currentMode = savedMode; // Will be properly set by switchMode later if needed
-
-        // Initialize properties based on the determined mode
-        this.updateModeProperties(this.currentMode);
+        // Set the initial mode property, but don't call switchMode here yet.
+        this.currentMode = savedMode;
         this.currentStep = 1; // Always start at step 1
+
+        // Initialize properties based on the determined mode (needed for step counts etc.)
+        this.updateModeProperties(this.currentMode);
+
 
         this.stepValidation = {
             // Create mode validations (field ID -> button ID to enable)
@@ -40,6 +42,7 @@ class FormManager {
             'act-implementation': 'generate-copy-act',
             'act-success': 'generate-copy-act',
             // Audit mode validations (field ID -> button ID to enable)
+            // IDs needed for validation logic even if fields aren't required for enabling
             'audit-security-code': 'generate-copy-audit-security',
             'audit-a11y-code': 'generate-copy-audit-a11y'
         };
@@ -55,14 +58,15 @@ class FormManager {
             'generate-copy-orient': ['orient-summary'],
             'generate-copy-decide': ['decide-analysis'],
             'generate-copy-act': ['act-actions', 'act-implementation', 'act-success'],
-            'generate-copy-audit-security': ['audit-security-code'],
-            'generate-copy-audit-a11y': ['audit-a11y-code']
+            // Audit buttons have NO required input fields from the sidebar for enabling
+            'generate-copy-audit-security': [],
+            'generate-copy-audit-a11y': []
         };
 
 
         // Initialize after setting up properties
-        this.initializeModeToggle(); // Sets up listeners and initial mode
-        this.initializeNavigation(); // Sets up nav listeners for current mode
+        this.initializeModeToggle(); // Sets up listeners and initial mode determination
+        // initializeNavigation is called within switchMode if needed
         this.initializeValidation(); // Sets up validation listeners for all fields
         this.initializeSync(); // Sets up field syncing
         this.initializeResetButtons(); // Sets up reset buttons
@@ -87,14 +91,15 @@ class FormManager {
                 break;
             case 'audit':
                 this.stepTypes = this.auditStepTypes;
-                this.totalSteps = this.auditStepTypes.length;
+                this.totalSteps = this.auditStepTypes.length; // Should be 1
                 break;
             default:
                 logToExtension('Unknown mode in updateModeProperties: ' + mode, 'error');
                 this.stepTypes = [];
                 this.totalSteps = 0;
         }
-        this.currentMode = mode;
+        // Don't set this.currentMode here, let switchMode handle it
+        // this.currentMode = mode;
         logToExtension(`Mode properties updated for ${mode}: ${this.totalSteps} steps.`);
     }
 
@@ -102,11 +107,28 @@ class FormManager {
     // Validates if a specific button should be enabled based on its required fields
     validateButton(buttonId) {
         const button = document.getElementById(buttonId);
-        // Only validate if the button is in the 'GET PROMPT' state
-        if (!button || (button.textContent !== 'GET PROMPT' && button.textContent !== 'GET SECURITY PROMPT' && button.textContent !== 'GET A11Y PROMPT')) {
-            // logToExtension(`Skipping validation for button ${buttonId} (not in GET PROMPT state or not found)`);
+        if (!button) {
+             // logToExtension(`Button ${buttonId} not found during validation.`);
+             return; // Exit if button doesn't exist
+        }
+
+        // --- Special handling for Audit buttons ---
+        // Check this *before* checking textContent, as textContent might be irrelevant or inconsistent.
+        // Enable them immediately if Audit mode is active, as they don't need sidebar input.
+        if (this.currentMode === 'audit' && (buttonId === 'generate-copy-audit-security' || buttonId === 'generate-copy-audit-a11y')) {
+             button.disabled = false; // Always enable audit buttons in audit mode
+             // logToExtension(`Audit button ${buttonId} explicitly enabled.`);
+             return; // Skip standard validation below for audit buttons
+        }
+        // --- End special handling ---
+
+        // Now check textContent for non-audit buttons
+        const buttonText = button.textContent.trim(); // Trim whitespace
+        if (buttonText !== 'GET PROMPT' && buttonText !== 'GET SECURITY PROMPT' && buttonText !== 'GET A11Y PROMPT') {
+            // logToExtension(`Skipping validation for button ${buttonId} (not in GET state: "${buttonText}")`);
             return;
         }
+
 
         const requiredFields = this.buttonRequirements[buttonId] || [];
         // logToExtension(`Validating button ${buttonId}. Required fields: ${requiredFields.join(', ')}`);
@@ -124,12 +146,36 @@ class FormManager {
 
 
     updateStep(newStep) {
-        // Audit mode only has one step, no navigation needed within it
+        // If Audit mode is active, this function should ideally not be called for step changes (as there's only 1 step).
+        // However, it IS called by switchMode and DOMContentLoaded to set the initial view.
         if (this.currentMode === 'audit') {
-            logToExtension('Audit mode has only one step, no step update needed.');
-            return;
+            logToExtension('updateStep called in Audit mode (likely for initial view). Ensuring step 1 is visible.');
+            const stepsContainer = document.getElementById('audit-mode-steps');
+            if (stepsContainer) {
+                const auditStep = stepsContainer.querySelector('.step[data-step="1"]'); // Target step 1 specifically
+                if (auditStep) {
+                    // Hide any other potentially visible steps (though there shouldn't be any)
+                    stepsContainer.querySelectorAll('.step').forEach(step => {
+                        if (step !== auditStep) {
+                            step.style.display = 'none';
+                            step.classList.remove('step-visible');
+                        }
+                    });
+                    // Ensure the target step is visible
+                    auditStep.style.display = 'block';
+                    auditStep.classList.add('step-visible');
+                    logToExtension('Ensured single audit step is visible.');
+                } else {
+                     logToExtension('Audit step element (data-step="1") not found inside container.', 'error');
+                }
+            } else {
+                 logToExtension('Audit steps container not found.', 'error');
+            }
+            this.validateAllButtons(); // Validate buttons for audit mode
+            return; // Prevent further execution for audit mode
         }
 
+        // Logic for Create and Debug modes
         try {
             logToExtension('Updating step to: ' + newStep + ' in mode: ' + this.currentMode);
 
@@ -140,22 +186,20 @@ class FormManager {
                 return;
             }
 
-            // Hide all steps within the *current* mode's container and remove animation class
+            // Remove the 'step-visible' class from all steps in the current container
+            // Also ensure display is none
             stepsContainer.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('step-visible');
                 step.style.display = 'none';
-                step.classList.remove('step-visible'); // Remove animation class
             });
 
-            // Show only the target step in the active mode and add animation class
+            // Add the 'step-visible' class to the target step and set display block
             const targetStepElement = stepsContainer.querySelector('[data-step="' + newStep + '"]');
             if (targetStepElement) {
+                // Set display: block directly
                 targetStepElement.style.display = 'block';
-                // Use requestAnimationFrame to ensure display: block is applied before adding the animation class
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => { // Double rAF for better browser compatibility
-                      targetStepElement.classList.add('step-visible'); // Add animation class
-                    });
-                });
+                // Add the animation class directly
+                targetStepElement.classList.add('step-visible');
             } else {
                 logToExtension('Step element not found: ' + newStep + ' in mode: ' + this.currentMode, 'error');
                 return; // Added return here
@@ -184,7 +228,17 @@ class FormManager {
         try {
             logToExtension('Switching to mode: ' + mode + ' from: ' + this.currentMode);
 
-            if (mode === this.currentMode) return;
+            // Only proceed if the mode is actually changing
+            // This prevents issues if called multiple times during init with the same mode
+            if (mode === this.currentMode && document.getElementById(mode + '-mode-steps')?.style.display === 'block') {
+                 logToExtension(`Already in mode ${mode}. No switch needed.`);
+                 return;
+            }
+
+            // Update the internal currentMode state *first*
+            this.currentMode = mode;
+            logToExtension(`Internal currentMode set to: ${this.currentMode}`);
+
 
             // Update the mode buttons
             document.getElementById('create-mode').classList.toggle('active', mode === 'create');
@@ -200,28 +254,17 @@ class FormManager {
             const newModeContainer = document.getElementById(mode + '-mode-steps');
             if (newModeContainer) {
                 newModeContainer.style.display = 'block';
+                logToExtension(`Container ${mode}-mode-steps displayed.`);
             } else {
                 logToExtension('Could not find container for mode: ' + mode, 'error');
             }
 
 
-            // Update mode-specific properties
+            // Update mode-specific properties (like step count)
             this.updateModeProperties(mode);
 
             // Reset to step 1 of the new mode
             this.currentStep = 1;
-
-            // The updateStep(1) call in DOMContentLoaded or subsequent navigation
-            // will handle showing the correct step and applying the animation class.
-            // We just need to ensure all steps in the newly shown container are initially hidden.
-            const newlyVisibleContainer = document.getElementById(mode + '-mode-steps'); // Renamed variable
-            if (newlyVisibleContainer) {
-                // Hide all steps within the new container first, remove animation class
-                newlyVisibleContainer.querySelectorAll('.step').forEach(step => {
-                    step.style.display = 'none';
-                    step.classList.remove('step-visible');
-                });
-            }
 
             // Update navigation buttons for the new mode
             // Only re-initialize navigation if the new mode actually has navigation
@@ -240,6 +283,12 @@ class FormManager {
 
             // Validate buttons in the new mode
             this.validateAllButtons();
+
+            // Explicitly update to step 1 (or the only step for audit) to make it visible after mode switch
+            // No delay needed here, as the container is already visible.
+            this.updateStep(1); // For create/debug, this shows step 1. For audit, it ensures the single step is shown.
+            logToExtension(`Explicitly updated to step 1 after switching to mode: ${mode}`);
+
         } catch (error) {
             logToExtension('Error switching mode: ' + error, 'error');
         }
@@ -271,16 +320,15 @@ class FormManager {
                 this.switchMode('audit');
             });
 
-            // Restore previous mode if available
-            const savedMode = localStorage.getItem(MODE_STORAGE_KEY);
-            if (savedMode) {
-                logToExtension('Restoring saved mode: ' + savedMode);
-                // Call switchMode directly here to ensure correct initial setup
-                this.switchMode(savedMode); // This will set button states and container visibility
-            } else {
-                // Ensure the default mode ('create') is visually set if no saved mode
-                this.switchMode('create');
-            }
+            // Determine initial mode but DO NOT call switchMode here.
+            // Let DOMContentLoaded handle the initial setup.
+            const savedMode = localStorage.getItem(MODE_STORAGE_KEY) || 'create';
+            this.currentMode = savedMode;
+            logToExtension(`Initial mode from storage/default: ${this.currentMode}`);
+            // Update properties based on this initial mode determination
+            this.updateModeProperties(this.currentMode);
+
+
         } catch (error) {
             logToExtension('Error initializing mode toggle: ' + error, 'error');
         }
@@ -342,11 +390,15 @@ class FormManager {
                     this.validateAllButtons();
                 });
             } else {
-                logToExtension(`Validation init: Field element not found: ${fieldId}`, 'warn');
+                // Don't log warning if the field is one of the intentionally removed audit fields
+                // UPDATE: Keep logging for now, but adjust validation logic
+                // if (fieldId !== 'audit-security-code' && fieldId !== 'audit-a11y-code') {
+                    logToExtension(`Validation init: Field element not found: ${fieldId}`, 'warn');
+                // }
             }
         }
-        // Initial validation run for all buttons
-        this.validateAllButtons();
+        // Initial validation run for all buttons (will be called again in DOMContentLoaded)
+        // this.validateAllButtons();
     }
 
     // Helper to validate all known buttons
@@ -683,10 +735,12 @@ class MessageHandler {
 
             // Audit mode steps
             case 'audit-security':
-                this.validateAndCollect(inputData, { 'audit-security-code': 'CODE_TO_AUDIT' }, requiredFields);
+                 // No specific sidebar input needed, but check requiredFields just in case (should be empty)
+                this.validateAndCollect(inputData, {}, requiredFields);
                 break;
             case 'audit-a11y':
-                this.validateAndCollect(inputData, { 'audit-a11y-code': 'CODE_TO_AUDIT' }, requiredFields);
+                 // No specific sidebar input needed, but check requiredFields just in case (should be empty)
+                this.validateAndCollect(inputData, {}, requiredFields);
                 break;
 
             default:
@@ -699,6 +753,7 @@ class MessageHandler {
         // Check required fields first
         for (const fieldId of required) {
             const element = document.getElementById(fieldId);
+            // For audit mode, requiredFields is empty, so this loop won't run, which is correct.
             if (!element?.value.trim()) {
                 throw new Error(`Please fill in the required field: ${element?.labels?.[0]?.textContent || fieldId}`);
             }
@@ -796,30 +851,16 @@ document.addEventListener('DOMContentLoaded', () => {
         new MessageHandler(formManager); // Sets up message handling - removed unused variable assignment
 
         // --- Set Initial Visual State ---
-        // The FormManager constructor and initializeModeToggle now handle setting the
-        // correct initial mode based on localStorage. The switchMode function called
-        // within initializeModeToggle handles setting the correct container visibility
-        // and button states.
-
-        // The switchMode function called during FormManager construction already handles
-        // setting the initial step visibility. We just need to ensure navigation
-        // and validation are run for the initial state.
-
-        // Ensure navigation buttons (if applicable) are correctly set for the initial mode
-        if (formManager.currentMode === 'create' || formManager.currentMode === 'debug') {
-            formManager.initializeNavigation();
-            logToExtension(`Navigation initialized for initial mode: ${formManager.currentMode}`);
-        }
+        // Call switchMode with the determined initial mode AFTER the DOM is fully loaded.
+        // This ensures all elements are available and avoids race conditions.
+        logToExtension(`DOMContentLoaded: Setting initial mode to ${formManager.currentMode}`);
+        formManager.switchMode(formManager.currentMode);
 
         // Initial validation run after potential state loading and mode setup
         formManager.validateAllButtons();
         logToExtension(`Initial button validation complete for mode: ${formManager.currentMode}`);
 
-        // Explicitly ensure only the first step is visible after all initialization
-        // This addresses the regression where all steps might show briefly on load.
-        formManager.updateStep(1);
-        logToExtension(`Explicitly set initial view to step 1 for mode: ${formManager.currentMode}`);
-
+        // No need for the extra updateStep(1) here, switchMode handles it.
 
         logToExtension('Initialization complete via DOMContentLoaded.');
     } catch (error) {

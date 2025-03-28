@@ -48,4 +48,5 @@
 /* Remove animation from base .step class */
 .step {
   /* animation: fadeIn 0.3s ease-in-out; */ /* Removed */
+  display: none; /* Hide by default using display */
 }

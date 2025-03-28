@@ -459,35 +459,24 @@
         <!-- Audit Step 1: Security & Accessibility -->
         <div class="step" data-step="1">
           <div class="step-title">
-            <span>AUDIT</span>
+            <span>SECURITY</span>
             <button class="reset-btn-small" title="Reset all fields">⟲</button>
           </div>
-          <div class="multi-input-container">
-            <div class="input-group">
-              <label for="audit-security-code">Security Review:</label>
-              <textarea
-                id="audit-security-code"
-                rows="5"
-                placeholder="Paste code for security review..."
-              ></textarea>
-              <div class="button-group audit-button-group">
-                <button id="generate-copy-audit-security" class="generate-copy-btn" disabled>
-                  GET SECURITY PROMPT
-                </button>
-              </div>
+          <!-- Security Button -->
+          <div class="input-group">
+            <div class="button-group audit-button-group">
+              <button id="generate-copy-security" class="generate-copy-btn">GET PROMPT</button>
             </div>
-            <div class="input-group">
-              <label for="audit-a11y-code">Accessibility Review:</label>
-              <textarea
-                id="audit-a11y-code"
-                rows="5"
-                placeholder="Paste code for accessibility review..."
-              ></textarea>
-              <div class="button-group audit-button-group">
-                <button id="generate-copy-audit-a11y" class="generate-copy-btn" disabled>
-                  GET A11Y PROMPT
-                </button>
-              </div>
+          </div>
+          <div class="step-title">
+            <span>A11Y</span>
+            <button class="reset-btn-small" title="Reset all fields">⟲</button>
+          </div>
+          <!-- Accessibility Button -->
+          <div class="input-group">
+            <!-- Removed Label and Textarea for a11y-code -->
+            <div class="button-group audit-button-group">
+              <button id="generate-copy-a11y" class="generate-copy-btn">GET PROMPT</button>
             </div>
           </div>
           <div class="munky-tip">
