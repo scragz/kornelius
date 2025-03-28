@@ -21,14 +21,14 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.showInformationMessage('Debug action invoked - This is a test message');
 
     // Test clipboard functionality
-    const testText = "This is a test of the clipboard functionality at " + new Date().toISOString();
+    const testText = 'This is a test of the clipboard functionality at ' + new Date().toISOString();
     vscode.env.clipboard.writeText(testText).then(() => {
       vscode.window.showInformationMessage('Test text copied to clipboard: ' + testText.substring(0, 20) + '...');
     }, (err) => {
       vscode.window.showErrorMessage('Clipboard test failed: ' + err.message);
     });
 
-    return "Debug command executed";
+    return 'Debug command executed';
   });
 
   // Register the sidebar provider and configure it to handle Jina messages
@@ -125,76 +125,8 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // Configure Jina integration message handling
-  sidebarProvider.setJinaMessageHandler(async (message, webviewView) => {
-    try {
-      DebugLogger.log('Handling Jina message: ' + message.command);
-
-      switch (message.command) {
-        case 'fetchJina':
-          // Handle Jina fetch request with progress indicator
-          if (!message.url) {
-            webviewView.webview.postMessage({
-              command: 'fetchJinaError',
-              error: 'No URL provided'
-            });
-            return;
-          }
-          await vscode.window.withProgress({
-            location: vscode.ProgressLocation.Notification,
-            title: 'Fetching from Jina...',
-            cancellable: false
-          }, async () => {
-            try {
-              const reader = new JinaReader();
-              const markdown = await reader.fetchMarkdown(message.url);
-
-              // Create a new document with the content
-              const document = await vscode.workspace.openTextDocument({
-                content: markdown,
-                language: 'markdown'
-              });
-              await vscode.window.showTextDocument(document);
-              await vscode.env.clipboard.writeText(markdown);
-
-              // Send success result back to webview
-              webviewView.webview.postMessage({
-                command: 'fetchJinaSuccess',
-                results: [{
-                  url: message.url,
-                  error: null
-                }]
-              });
-            } catch (error) {
-              DebugLogger.error(`Error fetching from Jina: ${error instanceof Error ? error.message : String(error)}`);
-              webviewView.webview.postMessage({
-                command: 'fetchJinaError',
-                error: error instanceof Error ? error.message : String(error)
-              });
-            }
-          });
-          break;
-
-        case 'checkJinaEnabled':
-          // Send current Jina settings to webview
-          const config = vscode.workspace.getConfiguration('kornelius');
-          webviewView.webview.postMessage({
-            command: 'jinaStatus',
-            enabled: config.get<boolean>('enableJinaIntegration')
-          });
-          break;
-
-        default:
-          DebugLogger.log(`Unknown Jina message command: ${message.command}`);
-      }
-    } catch (error) {
-      DebugLogger.error(`Error handling Jina message: ${error instanceof Error ? error.message : String(error)}`);
-      webviewView.webview.postMessage({
-        command: 'fetchJinaError',
-        error: 'Internal extension error'
-      });
-    }
-  });
+  // The SidebarViewProvider now directly calls the kornelius.fetchJina command,
+  // so the separate message handler configuration here is no longer needed.
 
   // Add initial configuration if not already present
   const config = vscode.workspace.getConfiguration('kornelius');
@@ -204,4 +136,6 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+  // No cleanup needed
+}

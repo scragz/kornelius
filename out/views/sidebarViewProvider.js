@@ -29,15 +29,11 @@ const debugLogger_1 = require("../utils/debugLogger");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 class SidebarViewProvider {
+    // No longer need a separate Jina handler property
     constructor(_extensionUri) {
         this._extensionUri = _extensionUri;
     }
-    /**
-     * Set a handler for Jina-related messages from the webview.
-     */
-    setJinaMessageHandler(handler) {
-        this._jinaMessageHandler = handler;
-    }
+    // No longer need setJinaMessageHandler
     resolveWebviewView(webviewView, _context, _token) {
         webviewView.webview.options = {
             enableScripts: true,
@@ -57,15 +53,15 @@ class SidebarViewProvider {
                     return;
                 }
                 else if (message.command === 'fetchJina') {
-                    if (this._jinaMessageHandler) {
-                        await this._jinaMessageHandler(message, webviewView);
+                    // Execute the registered command which handles UI and fetching
+                    debugLogger_1.DebugLogger.log('Sidebar received fetchJina message, executing kornelius.fetchJina command.');
+                    try {
+                        await vscode.commands.executeCommand('kornelius.fetchJina');
+                        // The command itself handles success/error messages/UI
                     }
-                    else {
-                        debugLogger_1.DebugLogger.error('No Jina message handler registered, but received a Jina message');
-                        webviewView.webview.postMessage({
-                            command: 'fetchJinaError',
-                            error: 'Jina integration is not properly configured'
-                        });
+                    catch (error) {
+                        debugLogger_1.DebugLogger.error('Error executing kornelius.fetchJina command:', error);
+                        vscode.window.showErrorMessage(`Error running Jina fetch: ${error instanceof Error ? error.message : String(error)}`);
                     }
                     return;
                 }
@@ -130,9 +126,11 @@ class SidebarViewProvider {
     }
     _getHtmlForWebview(webview) {
         // Get URIs for CSS resources
+        // Get URIs for CSS and JS resources
         const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'));
         const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css'));
         const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.css'));
+        const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'js', 'sidebar.js')); // <-- Add JS URI
         const nonce = getNonce();
         // Read the HTML template file
         try {
@@ -144,7 +142,8 @@ class SidebarViewProvider {
                 .replace(/\${nonce}/g, nonce)
                 .replace(/\${styleResetUri}/g, styleResetUri.toString())
                 .replace(/\${styleVSCodeUri}/g, styleVSCodeUri.toString())
-                .replace(/\${styleMainUri}/g, styleMainUri.toString());
+                .replace(/\${styleMainUri}/g, styleMainUri.toString())
+                .replace(/\${jsUri}/g, jsUri.toString()); // <-- Add JS URI replacement
             return htmlTemplate;
         }
         catch (error) {

@@ -4,6 +4,13 @@ module.exports = {
     ecmaVersion: 2020,
     sourceType: 'module'
   },
+  env: {
+    browser: true, // Add browser environment
+    es2020: true   // Specify ES version
+  },
+  globals: {
+    acquireVsCodeApi: 'readonly' // Define the VS Code webview API function
+  },
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended'
@@ -41,5 +48,13 @@ module.exports = {
     'no-console': ['warn', { allow: ['warn', 'error'] }],
     'quotes': ['error', 'single', { 'avoidEscape': true }]
   },
-  ignorePatterns: ['out', '**/*.d.ts']
+  ignorePatterns: ['out', '**/*.d.ts'],
+  overrides: [ // Add overrides for specific files
+    {
+      files: ['.eslintrc.js'], // Target the ESLint config file
+      env: {
+        node: true // Specify Node.js environment for this file
+      }
+    }
+  ]
 };

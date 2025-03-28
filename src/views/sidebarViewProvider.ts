@@ -7,18 +7,11 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'kornelius-sidebar';
   public static readonly viewId = 'kornelius-sidebar';
 
-  private _jinaMessageHandler?: (message: any, webviewView: vscode.WebviewView) => Promise<void>;
+  // No longer need a separate Jina handler property
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
-  /**
-   * Set a handler for Jina-related messages from the webview.
-   */
-  public setJinaMessageHandler(
-    handler: (message: any, webviewView: vscode.WebviewView) => Promise<void>
-  ): void {
-    this._jinaMessageHandler = handler;
-  }
+  // No longer need setJinaMessageHandler
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -44,14 +37,14 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
           });
           return;
         } else if (message.command === 'fetchJina') {
-          if (this._jinaMessageHandler) {
-            await this._jinaMessageHandler(message, webviewView);
-          } else {
-            DebugLogger.error('No Jina message handler registered, but received a Jina message');
-            webviewView.webview.postMessage({
-              command: 'fetchJinaError',
-              error: 'Jina integration is not properly configured'
-            });
+          // Execute the registered command which handles UI and fetching
+          DebugLogger.log('Sidebar received fetchJina message, executing kornelius.fetchJina command.');
+          try {
+            await vscode.commands.executeCommand('kornelius.fetchJina');
+            // The command itself handles success/error messages/UI
+          } catch (error) {
+            DebugLogger.error('Error executing kornelius.fetchJina command:', error);
+            vscode.window.showErrorMessage(`Error running Jina fetch: ${error instanceof Error ? error.message : String(error)}`);
           }
           return;
         } else if (message.command === 'runCat') {
@@ -118,9 +111,11 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
     // Get URIs for CSS resources
+    // Get URIs for CSS and JS resources
     const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'));
     const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css'));
     const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.css'));
+    const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'js', 'sidebar.js')); // <-- Add JS URI
 
     const nonce = getNonce();
 
@@ -135,7 +130,8 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
         .replace(/\${nonce}/g, nonce)
         .replace(/\${styleResetUri}/g, styleResetUri.toString())
         .replace(/\${styleVSCodeUri}/g, styleVSCodeUri.toString())
-        .replace(/\${styleMainUri}/g, styleMainUri.toString());
+        .replace(/\${styleMainUri}/g, styleMainUri.toString())
+        .replace(/\${jsUri}/g, jsUri.toString()); // <-- Add JS URI replacement
 
       return htmlTemplate;
     } catch (error) {

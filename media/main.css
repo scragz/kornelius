@@ -3,22 +3,19 @@
 /* Import all modular CSS components in a logical order */
 
 /* First import base styles and animations */
-@import url("base.css");
-@import url("animations.css");
-
-/* Import typography and logo styles */
-@import url("typography.css");
-@import url("logo.css");
-
-/* Import layout and interactive components */
-@import url("navigation.css");
-@import url("steps.css");
-@import url("buttons.css");
-@import url("forms.css");
-@import url("tips.css");
-
-/* Import utilities last so they can override other styles if needed */
-@import url("utils.css");
+@import url('reset.css');
+@import url('vscode.css');
+@import url('base.css');
+@import url('typography.css');
+@import url('forms.css');
+@import url('buttons.css');
+@import url('navigation.css');
+@import url('steps.css');
+@import url('mode-toggle.css');
+@import url('animations.css');
+@import url('logo.css');
+@import url('utils.css');
+@import url('tips.css');
 
 /* Media Queries */
 @media (max-width: 600px) {

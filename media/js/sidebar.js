@@ -35,15 +35,18 @@ class FormManager {
         this.initializeValidation();
         this.initializeSync();
         this.initializeResetButtons();
-        this.initializeStorage();
+        this.initializeStorage(); // Loads saved mode and values
 
-        // Log initial mode to help with debugging
-        logToExtension('Initial mode: ' + this.currentMode);
+        // Constructor now primarily sets up state and listeners,
+        // DOM manipulation for initial view happens in DOMContentLoaded.
+
+        // Log initial mode determined from storage (or default)
+        logToExtension('FormManager constructed. Initial mode determined as: ' + this.currentMode);
     }
 
     validateStep(stepType) {
         const generateButton = document.getElementById('generate-copy-' + stepType);
-        if (!generateButton || generateButton.textContent !== "GET PROMPT") return;
+        if (!generateButton || generateButton.textContent !== 'GET PROMPT') return;
         const requiredFields = this.stepValidation[stepType] || [];
         const isValid = requiredFields.every(fieldId => {
             const field = document.getElementById(fieldId);
@@ -129,9 +132,8 @@ class FormManager {
                 }
             }
 
-            // Update navigation buttons
-            document.getElementById('prev-step').disabled = true; // Step 1 always disables prev
-            document.getElementById('next-step').disabled = this.totalSteps === 1; // Only disable next if one step
+            // Update navigation buttons for the new mode
+            this.initializeNavigation(); // Re-initialize for the new container
 
             // Save mode preference
             localStorage.setItem(MODE_STORAGE_KEY, mode);
@@ -175,21 +177,41 @@ class FormManager {
     }
 
     initializeNavigation() {
-        const prevButton = document.getElementById('prev-step');
-        const nextButton = document.getElementById('next-step');
+        const stepsContainer = document.getElementById(this.currentMode + '-mode-steps');
+        if (!stepsContainer) {
+            logToExtension('Navigation init: Steps container not found for mode: ' + this.currentMode, 'error');
+            return;
+        }
 
-        prevButton.addEventListener('click', () => {
+        const prevButton = stepsContainer.querySelector('#prev-step');
+        const nextButton = stepsContainer.querySelector('#next-step');
+
+        if (!prevButton || !nextButton) {
+            logToExtension('Navigation buttons not found within container for mode: ' + this.currentMode, 'error');
+            return;
+        }
+
+        // Remove previous listeners if any (to avoid duplicates on mode switch)
+        // A simple way is to replace the node, but let's try direct removal if possible
+        // Or manage listeners more carefully if needed. For now, let's assume this is the first setup or a clean switch.
+
+        prevButton.onclick = () => { // Use onclick for simplicity in replacing
             if (this.currentStep > 1) {
                 this.updateStep(this.currentStep - 1);
             }
-        });
+        };
 
-        nextButton.addEventListener('click', () => {
+        nextButton.onclick = () => { // Use onclick for simplicity in replacing
             if (this.currentStep < this.totalSteps) {
                 this.updateStep(this.currentStep + 1);
             }
-        });
+        };
+
+        // Initial state update for the buttons in the current container
+        prevButton.disabled = this.currentStep === 1;
+        nextButton.disabled = this.currentStep === this.totalSteps;
     }
+
 
     initializeValidation() {
         // Initialize validation for both create and debug modes
@@ -252,7 +274,7 @@ class FormManager {
 
                 // Reset generate buttons in current mode
                 stepsContainer.querySelectorAll('.generate-copy-btn').forEach(btn => {
-                    btn.textContent = "GET PROMPT";
+                    btn.textContent = 'GET PROMPT';
                     btn.disabled = true;
                 });
 
@@ -377,10 +399,10 @@ class MessageHandler {
         const generateButton = document.getElementById('generate-copy-' + step);
         if (generateButton) {
             vscode.postMessage({ command: 'copyToClipboard', text: content });
-            generateButton.textContent = "COPIED TO CLIPBOARD!";
+            generateButton.textContent = 'COPIED TO CLIPBOARD!';
             generateButton.classList.add('pulse');
             setTimeout(() => {
-                generateButton.textContent = "GET PROMPT";
+                generateButton.textContent = 'GET PROMPT';
                 generateButton.disabled = false;
                 this.formManager.validateStep(step);
                 generateButton.classList.remove('pulse');
@@ -392,9 +414,9 @@ class MessageHandler {
         logToExtension('Error generating prompt: ' + error, 'error');
         const errorButton = document.getElementById('generate-copy-' + step);
         if (errorButton) {
-            errorButton.textContent = "ERROR - TRY AGAIN";
+            errorButton.textContent = 'ERROR - TRY AGAIN';
             setTimeout(() => {
-                errorButton.textContent = "GET PROMPT";
+                errorButton.textContent = 'GET PROMPT';
                 this.formManager.validateStep(step);
             }, 2000);
         }
@@ -414,7 +436,7 @@ class MessageHandler {
                 generateCopyButton.addEventListener('click', async () => {
                     if (generateCopyButton.disabled || isProcessing) return;
                     isProcessing = true;
-                    generateCopyButton.textContent = "GENERATING...";
+                    generateCopyButton.textContent = 'GENERATING...';
                     generateCopyButton.disabled = true;
                     try {
                         const inputData = this.collectInputData(stepType);
@@ -423,7 +445,7 @@ class MessageHandler {
                     } catch (error) {
                         logToExtension('Error preparing inputs: ' + (error.message || String(error)), 'error');
                         alert(error.message || 'Failed to prepare inputs');
-                        generateCopyButton.textContent = "ERROR - TRY AGAIN";
+                        generateCopyButton.textContent = 'ERROR - TRY AGAIN';
                         generateCopyButton.disabled = false;
                     } finally {
                         setTimeout(() => { isProcessing = false; }, 2100);
@@ -516,7 +538,7 @@ class MessageHandler {
         for (const [elementId, dataKey] of Object.entries(fields)) {
             const element = document.getElementById(elementId);
             if (required.includes(elementId) && (!element?.value.trim())) {
-                throw new Error(`Please fill in all required fields.`);
+                throw new Error('Please fill in all required fields.');
             }
             if (element) {
                 inputData[dataKey] = element.value.trim() || '';
@@ -599,49 +621,55 @@ function logToExtension(message, level = 'log') {
 
 // Initialize everything as soon as document is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Debug visibility issue - hide all steps except the first one
-    document.querySelectorAll('.step').forEach((step, index) => {
-        const currentStepNum = parseInt(step.getAttribute('data-step') || '0', 10);
-        if (currentStepNum !== 1) {
-            step.style.display = 'none';
-        }
-    });
-
-    // Ensure only one mode is visible at startup
-    const createModeSteps = document.getElementById('create-mode-steps');
-    const debugModeSteps = document.getElementById('debug-mode-steps');
-
-    if (createModeSteps && debugModeSteps) {
-        // Default to CREATE mode if no saved preference
-        const savedMode = localStorage.getItem('kornelius_mode') || 'create';
-        createModeSteps.style.display = savedMode === 'create' ? 'block' : 'none';
-        debugModeSteps.style.display = savedMode === 'debug' ? 'block' : 'none';
-
-        // Set the correct toggle button state
-        const createModeBtn = document.getElementById('create-mode');
-        const debugModeBtn = document.getElementById('debug-mode');
-        if (createModeBtn && debugModeBtn) {
-            createModeBtn.classList.toggle('active', savedMode === 'create');
-            debugModeBtn.classList.toggle('active', savedMode === 'debug');
-        }
-    }
-
-    const formManager = new FormManager();
-    const messageHandler = new MessageHandler(formManager);
-    formManager.updateStep(1); // Ensure only first step is visible initially
-});
-
-// Also initialize immediately in case DOMContentLoaded has already fired
-(() => {
     try {
-        if (document.readyState === 'loading') {
-            // DOMContentLoaded hasn't fired yet, initialization will happen later
-            return;
+        logToExtension('DOMContentLoaded event fired.');
+        const formManager = new FormManager(); // Creates instance, determines initial mode
+        const messageHandler = new MessageHandler(formManager); // Sets up message handling
+
+        // --- Set Initial Visual State ---
+        logToExtension('Setting initial visual state for mode: ' + formManager.currentMode);
+
+        // 1. Hide both mode containers initially
+        const createModeSteps = document.getElementById('create-mode-steps');
+        const debugModeSteps = document.getElementById('debug-mode-steps');
+        if (createModeSteps) createModeSteps.style.display = 'none';
+        if (debugModeSteps) debugModeSteps.style.display = 'none';
+
+        // 2. Show the correct mode container
+        const activeContainerId = formManager.currentMode + '-mode-steps';
+        const activeContainer = document.getElementById(activeContainerId);
+        if (activeContainer) {
+            activeContainer.style.display = 'block';
+
+            // 3. Hide all steps within the active container
+            activeContainer.querySelectorAll('.step').forEach(step => {
+                step.style.display = 'none';
+            });
+
+            // 4. Show only the first step within the active container
+            const firstStep = activeContainer.querySelector('[data-step="1"]');
+            if (firstStep) {
+                firstStep.style.display = 'block';
+                logToExtension('First step displayed for mode: ' + formManager.currentMode);
+            } else {
+                 logToExtension('Could not find first step for mode: ' + formManager.currentMode, 'error');
+            }
+        } else {
+             logToExtension('Could not find active container: ' + activeContainerId, 'error');
         }
-        const formManager = new FormManager();
-        const messageHandler = new MessageHandler(formManager);
-        formManager.updateStep(1);
-    } catch (e) {
-        console.error('Error during immediate initialization:', e);
+
+        // 5. Ensure navigation buttons are correctly initialized for the active mode/step
+        formManager.initializeNavigation();
+
+        // 6. Update mode toggle button appearance
+        document.getElementById('create-mode').classList.toggle('active', formManager.currentMode === 'create');
+        document.getElementById('debug-mode').classList.toggle('active', formManager.currentMode === 'debug');
+        // --- End Initial Visual State ---
+
+
+        logToExtension('Initialization complete via DOMContentLoaded.');
+    } catch (error) {
+        logToExtension('Error during DOMContentLoaded initialization: ' + error, 'error');
+        console.error('Error during DOMContentLoaded initialization:', error);
     }
-})();
+});
