@@ -123,9 +123,10 @@ export class FormManager {
         }
         // --- End special handling ---
 
-        // Now check textContent for non-audit buttons
+        // Now check textContent for the button
         const buttonText = button.textContent.trim(); // Trim whitespace
-        if (buttonText !== 'GET PROMPT' && buttonText !== 'GET SECURITY PROMPT' && buttonText !== 'GET A11Y PROMPT') {
+        // Only validate if the button is in the initial 'GET PROMPT' state
+        if (buttonText !== 'GET PROMPT') {
             // logToExtension(`Skipping validation for button ${buttonId} (not in GET state: "${buttonText}")`);
             return;
         }
@@ -457,17 +458,13 @@ export class FormManager {
 
                 // Reset all generate buttons to their initial state
                 document.querySelectorAll('.generate-copy-btn').forEach(btn => {
-                    // Reset text based on ID or a default
-                    if (btn.id === 'generate-copy-audit-security') {
-                        btn.textContent = 'GET SECURITY PROMPT';
-                    } else if (btn.id === 'generate-copy-audit-a11y') {
-                        btn.textContent = 'GET A11Y PROMPT';
-                    } else if (btn.id === 'catFilesBtn') {
+                    // Reset text consistently, except for special buttons
+                    if (btn.id === 'catFilesBtn') {
                         btn.textContent = 'CAT FILES'; // Keep CAT FILES button text
                     } else if (btn.id === 'fetchJinaBtn') {
                         btn.textContent = 'FETCH MARKDOWN'; // Keep Jina button text
-                    }
-                    else {
+                    } else {
+                        // All other generate buttons reset to 'GET PROMPT'
                         btn.textContent = 'GET PROMPT';
                     }
                     btn.disabled = true; // Disable all initially

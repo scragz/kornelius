@@ -1,13 +1,7 @@
 import vscode from './vscodeApi.js';
 import { logToExtension } from './sidebarUtils.js';
-// FormManager is needed for type hinting/intellisense if using TypeScript,
-// but not strictly required for the JS logic as it's passed in constructor.
-// import { FormManager } from './formManager.js';
 
 export class MessageHandler {
-    /**
-     * @param {import('./formManager.js').FormManager} formManager
-     */
     constructor(formManager) {
         this.formManager = formManager;
         this.initializeMessageHandling();
@@ -59,17 +53,11 @@ export class MessageHandler {
         const generateButton = document.getElementById('generate-copy-' + step);
         if (generateButton) {
             vscode.postMessage({ command: 'copyToClipboard', text: content });
-            generateButton.textContent = 'COPIED TO CLIPBOARD!';
+            generateButton.textContent = 'COPIED!'; // Use consistent success text
             generateButton.classList.add('pulse');
             setTimeout(() => {
-                // Reset text based on ID
-                if (step === 'audit-security') {
-                    generateButton.textContent = 'GET SECURITY PROMPT';
-                } else if (step === 'audit-a11y') {
-                    generateButton.textContent = 'GET A11Y PROMPT';
-                } else {
-                    generateButton.textContent = 'GET PROMPT';
-                }
+                // Reset text consistently
+                generateButton.textContent = 'GET PROMPT';
                 generateButton.disabled = false;
                 this.formManager.validateButton(generateButton.id); // Re-validate this specific button
                 generateButton.classList.remove('pulse');
@@ -81,16 +69,10 @@ export class MessageHandler {
         logToExtension('Error generating prompt: ' + error, 'error');
         const errorButton = document.getElementById('generate-copy-' + step);
         if (errorButton) {
-            errorButton.textContent = 'ERROR - TRY AGAIN';
+            errorButton.textContent = 'ERROR! FAILURE!'; // Use requested error text
             setTimeout(() => {
-                // Reset text based on ID
-                if (step === 'audit-security') {
-                    errorButton.textContent = 'GET SECURITY PROMPT';
-                } else if (step === 'audit-a11y') {
-                    errorButton.textContent = 'GET A11Y PROMPT';
-                } else {
-                    errorButton.textContent = 'GET PROMPT';
-                }
+                 // Reset text consistently
+                errorButton.textContent = 'GET PROMPT';
                 this.formManager.validateButton(errorButton.id); // Re-validate
             }, 2000);
         }
@@ -117,17 +99,14 @@ export class MessageHandler {
                         vscode.postMessage({ command: 'generatePrompt', step: stepType, data: inputData });
                     } catch (error) {
                         logToExtension('Error preparing inputs: ' + (error.message || String(error)), 'error');
-                        alert(error.message || 'Failed to prepare inputs');
-                        // Reset text based on ID
-                        if (stepType === 'audit-security') {
-                            generateCopyButton.textContent = 'GET SECURITY PROMPT';
-                        } else if (stepType === 'audit-a11y') {
-                            generateCopyButton.textContent = 'GET A11Y PROMPT';
-                        } else {
+                        // alert(error.message || 'Failed to prepare inputs'); // Removed alert
+                        generateCopyButton.textContent = 'ERROR!'; // Use requested error text
+                        // Reset text consistently after a delay
+                        setTimeout(() => {
                             generateCopyButton.textContent = 'GET PROMPT';
-                        }
-                        generateCopyButton.disabled = false; // Re-enable on error
-                        this.formManager.validateButton(buttonId); // Re-validate
+                            generateCopyButton.disabled = false; // Re-enable on error
+                            this.formManager.validateButton(buttonId); // Re-validate
+                        }, 2000); // Keep the delay consistent
                     } finally {
                         // Use timeout to prevent immediate re-click after success/error message resets
                         setTimeout(() => { isProcessing = false; }, 2100);
