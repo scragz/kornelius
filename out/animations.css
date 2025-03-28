@@ -1,0 +1,47 @@
+/* KoЯnelius - Animation Styles */
+
+/* Animation Keyframes */
+@keyframes glitch {
+  0%, 100% { transform: translate(0); }
+  98.001%, 98.999% { transform: translate(-2px, 1px); }
+  99.001%, 99.999% { transform: translate(2px, -1px); }
+}
+
+@keyframes textflicker {
+  0%, 25%, 75%, 100% { opacity: 1; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5); }
+  26%, 74% { opacity: 1; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5); }
+  27%, 73% { opacity: 0.9; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4); }
+  28%, 72% { opacity: 1; text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5); }
+  49.5%, 50.5% { opacity: 0.7; text-shadow: 0 0 10px var(--function-color); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-5px) rotate(10deg); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Animation Classes */
+.pulse {
+  animation: pulse 0.3s ease-in-out;
+}
+
+/* Step transitions */
+.step {
+  animation: fadeIn 0.3s ease-in-out;
+}

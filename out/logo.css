@@ -1,0 +1,43 @@
+/* KoЯnelius - Logo Styles */
+
+/* Logo */
+.logo {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: left;
+  position: relative;
+  padding: 5px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.logo h1 {
+  margin: 0;
+}
+
+.logo span.reversed {
+  display: inline-block;
+  color: var(--keyword-color);
+}
+
+.logo .tagline {
+  font-family: 'Permanent Marker', cursive;
+  font-size: 0.9em;
+  opacity: 0.8;
+  transform: rotate(-0.5deg);
+  margin: 0;
+  color: var(--comment-color);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+  padding-left: 20px;
+  position: relative;
+  text-align: left;
+}
+
+.logo .tagline::before {
+  content: "// ";
+  position: absolute;
+  left: 0;
+  color: var(--comment-color);
+}

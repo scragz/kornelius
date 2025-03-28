@@ -1,0 +1,60 @@
+/* KoЯnelius - Base Styles */
+
+/* Font declarations */
+@font-face {
+  font-family: 'Anton';
+  src: url('./fonts/Anton/Anton-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Permanent Marker';
+  src: url('./fonts/Permanent_Marker/PermanentMarker-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Bungee';
+  src: url('./fonts/Bungee/Bungee-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  /* Extract VS Code syntax highlighting colors */
+  --string-color: var(--vscode-editor-foreground, #cccccc);
+  --comment-color: var(--vscode-editorLineNumber-foreground, #858585);
+  --keyword-color: var(--vscode-editorError-foreground, #f48771);
+  --variable-color: var(--vscode-editor-selectionBackground, #264f78);
+  --function-color: var(--vscode-symbolIcon-functionForeground, #b180d7);
+  --tag-color: var(--vscode-editorWarning-foreground, #cca700);
+  --number-color: var(--vscode-debugTokenExpression-number, #b5cea8);
+  --operator-color: var(--vscode-symbolIcon-operatorForeground, #d4d4d4);
+  --class-color: var(--vscode-symbolIcon-classForeground, #ee9d28);
+  --type-color: var(--vscode-symbolIcon-typeParameterForeground, #7fd8c9);
+}
+
+html {
+  /* Add a cool radial gradient background that uses editor colors */
+  background: radial-gradient(
+    ellipse at center,
+    var(--vscode-editor-background) 0%,
+    color-mix(in srgb, var(--vscode-editor-background) 95%, var(--vscode-editor-selectionBackground)) 100%
+  );
+}
+
+body {
+  background: none !important;
+  backdrop-filter: blur(1px);
+}
+
+.container {
+  padding: 15px 10px;
+  max-width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}

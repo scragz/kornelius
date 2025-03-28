@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- CSP: allow styles from the extension and scripts with the matching nonce -->
+    <meta http-equiv="Content-Security-Policy" content="${csp}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kornelius</title>
+    <link href="${styleResetUri}" rel="stylesheet" />
+    <link href="${styleVSCodeUri}" rel="stylesheet" />
+    <link href="${styleMainUri}" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">
+        <h1>Ko<span class="reversed">Я</span>nelius</h1>
+        <p class="tagline">Your vibe coding companion</p>
+      </div>
+
+      <!-- Mode Toggle -->
+      <div class="mode-toggle-container">
+        <div class="mode-toggle">
+          <button id="create-mode" class="active">CREATE</button>
+          <button id="debug-mode">DEBUG</button>
+        </div>
+      </div>
+
+      <!-- Create Mode Steps Container -->
+      <div id="create-mode-steps" class="mode-steps-container active">
+        <div class="step-navigation">
+          <button id="prev-step" disabled>◀ PREV</button>
+          <button id="next-step">NEXT ▶</button>
+        </div>
+
+        <!-- Step 1: Request -->
+        <div class="step" data-step="1">
+          <div class="step-title">
+            <span>REQUEST</span>
+            <button class="reset-btn-small" title="Reset all fields">⟲</button>
+          </div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="request-idea">Your initial idea:</label>
+              <textarea
+                id="request-idea"
+                class="main-input"
+                rows="8"
+                placeholder="Enter your initial idea here..."
+              ></textarea>
+            </div>
+          </div>
+          <div class="button-group">
+            <button id="generate-copy-request" class="generate-copy-btn" disabled>
+              GET PROMPT
+            </button>
+          </div>
+          <div class="munky-tip">
+            <p>
+              Use a <span class="model-badge reasoning-model">reasoning model</span> like
+              <strong>o1</strong> or <strong>R1</strong> for best results with this prompt.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 2: Spec -->
+        <div class="step" data-step="2" style="display: none">
+          <div class="step-title">
+            <span>SPEC</span>
+            <button class="reset-btn-small" title="Reset all fields">⟲</button>
+          </div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="spec-request">Project Request:</label>
+              <textarea
+                id="spec-request"
+                rows="3"
+                placeholder="Paste the results from the previous step..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="spec-rules">Project Rules (optional):</label>
+              <textarea
+                id="spec-rules"
+                rows="3"
+                placeholder="Enter any project rules..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="spec-template">Reference Code (optional):</label>
+              <textarea
+                id="spec-template"
+                rows="3"
+                placeholder="Enter any reference code..."
+              ></textarea>
+            </div>
+          </div>
+          <div class="button-group">
+            <button id="generate-copy-spec" class="generate-copy-btn" disabled>GET PROMPT</button>
+          </div>
+          <div class="munky-tip">
+            <p>
+              Use a <span class="model-badge reasoning-model">reasoning model</span> like
+              <strong>o1</strong> or <strong>R1</strong> for best results with this prompt.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 3: Planner -->
+        <div class="step" data-step="3" style="display: none">
+          <div class="step-title">
+            <span>PLANNER</span>
+            <button class="reset-btn-small" title="Reset all fields">⟲</button>
+          </div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="planner-spec">Technical Specification:</label>
+              <textarea
+                id="planner-spec"
+                rows="3"
+                placeholder="Paste the results from the spec step..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="planner-request">Project Request:</label>
+              <textarea
+                id="planner-request"
+                rows="3"
+                placeholder="Paste the project request..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="planner-rules">Project Rules (optional):</label>
+              <textarea id="planner-rules" rows="3" placeholder="Enter project rules..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="planner-template">Reference Code (optional):</label>
+              <textarea
+                id="planner-template"
+                rows="3"
+                placeholder="Enter starter template..."
+              ></textarea>
+            </div>
+          </div>
+          <div class="button-group">
+            <button id="generate-copy-planner" class="generate-copy-btn" disabled>
+              GET PROMPT
+            </button>
+          </div>
+          <div class="munky-tip">
+            <p>
+              Use a <span class="model-badge reasoning-model">reasoning model</span> like
+              <strong>o1</strong> or <strong>R1</strong> for best results with this prompt.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 4: Codegen -->
+        <div class="step" data-step="4" style="display: none">
+          <div class="step-title">
+            <span>CODEGEN</span>
+            <button class="reset-btn-small" title="Reset all fields">⟲</button>
+          </div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="codegen-plan">Implementation Plan:</label>
+              <textarea
+                id="codegen-plan"
+                rows="3"
+                placeholder="Paste the implementation plan..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="codegen-spec">Technical Specification:</label>
+              <textarea
+                id="codegen-spec"
+                rows="3"
+                placeholder="Paste the specification..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="codegen-request">Project Request:</label>
+              <textarea
+                id="codegen-request"
+                rows="3"
+                placeholder="Paste the project request..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="codegen-rules">Project Rules (optional):</label>
+              <textarea id="codegen-rules" rows="3" placeholder="Enter project rules..."></textarea>
+            </div>
+            <div class="input-group">
+              <label for="codegen-code">Your Code (optional):</label>
+              <textarea id="codegen-code" rows="3" placeholder="Enter existing code..."></textarea>
+            </div>
+          </div>
+          <div class="button-group">
+            <button id="generate-copy-codegen" class="generate-copy-btn" disabled>
+              GET PROMPT
+            </button>
+          </div>
+          <div class="munky-tip">
+            <p>
+              Use a <span class="model-badge coding-model">coding model</span> like
+              <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.
+            </p>
+          </div>
+        </div>
+
+        <!-- Step 5: Review -->
+        <div class="step" data-step="5" style="display: none">
+          <div class="step-title">
+            <span>REVIEW</span>
+            <button class="reset-btn-small" title="Reset all fields">⟲</button>
+          </div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="review-code">Existing Code:</label>
+              <textarea
+                id="review-code"
+                rows="3"
+                placeholder="Paste the code to review..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="review-request">Project Request:</label>
+              <textarea
+                id="review-request"
+                rows="3"
+                placeholder="Paste the project request..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="review-spec">Technical Specification:</label>
+              <textarea
+                id="review-spec"
+                rows="3"
+                placeholder="Paste the specification..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="review-plan">Implementation Plan:</label>
+              <textarea
+                id="review-plan"
+                rows="3"
+                placeholder="Paste the implementation plan..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="review-rules">Project Rules (optional):</label>
+              <textarea id="review-rules" rows="3" placeholder="Enter project rules..."></textarea>
+            </div>
+          </div>
+          <div class="button-group">
+            <button id="generate-copy-review" class="generate-copy-btn" disabled>GET PROMPT</button>
+          </div>
+          <div class="munky-tip">
+            <p>
+              Use a <span class="model-badge coding-model">coding model</span> like
+              <strong>Sonnet</strong> or <strong>o3-mini</strong> for best results with this prompt.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Debug Mode Steps Container -->
+      <div id="debug-mode-steps" class="mode-steps-container" style="display: none">
+        <div class="step-navigation">
+          <button id="prev-step" disabled>◀ PREV</button>
+          <button id="next-step">NEXT ▶</button>
+        </div>
+
+        <!-- Debug Step 1: Observe -->
+        <div class="step" data-step="1">
+          <div class="step-title">
+            <span>OBSERVE</span>
+            <button class="reset-btn-small" title="Reset all fields">⟲</button>
+          </div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="observe-bug">Bug Description:</label>
+              <textarea
+                id="observe-bug"
+                rows="3"
+                placeholder="Describe the issue you're experiencing..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="observe-error">Error Messages:</label>
+              <textarea
+                id="observe-error"
+                rows="3"
+                placeholder="Paste any errors or warnings..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="observe-repro">Reproduction Steps:</label>
+              <textarea
+                id="observe-repro"
+                rows="3"
+                placeholder="Steps to reproduce the issue..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="observe-env">Environment Details:</label>
+              <textarea
+                id="observe-env"
+                rows="3"
+                placeholder="OS, browser version, etc..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="observe-feedback">User Feedback (optional):</label>
+              <textarea
+                id="observe-feedback"
+                rows="3"
+                placeholder="User reports or feedback..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="observe-evidence">Additional Evidence (optional):</label>
+              <textarea
+                id="observe-evidence"
+                rows="3"
+                placeholder="Screenshots, logs, etc..."
+              ></textarea>
+            </div>
+          </div>
+          <div class="button-group">
+            <button id="generate-copy-observe" class="generate-copy-btn" disabled>
+              GET PROMPT
+            </button>
+          </div>
+          <div class="munky-tip">
+            <p>
+              Use a <span class="model-badge reasoning-model">reasoning model</span> like
+              <strong>o1</strong> or <strong>R1</strong> for best results with this prompt.
+            </p>
+          </div>
+        </div>
+
+        <!-- Debug Step 2: Orient -->
+        <div class="step" data-step="2" style="display: none">
+          <div class="step-title">
+            <span>ORIENT</span>
+            <button class="reset-btn-small" title="Reset all fields">⟲</button>
+          </div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="orient-summary">Analysis Summary:</label>
+              <textarea
+                id="orient-summary"
+                rows="3"
+                placeholder="Summarize what you've observed..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="orient-clarifications">Updated Clarifications (optional):</label>
+              <textarea
+                id="orient-clarifications"
+                rows="3"
+                placeholder="Any new information or clarifications..."
+              ></textarea>
+            </div>
+          </div>
+          <div class="button-group">
+            <button id="generate-copy-orient" class="generate-copy-btn" disabled>GET PROMPT</button>
+          </div>
+          <div class="munky-tip">
+            <p>
+              Use a <span class="model-badge reasoning-model">reasoning model</span> like
+              <strong>o1</strong> or <strong>R1</strong> for best results with this prompt.
+            </p>
+          </div>
+        </div>
+
+        <!-- Debug Step 3: Decide -->
+        <div class="step" data-step="3" style="display: none">
+          <div class="step-title">
+            <span>DECIDE</span>
+            <button class="reset-btn-small" title="Reset all fields">⟲</button>
+          </div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="decide-analysis">Analysis Summary:</label>
+              <textarea
+                id="decide-analysis"
+                rows="3"
+                placeholder="Summarize the analysis from Orient step..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="decide-constraints">Constraints or Risks (optional):</label>
+              <textarea
+                id="decide-constraints"
+                rows="3"
+                placeholder="Any constraints or risks to consider..."
+              ></textarea>
+            </div>
+          </div>
+          <div class="button-group">
+            <button id="generate-copy-decide" class="generate-copy-btn" disabled>GET PROMPT</button>
+          </div>
+          <div class="munky-tip">
+            <p>
+              Use a <span class="model-badge reasoning-model">reasoning model</span> like
+              <strong>o1</strong> or <strong>R1</strong> for best results with this prompt.
+            </p>
+          </div>
+        </div>
+
+        <!-- Debug Step 4: Act -->
+        <div class="step" data-step="4" style="display: none">
+          <div class="step-title">
+            <span>ACT</span>
+            <button class="reset-btn-small" title="Reset all fields">⟲</button>
+          </div>
+          <div class="multi-input-container">
+            <div class="input-group">
+              <label for="act-actions">Chosen Actions:</label>
+              <textarea
+                id="act-actions"
+                rows="3"
+                placeholder="The actions you've decided to take..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="act-implementation">Implementation Plan:</label>
+              <textarea
+                id="act-implementation"
+                rows="3"
+                placeholder="How you plan to implement the fix..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="act-success">Success Criteria:</label>
+              <textarea
+                id="act-success"
+                rows="3"
+                placeholder="How you'll verify the fix worked..."
+              ></textarea>
+            </div>
+          </div>
+          <div class="button-group">
+            <button id="generate-copy-act" class="generate-copy-btn" disabled>GET PROMPT</button>
+          </div>
+          <div class="munky-tip">
+            <p>
+              Use a <span class="model-badge reasoning-model">reasoning model</span> like
+              <strong>o1</strong> or <strong>R1</strong> for best results with this prompt.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cat Section -->
+      <div id="cat-section" class="cat-section">
+        <div class="button-group">
+          <button id="catFilesBtn" class="generate-copy-btn">CAT FILES</button>
+        </div>
+      </div>
+
+      <!-- Jina Integration Section -->
+      <div id="jina-section" class="jina-section" style="display: none">
+        <div class="button-group">
+          <button id="fetchJinaBtn" class="generate-copy-btn">FETCH MARKDOWN</button>
+        </div>
+      </div>
+    </div>
+
+    <script nonce="${nonce}" src="${jsUri}"></script>
+  </body>
+</html>

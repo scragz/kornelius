@@ -1,0 +1,76 @@
+/* KoЯnelius - Main CSS Import File */
+
+/* Import all modular CSS components in a logical order */
+
+/* First import base styles and animations */
+@import url('reset.css');
+@import url('vscode.css');
+@import url('base.css');
+@import url('typography.css');
+@import url('forms.css');
+@import url('buttons.css');
+@import url('navigation.css');
+@import url('steps.css');
+@import url('mode-toggle.css');
+@import url('animations.css');
+@import url('logo.css');
+@import url('utils.css');
+@import url('tips.css');
+
+/* Media Queries */
+@media (max-width: 600px) {
+  /* Adjust spacing for small screens */
+  .container {
+    padding: 10px 5px;
+  }
+
+  /* Make buttons stack on small screens */
+  .button-group {
+    flex-direction: column;
+  }
+
+  /* Reduce text size on small screens */
+  h1 {
+    font-size: 1.8em;
+  }
+
+  h2 {
+    font-size: 1.2em;
+  }
+}
+
+/* Custom one-off styles that don't justify a separate file */
+.myspace-blink {
+  animation: blink 1s steps(2, start) infinite;
+}
+
+@keyframes blink {
+  to {
+    visibility: hidden;
+  }
+}
+
+/* CSS-only customized scrollbars (for WebKit browsers) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--vscode-editor-background) 95%, var(--variable-color));
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom,
+    var(--keyword-color),
+    var(--function-color),
+    var(--type-color));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--keyword-color) 120%, white),
+    color-mix(in srgb, var(--function-color) 120%, white),
+    color-mix(in srgb, var(--type-color) 120%, white));
+}

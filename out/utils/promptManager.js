@@ -55,7 +55,7 @@ class PromptManager {
                 // Try to list parent directory to aid in debugging
                 const parentDir = path.dirname(this._promptsDirectory);
                 if (fs.existsSync(parentDir)) {
-                    debugLogger_1.DebugLogger.log(`Parent directory exists, contents:`, fs.readdirSync(parentDir));
+                    debugLogger_1.DebugLogger.log('Parent directory exists, contents:', fs.readdirSync(parentDir));
                 }
             }
         }
@@ -115,7 +115,7 @@ class PromptManager {
             return content;
         }
         catch (error) {
-            debugLogger_1.DebugLogger.error(`Error reading template content:`, error);
+            debugLogger_1.DebugLogger.error('Error reading template content:', error);
             throw error;
         }
     }
@@ -131,14 +131,14 @@ class PromptManager {
         for (const [key, value] of Object.entries(userInputs)) {
             const doubleBracePlaceholder = `{{${key}}}`;
             // Replace double curly brace format
-            result = result.replace(new RegExp(this.escapeRegExp(doubleBracePlaceholder), 'g'), value || '');
+            result = result.replace(new RegExp(this._escapeRegExp(doubleBracePlaceholder), 'g'), value || '');
         }
         return result;
     }
     /**
      * Escape special characters in string for use in RegExp
      */
-    escapeRegExp(string) {
+    _escapeRegExp(string) {
         return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
     }
 }

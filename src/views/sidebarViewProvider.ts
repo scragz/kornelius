@@ -7,17 +7,13 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'kornelius-sidebar';
   public static readonly viewId = 'kornelius-sidebar';
 
-  // No longer need a separate Jina handler property
-
   constructor(private readonly _extensionUri: vscode.Uri) {}
-
-  // No longer need setJinaMessageHandler
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
     _context: vscode.WebviewViewResolveContext,
     _token: vscode.CancellationToken
-  ) {
+  ): void {
     webviewView.webview.options = {
       enableScripts: true,
       localResourceRoots: [this._extensionUri],
@@ -110,18 +106,19 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
   }
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
-    // Get URIs for CSS resources
-    // Get URIs for CSS and JS resources
-    const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'reset.css'));
-    const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'vscode.css'));
-    const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'main.css'));
-    const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'media', 'js', 'sidebar.js')); // <-- Add JS URI
+    // Get URIs for CSS and JS resources within the 'out' directory (media folder is flattened by copyfiles -u 1)
+    const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'out', 'reset.css'));
+    const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'out', 'vscode.css'));
+    const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'out', 'main.css'));
+    // JS and Fonts retain their subdirectories relative to 'out'
+    const jsUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'out', 'js', 'sidebar.js'));
 
     const nonce = getNonce();
 
     // Read the HTML template file
     try {
-      const templatePath = path.join(this._extensionUri.fsPath, 'src', 'views', 'templates', 'sidebar.html');
+      // Construct path to the template file inside the 'out/views/templates' directory
+      const templatePath = path.join(this._extensionUri.fsPath, 'out', 'views', 'templates', 'sidebar.html');
       let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
 
       // Replace template variables

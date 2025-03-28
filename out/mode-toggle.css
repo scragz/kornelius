@@ -1,0 +1,107 @@
+/* KoЯnelius - Mode Toggle Styles */
+
+.mode-toggle-container {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0 20px;
+  position: relative;
+}
+
+.mode-toggle {
+  display: flex;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--vscode-panel-border);
+  width: 80%;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.mode-toggle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom,
+    rgba(0, 0, 0, 0.3),
+    transparent 30%,
+    transparent 70%,
+    rgba(0, 0, 0, 0.3));
+  z-index: -1;
+  pointer-events: none;
+}
+
+.mode-toggle button {
+  flex: 1;
+  padding: 10px 12px;
+  background: linear-gradient(to bottom,
+    var(--vscode-button-background) 0%,
+    color-mix(in srgb, var(--vscode-button-background) 80%, black) 100%);
+  color: var(--vscode-button-foreground);
+  border: none;
+  font-family: 'Anton', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 0.85em;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.mode-toggle button:first-child {
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.mode-toggle button:last-child {
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mode-toggle button.active {
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--vscode-button-background) 120%, white) 0%,
+    var(--vscode-button-background) 100%);
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.2);
+  z-index: 2;
+  transform: scale(1.03);
+}
+
+.mode-toggle button:hover:not(.active) {
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--vscode-button-background) 100%, black) 0%,
+    color-mix(in srgb, var(--vscode-button-background) 70%, black) 100%);
+}
+
+/* Glowing effect for active button */
+.mode-toggle button.active::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at center,
+    var(--keyword-color) 0%,
+    transparent 70%
+  );
+  opacity: 0.1;
+  z-index: -1;
+}
+
+/* Mode step containers */
+.mode-steps-container {
+  display: none; /* Hide by default, will be shown based on selected mode */
+}
+
+.mode-steps-container.active {
+  display: block;
+}

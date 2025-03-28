@@ -2,7 +2,7 @@
   "name": "kornelius",
   "displayName": "KoЯnelius",
   "description": "Your vibe coding companion",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "publisher": "scragz",
   "icon": "media/barbed-wire-color.png",
   "repository": {
@@ -72,7 +72,7 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && copyfiles -u 1 \"src/views/templates/**/*\" out && copyfiles -u 1 \"media/**/*\" out",
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile && npm run lint",
     "lint": "eslint src --ext ts",
@@ -85,6 +85,7 @@
     "@types/vscode": "^1.60.0",
     "@typescript-eslint/eslint-plugin": "^4.26.0",
     "@typescript-eslint/parser": "^4.26.0",
+    "copyfiles": "^2.4.1",
     "eslint": "^7.27.0",
     "glob": "^7.1.7",
     "mocha": "^8.4.0",

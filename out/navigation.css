@@ -1,0 +1,90 @@
+/* KoЯnelius - Navigation Styles */
+
+/* Simple navigation buttons */
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: -5px 0;
+  border-top: 2px solid var(--variable-color);
+  border-bottom: 2px solid var(--variable-color);
+  padding: 10px 0;
+  position: relative;
+  background: linear-gradient(to right,
+    transparent,
+    rgba(0,0,0,0.1),
+    transparent);
+}
+
+.step-navigation::before, .step-navigation::after {
+  content: "";
+  position: absolute;
+  height: 6px;
+  width: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--variable-color),
+    var(--variable-color) 2px,
+    transparent 2px,
+    transparent 10px
+  );
+  opacity: 0.5;
+}
+
+.step-navigation::before {
+  top: -10px;
+}
+
+.step-navigation::after {
+  bottom: -10px;
+}
+
+.step-navigation button {
+  padding: 6px 15px;
+  border-radius: 15px;
+  background: linear-gradient(to bottom,
+    var(--vscode-button-background) 0%,
+    color-mix(in srgb, var(--vscode-button-background) 80%, black) 100%);
+  color: var(--vscode-button-foreground);
+  border: 1px solid color-mix(in srgb, var(--vscode-button-background) 70%, black);
+  transform: perspective(500px) rotateX(10deg);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow:
+    0 3px 0 rgba(0, 0, 0, 0.3),
+    0 5px 10px rgba(0, 0, 0, 0.2);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  width: 100px;
+  margin: 0 10px;
+}
+
+.step-navigation button:hover:not(:disabled) {
+  transform: perspective(500px) rotateX(10deg) translateY(-2px) scale(1.05);
+  box-shadow:
+    0 5px 0 rgba(0, 0, 0, 0.3),
+    0 7px 15px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--vscode-button-background) 120%, white) 0%,
+    var(--vscode-button-background) 100%);
+}
+
+.step-navigation button:active:not(:disabled) {
+  transform: perspective(500px) rotateX(10deg) translateY(1px) scale(0.98);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.3),
+    0 2px 5px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--vscode-button-background) 80%, black) 0%,
+    var(--vscode-button-background) 100%);
+}
+
+.step-navigation button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: linear-gradient(to bottom,
+    color-mix(in srgb, var(--vscode-disabledForeground) 120%, var(--vscode-editor-background)) 0%,
+    color-mix(in srgb, var(--vscode-disabledForeground) 80%, var(--vscode-editor-background)) 100%);
+  color: var(--vscode-disabledForeground);
+  border-color: var(--vscode-panel-border);
+  box-shadow: none;
+  transform: perspective(500px) rotateX(10deg);
+}

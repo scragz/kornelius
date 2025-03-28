@@ -1,0 +1,136 @@
+/* KoЯnelius - Utility & Miscellaneous Styles */
+
+/* Template selector styling - like a mixtape selector */
+.template-selector {
+  margin: 20px 0;
+  position: relative;
+  background: color-mix(in srgb, var(--vscode-editor-background) 97%, var(--variable-color));
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px dashed var(--function-color);
+  box-shadow:
+    inset 0 0 10px rgba(0, 0, 0, 0.1),
+    0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.template-selector::before {
+  content: "▶ SELECT YOUR TEMPLATE";
+  font-family: 'Anton', sans-serif;
+  font-size: 0.8em;
+  color: var(--function-color);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 95%, var(--function-color));
+  padding: 3px 10px;
+  border-radius: 15px;
+  position: absolute;
+  top: -12px;
+  left: 15px;
+  z-index: 1;
+  letter-spacing: 1px;
+  border: 1px solid var(--function-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transform: rotate(-2deg);
+}
+
+.template-selector select {
+  width: 100%;
+  padding: 10px;
+  margin: 5px 0;
+  background-color: var(--vscode-dropdown-background);
+  color: var(--vscode-dropdown-foreground);
+  border: 2px solid var(--vscode-dropdown-border);
+  border-radius: 8px;
+  box-shadow:
+    0 3px 5px rgba(0, 0, 0, 0.2),
+    inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  appearance: none;
+  padding-right: 35px;
+  position: relative;
+}
+
+/* Error message styling - with nu-metal attitude */
+.error-message {
+  color: var(--keyword-color);
+  margin: 15px 0;
+  padding: 15px;
+  font-size: 0.9em;
+  font-family: 'Permanent Marker', cursive;
+  border-left: 3px solid var(--keyword-color);
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 95%, var(--keyword-color));
+  border-radius: 4px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Success message styling - with nu-metal attitude */
+.success-message {
+  color: var(--type-color);
+  margin: 15px 0;
+  padding: 15px;
+  font-size: 0.9em;
+  font-family: 'Permanent Marker', cursive;
+  border-left: 3px solid var(--type-color);
+  background-color: color-mix(in srgb, var(--vscode-editor-background) 95%, var(--type-color));
+  border-radius: 4px;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+/* Additional helper classes */
+.shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.shine::after {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  transform: rotate(30deg);
+  animation: shine 3s linear infinite;
+}
+
+@keyframes shine {
+  0% { transform: rotate(30deg) translateX(-100%); }
+  100% { transform: rotate(30deg) translateX(100%); }
+}
+
+.fancy-border {
+  position: relative;
+  padding: 1px;
+  overflow: hidden;
+}
+
+.fancy-border::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  background: linear-gradient(90deg,
+    var(--keyword-color),
+    var(--function-color),
+    var(--type-color),
+    var(--function-color),
+    var(--keyword-color)) border-box;
+  mask: linear-gradient(#fff 0 0) padding-box,
+        linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  animation: border-rotate 4s linear infinite;
+}
+
+@keyframes border-rotate {
+  0% { background-position: 0% center; }
+  100% { background-position: 200% center; }
+}
