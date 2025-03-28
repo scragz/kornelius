@@ -19,6 +19,11 @@
   z-index: 2;
 }
 
+/* Adjust width for three buttons */
+.mode-toggle {
+  width: 95%; /* Slightly wider to fit AUDIT comfortably */
+}
+
 .mode-toggle::before {
   content: "";
   position: absolute;
@@ -53,17 +58,28 @@
   overflow: hidden;
 }
 
+/* Apply borders between buttons */
+.mode-toggle button:not(:last-child) {
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+.mode-toggle button:not(:first-child) {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Keep rounded corners only on the outer edges */
 .mode-toggle button:first-child {
   border-top-left-radius: 20px;
   border-bottom-left-radius: 20px;
-  border-right: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .mode-toggle button:last-child {
   border-top-right-radius: 20px;
   border-bottom-right-radius: 20px;
-  border-left: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* Remove individual border radius for middle button if needed, though flex handles it */
+/* .mode-toggle button:nth-child(2) { border-radius: 0; } */
+
 
 .mode-toggle button.active {
   background: linear-gradient(to bottom,

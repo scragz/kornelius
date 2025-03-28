@@ -2,14 +2,22 @@ import * as vscode from 'vscode';
 import { SidebarViewProvider } from './views/sidebarViewProvider';
 import { JinaReader } from './utils/jinaReader';
 import { browsePrompts, selectPromptTemplate, getTemplateContent } from './commands/browsePrompts';
-import { generatePrompt } from './commands/generatePrompt';
+import { generatePrompt, PromptUserInputs } from './commands/generatePrompt'; // Import PromptUserInputs
 import { copyToClipboard } from './commands/copyPrompt';
 import { DebugLogger } from './utils/debugLogger';
 import { catFiles } from './commands/catFiles';
+import { PromptTemplate } from './utils/promptManager'; // Import PromptTemplate
+
+// Define a simple interface for the template quick pick items - No longer needed here
+// interface TemplateQuickPickItem extends vscode.QuickPickItem {
+//   fullPath?: string; // Assuming fullPath might be needed later, based on browsePrompts logic
+//   type?: string;     // Assuming type might be needed later
+// }
+
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext): void { // Added :void return type
   // Initialize debug logging
   DebugLogger.initialize();
 
@@ -57,7 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register generate prompt command
   const generatePromptCmd = vscode.commands.registerCommand('kornelius.generatePrompt',
-    async (step: string, userInputs: any) => {
+    async (step: string, userInputs: PromptUserInputs) => { // Replaced any with PromptUserInputs
       DebugLogger.log('Command kornelius.generatePrompt called', { step, userInputsKeys: Object.keys(userInputs || {}) });
 
       try {
@@ -91,7 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Register template selection command
   const selectTemplateCmd = vscode.commands.registerCommand('kornelius.selectTemplate',
-    async (templates: any[]) => {
+    async (templates: PromptTemplate[]) => { // Changed type to PromptTemplate[]
       return await selectPromptTemplate(templates);
     }
   );
@@ -136,6 +144,6 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {
+export function deactivate(): void { // Added :void return type
   // No cleanup needed
 }

@@ -28,10 +28,15 @@ const vscode = __importStar(require("vscode"));
 const sidebarViewProvider_1 = require("./views/sidebarViewProvider");
 const jinaReader_1 = require("./utils/jinaReader");
 const browsePrompts_1 = require("./commands/browsePrompts");
-const generatePrompt_1 = require("./commands/generatePrompt");
+const generatePrompt_1 = require("./commands/generatePrompt"); // Import PromptUserInputs
 const copyPrompt_1 = require("./commands/copyPrompt");
 const debugLogger_1 = require("./utils/debugLogger");
 const catFiles_1 = require("./commands/catFiles");
+// Define a simple interface for the template quick pick items - No longer needed here
+// interface TemplateQuickPickItem extends vscode.QuickPickItem {
+//   fullPath?: string; // Assuming fullPath might be needed later, based on browsePrompts logic
+//   type?: string;     // Assuming type might be needed later
+// }
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 function activate(context) {

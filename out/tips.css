@@ -78,3 +78,16 @@
   color: white;
   transform: rotate(1deg) skew(1deg);
 }
+
+.large-context-model {
+  background: linear-gradient(to bottom right, #ff9900, #cc3300); /* Orange/Red gradient */
+  border: 2px dashed #ffcc99;
+  border-radius: 5px 5px 5px 5px; /* More standard shape */
+  color: white;
+  transform: rotate(0deg) skew(0deg); /* No rotation/skew */
+}
+
+/* Spacing for buttons within Audit panel */
+.audit-button-group {
+  margin-top: 10px; /* Add some space above the audit buttons */
+}

@@ -8,13 +8,14 @@ import { DebugLogger } from '../utils/debugLogger';
  * Interface representing user input data for prompt generation
  */
 export interface PromptUserInputs {
-  INITIAL_IDEA?: string;
-  PROJECT_REQUEST?: string;
-  PROJECT_RULES?: string;
-  TECHNICAL_SPECIFICATION?: string;
-  IMPLEMENTATION_PLAN?: string;
-  REFERENCE_CODE?: string;
-  EXISTING_CODE?: string;
+  initialIdea?: string;
+  projectRequest?: string;
+  projectRules?: string;
+  technicalSpecification?: string;
+  implementationPlan?: string;
+  referenceCode?: string;
+  existingCode?: string;
+  codeToAudit?: string; // Added for security/a11y audit steps
   [key: string]: string | undefined; // Add index signature to allow dynamic access
 }
 
@@ -94,47 +95,57 @@ function processPromptWithPlaceholders(
   // Map appropriate values based on the current step
   switch (step) {
     case 'request':
-      // For request step, use INITIAL_IDEA instead of PROJECT_REQUEST
-      placeholderMap['PROJECT_REQUEST'] = userInputs.INITIAL_IDEA || '';
+      // For request step, use initialIdea
+      placeholderMap['PROJECT_REQUEST'] = userInputs.initialIdea || '';
       break;
 
     case 'spec':
-      // For spec step, use previous step's input plus any spec-specific input
-      placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';  // Fixed: Use PROJECT_REQUEST instead of REQUEST
-      placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
-      placeholderMap['REFERENCE_CODE'] = userInputs.REFERENCE_CODE || '';
+      // For spec step, use projectRequest, projectRules, referenceCode
+      placeholderMap['PROJECT_REQUEST'] = userInputs.projectRequest || '';
+      placeholderMap['PROJECT_RULES'] = userInputs.projectRules || '';
+      placeholderMap['REFERENCE_CODE'] = userInputs.referenceCode || '';
       break;
 
     case 'planner':
-      // For planner step, use request and spec inputs
-      placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';
-      placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
-      placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.TECHNICAL_SPECIFICATION || '';  // Fixed: Use TECHNICAL_SPECIFICATION instead of spec
-      placeholderMap['REFERENCE_CODE'] = userInputs.REFERENCE_CODE || '';
+      // For planner step, use projectRequest, projectRules, technicalSpecification, referenceCode
+      placeholderMap['PROJECT_REQUEST'] = userInputs.projectRequest || '';
+      placeholderMap['PROJECT_RULES'] = userInputs.projectRules || '';
+      placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.technicalSpecification || '';
+      placeholderMap['REFERENCE_CODE'] = userInputs.referenceCode || '';
       break;
 
     case 'codegen':
-      // For codegen step, use request, spec and planner inputs
-      placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';
-      placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
-      placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.TECHNICAL_SPECIFICATION || '';
-      placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.IMPLEMENTATION_PLAN || '';
-      placeholderMap['EXISTING_CODE'] = userInputs.EXISTING_CODE || '';
+      // For codegen step, use projectRequest, projectRules, technicalSpecification, implementationPlan, existingCode
+      placeholderMap['PROJECT_REQUEST'] = userInputs.projectRequest || '';
+      placeholderMap['PROJECT_RULES'] = userInputs.projectRules || '';
+      placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.technicalSpecification || '';
+      placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.implementationPlan || '';
+      placeholderMap['EXISTING_CODE'] = userInputs.existingCode || '';
       break;
 
     case 'review':
-      // For review step, use all previous inputs
-      placeholderMap['PROJECT_REQUEST'] = userInputs.PROJECT_REQUEST || '';
-      placeholderMap['PROJECT_RULES'] = userInputs.PROJECT_RULES || '';
-      placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.TECHNICAL_SPECIFICATION || '';
-      placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.IMPLEMENTATION_PLAN || '';
-      placeholderMap['EXISTING_CODE'] = userInputs.EXISTING_CODE || '';
+      // For review step, use projectRequest, projectRules, technicalSpecification, implementationPlan, existingCode
+      placeholderMap['PROJECT_REQUEST'] = userInputs.projectRequest || '';
+      placeholderMap['PROJECT_RULES'] = userInputs.projectRules || '';
+      placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.technicalSpecification || '';
+      placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.implementationPlan || '';
+      placeholderMap['EXISTING_CODE'] = userInputs.existingCode || '';
+      break;
+
+    case 'audit-security':
+    case 'audit-a11y':
+      // For audit steps, use codeToAudit
+      placeholderMap['CODE_TO_AUDIT'] = userInputs.codeToAudit || '';
       break;
 
     default:
-      // For unknown steps, use whatever inputs are provided
+      // Fallback for any steps not explicitly handled (should ideally not happen for known steps)
+      DebugLogger.log(`[Warning] Unhandled step in processPromptWithPlaceholders: ${step}. Using direct input mapping.`); // Changed warn to log
+      // Attempt to map camelCase keys from userInputs to SCREAMING_SNAKE_CASE for placeholders
       Object.keys(userInputs).forEach(key => {
-        placeholderMap[key.toUpperCase()] = userInputs[key] || '';
+        // Convert camelCase key to SCREAMING_SNAKE_CASE for the placeholder map
+        const placeholderKey = key.replace(/([A-Z])/g, '_$1').toUpperCase();
+        placeholderMap[placeholderKey] = userInputs[key] || '';
       });
   }
 
