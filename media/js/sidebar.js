@@ -140,15 +140,22 @@ class FormManager {
                 return;
             }
 
-            // Hide all steps within the *current* mode's container
+            // Hide all steps within the *current* mode's container and remove animation class
             stepsContainer.querySelectorAll('.step').forEach(step => {
                 step.style.display = 'none';
+                step.classList.remove('step-visible'); // Remove animation class
             });
 
-            // Show only the target step in the active mode
+            // Show only the target step in the active mode and add animation class
             const targetStepElement = stepsContainer.querySelector('[data-step="' + newStep + '"]');
             if (targetStepElement) {
                 targetStepElement.style.display = 'block';
+                // Use requestAnimationFrame to ensure display: block is applied before adding the animation class
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => { // Double rAF for better browser compatibility
+                      targetStepElement.classList.add('step-visible'); // Add animation class
+                    });
+                });
             } else {
                 logToExtension('Step element not found: ' + newStep + ' in mode: ' + this.currentMode, 'error');
                 return; // Added return here
@@ -201,21 +208,19 @@ class FormManager {
             // Update mode-specific properties
             this.updateModeProperties(mode);
 
-            // Reset to step 1 of the new mode, and make ONLY that step visible
+            // Reset to step 1 of the new mode
             this.currentStep = 1;
 
-            // Show only the current step in the active mode
-            const newStepContainer = document.getElementById(mode + '-mode-steps');
-            if (newStepContainer) {
-                // Hide all steps within the new container first
-                newStepContainer.querySelectorAll('.step').forEach(step => {
+            // The updateStep(1) call in DOMContentLoaded or subsequent navigation
+            // will handle showing the correct step and applying the animation class.
+            // We just need to ensure all steps in the newly shown container are initially hidden.
+            const newlyVisibleContainer = document.getElementById(mode + '-mode-steps'); // Renamed variable
+            if (newlyVisibleContainer) {
+                // Hide all steps within the new container first, remove animation class
+                newlyVisibleContainer.querySelectorAll('.step').forEach(step => {
                     step.style.display = 'none';
+                    step.classList.remove('step-visible');
                 });
-                // Then show the first step
-                const firstStep = newStepContainer.querySelector('[data-step="1"]');
-                if (firstStep) {
-                    firstStep.style.display = 'block';
-                }
             }
 
             // Update navigation buttons for the new mode
@@ -796,32 +801,25 @@ document.addEventListener('DOMContentLoaded', () => {
         // within initializeModeToggle handles setting the correct container visibility
         // and button states.
 
-        // We just need to ensure the first step of the initially active mode is visible.
-        const activeContainerId = formManager.currentMode + '-mode-steps';
-        const activeContainer = document.getElementById(activeContainerId);
-        if (activeContainer) {
-            // Hide all steps within the active container first
-            activeContainer.querySelectorAll('.step').forEach(step => {
-                step.style.display = 'none';
-            });
-            // Show the first step
-            const firstStep = activeContainer.querySelector('[data-step="1"]');
-            if (firstStep) {
-                firstStep.style.display = 'block';
-                logToExtension(`First step displayed for initial mode: ${formManager.currentMode}`);
-            } else {
-                logToExtension(`Could not find first step for initial mode: ${formManager.currentMode}`, 'error');
-            }
-            // Ensure navigation buttons (if applicable) are correctly set
-            if (formManager.currentMode === 'create' || formManager.currentMode === 'debug') {
-                formManager.initializeNavigation();
-            }
-        } else {
-            logToExtension(`Could not find active container on initial load: ${activeContainerId}`, 'error');
+        // The switchMode function called during FormManager construction already handles
+        // setting the initial step visibility. We just need to ensure navigation
+        // and validation are run for the initial state.
+
+        // Ensure navigation buttons (if applicable) are correctly set for the initial mode
+        if (formManager.currentMode === 'create' || formManager.currentMode === 'debug') {
+            formManager.initializeNavigation();
+            logToExtension(`Navigation initialized for initial mode: ${formManager.currentMode}`);
         }
 
-        // Initial validation run after potential state loading
+        // Initial validation run after potential state loading and mode setup
         formManager.validateAllButtons();
+        logToExtension(`Initial button validation complete for mode: ${formManager.currentMode}`);
+
+        // Explicitly ensure only the first step is visible after all initialization
+        // This addresses the regression where all steps might show briefly on load.
+        formManager.updateStep(1);
+        logToExtension(`Explicitly set initial view to step 1 for mode: ${formManager.currentMode}`);
+
 
         logToExtension('Initialization complete via DOMContentLoaded.');
     } catch (error) {

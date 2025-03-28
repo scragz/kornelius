@@ -41,7 +41,16 @@
   animation: pulse 0.3s ease-in-out;
 }
 
-/* Step transitions */
-.step {
+/* Step transitions - Apply animation only when step becomes visible */
+.step-visible {
   animation: fadeIn 0.3s ease-in-out;
+  visibility: visible; /* Ensure visible when this class is added */
+  opacity: 1; /* Ensure final state is opaque */
+}
+/* Remove animation from base .step class and hide by default */
+.step {
+  /* animation: fadeIn 0.3s ease-in-out; */ /* Removed */
+  opacity: 0; /* Hide by default */
+  visibility: hidden; /* Hide by default */
+  /* display: none; */ /* Let JS handle display block/none */
 }

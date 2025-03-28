@@ -41,7 +41,11 @@
   animation: pulse 0.3s ease-in-out;
 }
 
-/* Step transitions */
-.step {
+/* Step transitions - Apply animation only when step becomes visible */
+.step-visible {
   animation: fadeIn 0.3s ease-in-out;
+}
+/* Remove animation from base .step class */
+.step {
+  /* animation: fadeIn 0.3s ease-in-out; */ /* Removed */
 }
