@@ -2,25 +2,24 @@
 
 # KoЯnelius
 
-**Your nü companion for this vibe-driven coding era.** Kornelius is
-an extension for Visual Studio Code to aid in prompt creation and context management.
+Kornelius is an extension for Visual Studio Code designed to streamline AI prompt creation and context management for various development workflows.
 
-## 🎸 Features
+## Features
 
-- **5-STEP WORKFLOW**: `REQUEST → SPEC → PLANNER → CODEGEN → REVIEW`
-- **GENERATE PROMPTS**: Create custom AI prompts with attitude
-- **FILE CONCATENATION**: Cat files for additional context
-- **JINA.AI INTEGRATION**: Optional markdown fetching capabilities
+- **Create Mode**: Guides users through a `REQUEST → SPEC → PLANNER → CODEGEN → REVIEW` process.
+- **Debug Mode**: Implements an OODA `OBSERVE → ORIENT → DECIDE → ACT` loop for iterative debugging assistance.
+- **Audit Mode**: Offers specialized prompts for comprehensive Security and Accessibility audits.
+- **File Concatenation**: Easily include the content of selected files for contextual prompting.
+- **Jina.ai Integration**: Optional capability to fetch markdown content using the Jina Reader API.
 
-## 🎧 Usage
+## Usage
 
-1. Click the barbed wire icon in the activity bar to open KoЯnelius
-2. Fill in your details at each stage
-3. The generated prompt is copied to clipboard
-4. Drop it into your AI tool of choice
-5. Paste the results into the next step
+1. Click the KoЯnelius icon in the activity bar.
+2. Select a workflow (Standard, Debug, Audit).
+3. Fill in the required details at each stage of the selected workflow.
+4. Generated prompts are automatically copied to the clipboard for use with your preferred AI tool.
 
-## 🎤 Extension Settings
+## Extension Settings
 
 - `kornelius.enableJinaIntegration`: Enable/disable the Jina.ai integration
 - `kornelius.jinaApiKey`: API key for Jina.ai integration (if enabled)
