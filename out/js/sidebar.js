@@ -79,8 +79,17 @@ class FormManager {
                 logToExtension('Step not found: ' + newStep + ' in mode: ' + this.currentMode, 'error');
             }
 
-            document.getElementById('prev-step').disabled = newStep === 1;
-            document.getElementById('next-step').disabled = newStep === this.totalSteps;
+            // Select buttons within the current mode's container
+            const activeStepsContainer = document.getElementById(this.currentMode + '-mode-steps');
+            if (activeStepsContainer) {
+                const prevButton = activeStepsContainer.querySelector('#prev-step');
+                const nextButton = activeStepsContainer.querySelector('#next-step');
+                if (prevButton) prevButton.disabled = newStep === 1;
+                if (nextButton) nextButton.disabled = newStep === this.totalSteps;
+            } else {
+                 logToExtension('Could not find active container in updateStep for mode: ' + this.currentMode, 'error');
+            }
+
 
             this.currentStep = newStep;
 

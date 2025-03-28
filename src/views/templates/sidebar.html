@@ -2,11 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- CSP: allow styles from the extension and scripts with the matching nonce -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';"
-    />
+    <!-- CSP: Allow styles, fonts, and scripts -->
+    <meta http-equiv="Content-Security-Policy" content="${csp}" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kornelius</title>
     <link href="${styleResetUri}" rel="stylesheet" />
@@ -267,7 +264,7 @@
       </div>
 
       <!-- Debug Mode Steps Container -->
-      <div id="debug-mode-steps" class="mode-steps-container">
+      <div id="debug-mode-steps" class="mode-steps-container" style="display: none">
         <div class="step-navigation">
           <button id="prev-step" disabled>◀ PREV</button>
           <button id="next-step">NEXT ▶</button>

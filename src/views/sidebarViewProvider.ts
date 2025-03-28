@@ -16,7 +16,11 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
   ): void {
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [this._extensionUri],
+      // Allow loading resources from the extension root AND the 'out' directory
+      localResourceRoots: [
+          this._extensionUri,
+          vscode.Uri.joinPath(this._extensionUri, 'out')
+      ],
     };
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
@@ -121,11 +125,14 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
       const templatePath = path.join(this._extensionUri.fsPath, 'out', 'views', 'templates', 'sidebar.html');
       let htmlTemplate = fs.readFileSync(templatePath, 'utf8');
 
-      // Replace template variables
+      // Construct CSP string using concatenation
+      const cspString = "default-src 'none'; style-src " + webview.cspSource + '; font-src ' + webview.cspSource + "; script-src 'nonce-" + nonce + "';";
+
+      // Replace template variables in order: CSP, nonce, then URIs
       htmlTemplate = htmlTemplate
-        .replace(/\${webview\.cspSource}/g, webview.cspSource)
-        .replace(/\${nonce}/g, nonce)
-        .replace(/\${styleResetUri}/g, styleResetUri.toString())
+        .replace(/\${csp}/g, cspString) // Replace CSP first
+        .replace(/\${nonce}/g, nonce)   // Then nonce
+        .replace(/\${styleResetUri}/g, styleResetUri.toString()) // Then URIs
         .replace(/\${styleVSCodeUri}/g, styleVSCodeUri.toString())
         .replace(/\${styleMainUri}/g, styleMainUri.toString())
         .replace(/\${jsUri}/g, jsUri.toString()); // <-- Add JS URI replacement
@@ -137,7 +144,7 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 <html>
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; font-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
