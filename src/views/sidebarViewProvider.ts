@@ -81,24 +81,28 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
             break;
           case 'generatePrompt':
             try {
-              DebugLogger.log(`Sidebar: Received generatePrompt request for step ${message.step} with data:`, message.data);
+              // Log the received message including mode and buttonId
+              DebugLogger.log(`Sidebar: Received generatePrompt request for step ${message.step} in mode ${message.mode} (buttonId: ${message.buttonId}) with data:`, message.data);
               const generatedPrompt = await vscode.commands.executeCommand(
                 'kornelius.generatePrompt',
-                message.step,
+                message.step, // e.g., 'request', 'observe'
+                message.mode, // e.g., 'create', 'debug'
                 message.data
               );
-              DebugLogger.log(`Sidebar: Successfully generated prompt for step ${message.step}, sending back to webview`);
+              DebugLogger.log(`Sidebar: Successfully generated prompt for step ${message.step} (mode: ${message.mode}), sending back to webview`);
+              // Send back the buttonId so the webview knows which button to update
               webviewView.webview.postMessage({
                 command: 'promptGenerated',
-                step: message.step,
+                buttonId: message.buttonId, // Use buttonId instead of step
                 content: generatedPrompt
               });
             } catch (error) {
-              DebugLogger.error(`Sidebar: Error generating prompt for step ${message.step}:`, error);
+              DebugLogger.error(`Sidebar: Error generating prompt for step ${message.step} (mode: ${message.mode}):`, error);
               vscode.window.showErrorMessage(`Failed to generate prompt: ${error instanceof Error ? error.message : String(error)}`);
+              // Send back the buttonId so the webview knows which button to update
               webviewView.webview.postMessage({
                 command: 'promptError',
-                step: message.step,
+                buttonId: message.buttonId, // Use buttonId instead of step
                 error: error instanceof Error ? error.message : String(error)
               });
             }

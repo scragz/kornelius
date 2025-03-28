@@ -65,11 +65,11 @@ export function activate(context: vscode.ExtensionContext): void { // Added :voi
 
   // Register generate prompt command
   const generatePromptCmd = vscode.commands.registerCommand('kornelius.generatePrompt',
-    async (step: string, userInputs: PromptUserInputs) => { // Replaced any with PromptUserInputs
-      DebugLogger.log('Command kornelius.generatePrompt called', { step, userInputsKeys: Object.keys(userInputs || {}) });
+    async (step: string, mode: 'create' | 'debug' | 'audit' | 'unknown', userInputs: PromptUserInputs) => { // Added mode parameter
+      DebugLogger.log('Command kornelius.generatePrompt called', { step, mode, userInputsKeys: Object.keys(userInputs || {}) });
 
       try {
-        const result = await generatePrompt(step, userInputs);
+        const result = await generatePrompt(step, mode, userInputs);
         DebugLogger.log('Command kornelius.generatePrompt succeeded', { resultLength: result.length });
         return result;
       } catch (err) {

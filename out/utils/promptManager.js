@@ -74,23 +74,61 @@ class PromptManager {
                 debugLogger_1.DebugLogger.error(`Prompts directory does not exist: ${this._promptsDirectory}`);
                 return [];
             }
-            // Read all files in the prompts directory
-            const files = fs.readdirSync(this._promptsDirectory);
-            debugLogger_1.DebugLogger.log(`Found ${files.length} files in prompts directory:`, files);
-            // Filter for .prompt files and create template objects
+            // Define the mode subdirectories
+            const modes = ['create', 'debug', 'audit'];
             const templates = [];
-            for (const file of files) {
-                if (file.endsWith('.prompt')) {
-                    const fullPath = path.join(this._promptsDirectory, file);
-                    const type = file.split('.')[0]; // Assuming filename format is 'type.prompt'
-                    templates.push({
-                        name: file,
-                        fullPath,
-                        type
-                    });
+            // Iterate through each mode subdirectory
+            for (const mode of modes) {
+                const modeDirectory = path.join(this._promptsDirectory, mode);
+                debugLogger_1.DebugLogger.log(`Checking mode directory: ${modeDirectory}`);
+                if (fs.existsSync(modeDirectory)) {
+                    try {
+                        const files = fs.readdirSync(modeDirectory);
+                        debugLogger_1.DebugLogger.log(`Found ${files.length} files in ${mode} directory:`, files);
+                        // Filter for .prompt files and create template objects
+                        for (const file of files) {
+                            if (file.endsWith('.prompt')) {
+                                const fullPath = path.join(modeDirectory, file);
+                                const type = file.replace('.prompt', ''); // Get type from filename without extension
+                                templates.push({
+                                    name: file,
+                                    fullPath,
+                                    type,
+                                    mode // Add the mode
+                                });
+                            }
+                        }
+                    }
+                    catch (modeError) {
+                        debugLogger_1.DebugLogger.error(`Error reading mode directory ${modeDirectory}:`, modeError);
+                    }
+                }
+                else {
+                    debugLogger_1.DebugLogger.log(`Mode directory does not exist: ${modeDirectory}`); // Changed warn to log
                 }
             }
-            debugLogger_1.DebugLogger.log(`Returning ${templates.length} prompt templates`);
+            // Also check the root prompts directory for any files that weren't moved (optional, for robustness)
+            try {
+                const rootFiles = fs.readdirSync(this._promptsDirectory);
+                for (const file of rootFiles) {
+                    // Check if it's a file and ends with .prompt, and hasn't already been added
+                    const fullPath = path.join(this._promptsDirectory, file);
+                    if (fs.statSync(fullPath).isFile() && file.endsWith('.prompt') && !templates.some(t => t.fullPath === fullPath)) {
+                        const type = file.replace('.prompt', '');
+                        debugLogger_1.DebugLogger.log(`Found prompt file in root directory: ${file}. Adding with mode 'unknown'.`); // Changed warn to log
+                        templates.push({
+                            name: file,
+                            fullPath,
+                            type,
+                            mode: 'unknown' // Assign 'unknown' mode if found in root
+                        });
+                    }
+                }
+            }
+            catch (rootError) {
+                debugLogger_1.DebugLogger.error(`Error reading root prompts directory ${this._promptsDirectory}:`, rootError);
+            }
+            debugLogger_1.DebugLogger.log(`Returning ${templates.length} prompt templates from all scanned directories.`);
             return templates;
         }
         catch (error) {

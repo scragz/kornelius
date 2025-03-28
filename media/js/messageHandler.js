@@ -45,12 +45,14 @@ export class MessageHandler {
         }
     }
 
-    handlePromptGenerated({ step, content }) { // 'step' here refers to the button/action type like 'request', 'audit-security'
+    // handlePromptGenerated({ step, content }) { // 'step' here refers to the button/action type like 'request', 'audit-security'
+    handlePromptGenerated({ buttonId, content }) { // Use buttonId to find the correct button
         if (!content) {
             logToExtension('Received empty content in promptGenerated message');
             return;
         }
-        const generateButton = document.getElementById('generate-copy-' + step);
+        // const generateButton = document.getElementById('generate-copy-' + step);
+        const generateButton = document.getElementById(buttonId); // Find button using the full ID passed back
         if (generateButton) {
             vscode.postMessage({ command: 'copyToClipboard', text: content });
             generateButton.textContent = 'COPIED!'; // Use consistent success text
@@ -65,9 +67,11 @@ export class MessageHandler {
         }
     }
 
-    handlePromptError({ step, error }) {
+    // handlePromptError({ step, error }) {
+    handlePromptError({ buttonId, error }) { // Use buttonId to find the correct button
         logToExtension('Error generating prompt: ' + error, 'error');
-        const errorButton = document.getElementById('generate-copy-' + step);
+        // const errorButton = document.getElementById('generate-copy-' + step);
+        const errorButton = document.getElementById(buttonId); // Find button using the full ID passed back
         if (errorButton) {
             errorButton.textContent = 'ERROR! FAILURE!'; // Use requested error text
             setTimeout(() => {
@@ -90,17 +94,37 @@ export class MessageHandler {
                     generateCopyButton.textContent = 'GENERATING...';
                     generateCopyButton.disabled = true;
 
-                    // Extract the step/action type from the button ID (e.g., 'request', 'audit-security')
-                    const stepType = buttonId.replace('generate-copy-', '');
+                    // Extract the mode and step type from the button ID
+                    // e.g., "generate-copy-create-request" -> mode: "create", stepType: "request"
+                    // e.g., "generate-copy-audit-security" -> mode: "audit", stepType: "security"
+                    const buttonIdParts = buttonId.replace('generate-copy-', '').split('-');
+                    const mode = buttonIdParts[0]; // 'create', 'debug', or 'audit'
+                    const stepType = buttonIdParts.slice(1).join('-'); // 'request', 'spec', 'observe', 'security', 'a11y' etc.
+
+                    // Validate extracted mode
+                    if (!['create', 'debug', 'audit'].includes(mode)) {
+                         logToExtension(`Invalid mode extracted from button ID: ${buttonId}`, 'error');
+                         // Handle error state for the button
+                         generateCopyButton.textContent = 'ID ERROR!';
+                         setTimeout(() => {
+                              generateCopyButton.textContent = 'GET PROMPT';
+                              generateCopyButton.disabled = false; // Re-enable
+                              this.formManager.validateButton(buttonId); // Re-validate
+                         }, 2000);
+                         isProcessing = false; // Reset processing flag
+                         return; // Stop further execution
+                    }
+
 
                     try {
-                        const inputData = this.collectInputData(stepType);
-                        logToExtension('Generating prompt for ' + stepType);
-                        vscode.postMessage({ command: 'generatePrompt', step: stepType, data: inputData });
+                        // Pass the simple stepType (e.g., 'request') and mode to collectInputData
+                        const inputData = this.collectInputData(stepType, mode);
+                        logToExtension(`Generating prompt for step: ${stepType} in mode: ${mode}`);
+                        // Pass stepType, mode, data, and buttonId to the extension host
+                        vscode.postMessage({ command: 'generatePrompt', step: stepType, mode: mode, data: inputData, buttonId: buttonId });
                     } catch (error) {
                         logToExtension('Error preparing inputs: ' + (error.message || String(error)), 'error');
-                        // alert(error.message || 'Failed to prepare inputs'); // Removed alert
-                        generateCopyButton.textContent = 'ERROR!'; // Use requested error text
+                        generateCopyButton.textContent = 'ERROR!'; // Use consistent error text
                         // Reset text consistently after a delay
                         setTimeout(() => {
                             generateCopyButton.textContent = 'GET PROMPT';
@@ -116,106 +140,115 @@ export class MessageHandler {
         });
     }
 
-    collectInputData(stepType) { // stepType is now like 'request', 'audit-security', etc.
+    // collectInputData(stepType) { // stepType is now like 'request', 'audit-security', etc.
+    collectInputData(stepType, mode) { // stepType is simple ('request', 'observe'), mode is ('create', 'debug', 'audit')
         const inputData = {};
-        const requiredFields = this.formManager.buttonRequirements['generate-copy-' + stepType] || [];
+        // Construct the full button ID to look up requirements
+        const buttonId = `generate-copy-${mode}-${stepType}`;
+        const requiredFields = this.formManager.buttonRequirements[buttonId] || [];
+        logToExtension(`Collecting data for ${mode}-${stepType}. Required fields: ${requiredFields.join(', ')}`);
 
-        switch(stepType) {
-            // Create mode steps
-            case 'request':
-                this.validateAndCollect(inputData, { 'request-idea': 'INITIAL_IDEA' }, requiredFields);
-                break;
-            case 'spec':
-                this.validateAndCollect(inputData, {
-                    'spec-request': 'PROJECT_REQUEST',
-                    'spec-rules': 'PROJECT_RULES',
-                    'spec-template': 'REFERENCE_CODE'
-                }, requiredFields);
-                break;
-            case 'planner':
-                this.validateAndCollect(inputData, {
-                    'planner-request': 'PROJECT_REQUEST',
-                    'planner-spec': 'TECHNICAL_SPECIFICATION',
-                    'planner-rules': 'PROJECT_RULES',
-                    'planner-template': 'REFERENCE_CODE'
-                }, requiredFields);
-                break;
-            case 'codegen':
-                this.validateAndCollect(inputData, {
-                    'codegen-request': 'PROJECT_REQUEST',
-                    'codegen-spec': 'TECHNICAL_SPECIFICATION',
-                    'codegen-plan': 'IMPLEMENTATION_PLAN',
-                    'codegen-rules': 'PROJECT_RULES',
-                    'codegen-code': 'EXISTING_CODE'
-                }, requiredFields);
-                break;
-            case 'review':
-                this.validateAndCollect(inputData, {
-                    'review-request': 'PROJECT_REQUEST',
-                    'review-spec': 'TECHNICAL_SPECIFICATION',
-                    'review-plan': 'IMPLEMENTATION_PLAN',
-                    'review-code': 'EXISTING_CODE',
-                    'review-rules': 'PROJECT_RULES'
-                }, requiredFields);
-                break;
-
-            // Debug mode steps
-            case 'observe':
-                this.validateAndCollect(inputData, {
-                    'observe-bug': 'BUG_DESCRIPTION',
-                    'observe-error': 'ERROR_MESSAGES',
-                    'observe-repro': 'REPRO_STEPS',
-                    'observe-env': 'ENV_DETAILS',
-                    'observe-feedback': 'USER_FEEDBACK',
-                    'observe-evidence': 'ADDITIONAL_EVIDENCE'
-                }, requiredFields);
-                break;
-            case 'orient':
-                this.validateAndCollect(inputData, {
-                    'orient-summary': 'ANALYSIS_SUMMARY',
-                    'orient-clarifications': 'UPDATED_CLARIFICATIONS'
-                }, requiredFields);
-                break;
-            case 'decide':
-                this.validateAndCollect(inputData, {
-                    'decide-analysis': 'ANALYSIS_SUMMARY',
-                    'decide-constraints': 'CONSTRAINTS_OR_RISKS'
-                }, requiredFields);
-                break;
-            case 'act':
-                this.validateAndCollect(inputData, {
-                    'act-actions': 'CHOSEN_ACTIONS',
-                    'act-implementation': 'IMPLEMENTATION_PLAN',
-                    'act-success': 'SUCCESS_CRITERIA'
-                }, requiredFields);
-                break;
-
-            // Audit mode steps
-            case 'audit-security':
-                 // No specific sidebar input needed, but check requiredFields just in case (should be empty)
-                this.validateAndCollect(inputData, {}, requiredFields);
-                break;
-            case 'audit-a11y':
-                 // No specific sidebar input needed, but check requiredFields just in case (should be empty)
-                this.validateAndCollect(inputData, {}, requiredFields);
-                break;
-
-            default:
-                throw new Error(`Unknown step type for data collection: ${stepType}`);
+        // Define field mappings based on mode and stepType
+        let fieldMapping = {};
+        if (mode === 'create') {
+            switch(stepType) {
+                case 'request':
+                    fieldMapping = { 'create-request-idea': 'INITIAL_IDEA' };
+                    break;
+                case 'spec':
+                    fieldMapping = {
+                        'create-spec-request': 'PROJECT_REQUEST',
+                        'create-spec-rules': 'PROJECT_RULES',
+                        'create-spec-template': 'REFERENCE_CODE'
+                    };
+                    break;
+                case 'planner':
+                    fieldMapping = {
+                        'create-planner-request': 'PROJECT_REQUEST',
+                        'create-planner-spec': 'TECHNICAL_SPECIFICATION',
+                        'create-planner-rules': 'PROJECT_RULES',
+                        'create-planner-template': 'REFERENCE_CODE'
+                    };
+                    break;
+                case 'codegen':
+                    fieldMapping = {
+                        'create-codegen-request': 'PROJECT_REQUEST',
+                        'create-codegen-spec': 'TECHNICAL_SPECIFICATION',
+                        'create-codegen-plan': 'IMPLEMENTATION_PLAN',
+                        'create-codegen-rules': 'PROJECT_RULES',
+                        'create-codegen-code': 'EXISTING_CODE'
+                    };
+                    break;
+                case 'review':
+                    fieldMapping = {
+                        'create-review-request': 'PROJECT_REQUEST',
+                        'create-review-spec': 'TECHNICAL_SPECIFICATION',
+                        'create-review-plan': 'IMPLEMENTATION_PLAN',
+                        'create-review-code': 'EXISTING_CODE',
+                        'create-review-rules': 'PROJECT_RULES'
+                    };
+                    break;
+            }
+        } else if (mode === 'debug') {
+            switch(stepType) {
+                case 'observe':
+                    fieldMapping = {
+                        'debug-observe-bug': 'BUG_DESCRIPTION',
+                        'debug-observe-error': 'ERROR_MESSAGES',
+                        'debug-observe-repro': 'REPRO_STEPS',
+                        'debug-observe-env': 'ENV_DETAILS',
+                        'debug-observe-feedback': 'USER_FEEDBACK',
+                        'debug-observe-evidence': 'ADDITIONAL_EVIDENCE'
+                    };
+                    break;
+                case 'orient':
+                    fieldMapping = {
+                        'debug-orient-summary': 'ANALYSIS_SUMMARY',
+                        'debug-orient-clarifications': 'UPDATED_CLARIFICATIONS'
+                    };
+                    break;
+                case 'decide':
+                    fieldMapping = {
+                        'debug-decide-analysis': 'ANALYSIS_SUMMARY',
+                        'debug-decide-constraints': 'CONSTRAINTS_OR_RISKS'
+                    };
+                    break;
+                case 'act':
+                    fieldMapping = {
+                        'debug-act-actions': 'CHOSEN_ACTIONS',
+                        'debug-act-implementation': 'IMPLEMENTATION_PLAN',
+                        'debug-act-success': 'SUCCESS_CRITERIA'
+                    };
+                    break;
+            }
+        } else if (mode === 'audit') {
+            // Audit mode currently has no specific input fields mapped here
+            // If they were added, they'd go here. Example:
+            // case 'security': fieldMapping = { 'audit-security-code': 'CODE_TO_AUDIT' }; break;
+            fieldMapping = {}; // Explicitly empty for now
+        } else {
+             throw new Error(`Unknown mode for data collection: ${mode}`);
         }
+
+        // Validate required fields and collect data using the determined mapping
+        this.validateAndCollect(inputData, fieldMapping, requiredFields);
+
+        logToExtension(`Collected data for ${mode}-${stepType}:`, inputData);
         return inputData;
     }
 
     validateAndCollect(inputData, fields, required) {
-        // Check required fields first
+        // Check required fields first (using the prefixed IDs from buttonRequirements)
         for (const fieldId of required) {
             const element = document.getElementById(fieldId);
-            // For audit mode, requiredFields is empty, so this loop won't run, which is correct.
             if (!element?.value.trim()) {
-                throw new Error(`Please fill in the required field: ${element?.labels?.[0]?.textContent || fieldId}`);
+                 logToExtension(`Validation failed: Required field ${fieldId} is empty.`);
+                // Attempt to find a label for a better error message
+                const label = document.querySelector(`label[for="${fieldId}"]`);
+                throw new Error(`Please fill in the required field: ${label?.textContent || fieldId}`);
             }
         }
-        // Collect all fields defined for this step type
+        // Collect all fields defined in the mapping for this step type and mode
         for (const [elementId, dataKey] of Object.entries(fields)) {
             const element = document.getElementById(elementId);
             // Only include if element exists, even if not required (allows optional fields)

@@ -21,44 +21,44 @@ export class FormManager {
 
         this.stepValidation = {
             // Create mode validations (field ID -> button ID to enable)
-            'request-idea': 'generate-copy-request',
-            'spec-request': 'generate-copy-spec',
-            'planner-request': 'generate-copy-planner',
-            'planner-spec': 'generate-copy-planner',
-            'codegen-request': 'generate-copy-codegen',
-            'codegen-spec': 'generate-copy-codegen',
-            'codegen-plan': 'generate-copy-codegen',
-            'review-request': 'generate-copy-review',
-            'review-spec': 'generate-copy-review',
-            'review-plan': 'generate-copy-review',
-            'review-code': 'generate-copy-review',
+            'create-request-idea': 'generate-copy-create-request',
+            'create-spec-request': 'generate-copy-create-spec',
+            'create-planner-request': 'generate-copy-create-planner',
+            'create-planner-spec': 'generate-copy-create-planner',
+            'create-codegen-request': 'generate-copy-create-codegen',
+            'create-codegen-spec': 'generate-copy-create-codegen',
+            'create-codegen-plan': 'generate-copy-create-codegen',
+            'create-review-request': 'generate-copy-create-review',
+            'create-review-spec': 'generate-copy-create-review',
+            'create-review-plan': 'generate-copy-create-review',
+            'create-review-code': 'generate-copy-create-review',
             // Debug mode validations (field ID -> button ID to enable)
-            'observe-bug': 'generate-copy-observe',
-            'observe-error': 'generate-copy-observe',
-            'observe-repro': 'generate-copy-observe',
-            'observe-env': 'generate-copy-observe',
-            'orient-summary': 'generate-copy-orient',
-            'decide-analysis': 'generate-copy-decide',
-            'act-actions': 'generate-copy-act',
-            'act-implementation': 'generate-copy-act',
-            'act-success': 'generate-copy-act',
+            'debug-observe-bug': 'generate-copy-debug-observe',
+            'debug-observe-error': 'generate-copy-debug-observe',
+            'debug-observe-repro': 'generate-copy-debug-observe',
+            'debug-observe-env': 'generate-copy-debug-observe',
+            'debug-orient-summary': 'generate-copy-debug-orient',
+            'debug-decide-analysis': 'generate-copy-debug-decide',
+            'debug-act-actions': 'generate-copy-debug-act',
+            'debug-act-implementation': 'generate-copy-debug-act',
+            'debug-act-success': 'generate-copy-debug-act',
             // Audit mode validations (field ID -> button ID to enable)
-            // IDs needed for validation logic even if fields aren't required for enabling
-            'audit-security-code': 'generate-copy-audit-security',
-            'audit-a11y-code': 'generate-copy-audit-a11y'
+            // No input fields for audit, but keep button IDs for reference
+            // 'audit-security-code': 'generate-copy-audit-security', // Field removed
+            // 'audit-a11y-code': 'generate-copy-audit-a11y' // Field removed
         };
 
         // Define required fields for each *button*
         this.buttonRequirements = {
-            'generate-copy-request': ['request-idea'],
-            'generate-copy-spec': ['spec-request'],
-            'generate-copy-planner': ['planner-request', 'planner-spec'],
-            'generate-copy-codegen': ['codegen-request', 'codegen-spec', 'codegen-plan'],
-            'generate-copy-review': ['review-request', 'review-spec', 'review-plan', 'review-code'],
-            'generate-copy-observe': ['observe-bug', 'observe-error', 'observe-repro', 'observe-env'],
-            'generate-copy-orient': ['orient-summary'],
-            'generate-copy-decide': ['decide-analysis'],
-            'generate-copy-act': ['act-actions', 'act-implementation', 'act-success'],
+            'generate-copy-create-request': ['create-request-idea'],
+            'generate-copy-create-spec': ['create-spec-request'],
+            'generate-copy-create-planner': ['create-planner-request', 'create-planner-spec'],
+            'generate-copy-create-codegen': ['create-codegen-request', 'create-codegen-spec', 'create-codegen-plan'],
+            'generate-copy-create-review': ['create-review-request', 'create-review-spec', 'create-review-plan', 'create-review-code'],
+            'generate-copy-debug-observe': ['debug-observe-bug', 'debug-observe-error', 'debug-observe-repro', 'debug-observe-env'],
+            'generate-copy-debug-orient': ['debug-orient-summary'],
+            'generate-copy-debug-decide': ['debug-decide-analysis'],
+            'generate-copy-debug-act': ['debug-act-actions', 'debug-act-implementation', 'debug-act-success'],
             // Audit buttons have NO required input fields from the sidebar for enabling
             'generate-copy-audit-security': [],
             'generate-copy-audit-a11y': []
@@ -114,18 +114,18 @@ export class FormManager {
         }
 
         // --- Special handling for Audit buttons ---
-        // Check this *before* checking textContent, as textContent might be irrelevant or inconsistent.
         // Enable them immediately if Audit mode is active, as they don't need sidebar input.
         if (this.currentMode === 'audit' && (buttonId === 'generate-copy-audit-security' || buttonId === 'generate-copy-audit-a11y')) {
-             button.disabled = false; // Always enable audit buttons in audit mode
-             // logToExtension(`Audit button ${buttonId} explicitly enabled.`);
-             return; // Skip standard validation below for audit buttons
+            button.disabled = false; // Always enable audit buttons in audit mode
+            // logToExtension(`Audit button ${buttonId} explicitly enabled.`);
+            return; // Skip standard validation below for audit buttons
         }
         // --- End special handling ---
 
-        // Now check textContent for non-audit buttons
+        // Now check textContent for the button
         const buttonText = button.textContent.trim(); // Trim whitespace
-        if (buttonText !== 'GET PROMPT' && buttonText !== 'GET SECURITY PROMPT' && buttonText !== 'GET A11Y PROMPT') {
+        // Only validate if the button is in the initial 'GET PROMPT' state
+        if (buttonText !== 'GET PROMPT') {
             // logToExtension(`Skipping validation for button ${buttonId} (not in GET state: "${buttonText}")`);
             return;
         }
@@ -412,15 +412,15 @@ export class FormManager {
 
     initializeSync() {
         // Create mode sync fields
-        this.syncValueAcrossSteps('spec-request', ['planner-request', 'codegen-request', 'review-request']);
-        this.syncValueAcrossSteps('spec-rules', ['planner-rules', 'codegen-rules', 'review-rules']);
-        this.syncValueAcrossSteps('spec-template', ['planner-template']);
-        this.syncValueAcrossSteps('planner-spec', ['codegen-spec', 'review-spec']);
-        this.syncValueAcrossSteps('codegen-plan', ['review-plan']);
+        this.syncValueAcrossSteps('create-spec-request', ['create-planner-request', 'create-codegen-request', 'create-review-request']);
+        this.syncValueAcrossSteps('create-spec-rules', ['create-planner-rules', 'create-codegen-rules', 'create-review-rules']);
+        this.syncValueAcrossSteps('create-spec-template', ['create-planner-template']);
+        this.syncValueAcrossSteps('create-planner-spec', ['create-codegen-spec', 'create-review-spec']);
+        this.syncValueAcrossSteps('create-codegen-plan', ['create-review-plan']);
 
         // Debug mode sync fields
-        this.syncValueAcrossSteps('observe-bug', ['orient-summary']);
-        this.syncValueAcrossSteps('orient-summary', ['decide-analysis']);
+        this.syncValueAcrossSteps('debug-observe-bug', ['debug-orient-summary']); // Note: orient-summary is now debug-orient-summary
+        this.syncValueAcrossSteps('debug-orient-summary', ['debug-decide-analysis']); // Note: decide-analysis is now debug-decide-analysis
     }
 
     syncValueAcrossSteps(sourceId, targetIds) {
@@ -457,17 +457,13 @@ export class FormManager {
 
                 // Reset all generate buttons to their initial state
                 document.querySelectorAll('.generate-copy-btn').forEach(btn => {
-                    // Reset text based on ID or a default
-                    if (btn.id === 'generate-copy-audit-security') {
-                        btn.textContent = 'GET SECURITY PROMPT';
-                    } else if (btn.id === 'generate-copy-audit-a11y') {
-                        btn.textContent = 'GET A11Y PROMPT';
-                    } else if (btn.id === 'catFilesBtn') {
+                    // Reset text consistently, except for special buttons
+                    if (btn.id === 'catFilesBtn') {
                         btn.textContent = 'CAT FILES'; // Keep CAT FILES button text
                     } else if (btn.id === 'fetchJinaBtn') {
                         btn.textContent = 'FETCH MARKDOWN'; // Keep Jina button text
-                    }
-                    else {
+                    } else {
+                        // All other generate buttons reset to 'GET PROMPT'
                         btn.textContent = 'GET PROMPT';
                     }
                     btn.disabled = true; // Disable all initially

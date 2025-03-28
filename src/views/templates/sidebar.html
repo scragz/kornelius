@@ -41,9 +41,9 @@
           </div>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="request-idea">Your initial idea:</label>
+              <label for="create-request-idea">Your initial idea:</label>
               <textarea
-                id="request-idea"
+                id="create-request-idea"
                 class="main-input"
                 rows="8"
                 placeholder="Enter your initial idea here..."
@@ -51,7 +51,7 @@
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-request" class="generate-copy-btn" disabled>
+            <button id="generate-copy-create-request" class="generate-copy-btn" disabled>
               GET PROMPT
             </button>
           </div>
@@ -71,32 +71,34 @@
           </div>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="spec-request">Project Request:</label>
+              <label for="create-spec-request">Project Request:</label>
               <textarea
-                id="spec-request"
+                id="create-spec-request"
                 rows="3"
                 placeholder="Paste the results from the previous step..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="spec-rules">Project Rules (optional):</label>
+              <label for="create-spec-rules">Project Rules (optional):</label>
               <textarea
-                id="spec-rules"
+                id="create-spec-rules"
                 rows="3"
                 placeholder="Enter any project rules..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="spec-template">Reference Code (optional):</label>
+              <label for="create-spec-template">Reference Code (optional):</label>
               <textarea
-                id="spec-template"
+                id="create-spec-template"
                 rows="3"
                 placeholder="Enter any reference code..."
               ></textarea>
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-spec" class="generate-copy-btn" disabled>GET PROMPT</button>
+            <button id="generate-copy-create-spec" class="generate-copy-btn" disabled>
+              GET PROMPT
+            </button>
           </div>
           <div class="munky-tip">
             <p>
@@ -114,36 +116,40 @@
           </div>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="planner-spec">Technical Specification:</label>
+              <label for="create-planner-spec">Technical Specification:</label>
               <textarea
-                id="planner-spec"
+                id="create-planner-spec"
                 rows="3"
                 placeholder="Paste the results from the spec step..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="planner-request">Project Request:</label>
+              <label for="create-planner-request">Project Request:</label>
               <textarea
-                id="planner-request"
+                id="create-planner-request"
                 rows="3"
                 placeholder="Paste the project request..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="planner-rules">Project Rules (optional):</label>
-              <textarea id="planner-rules" rows="3" placeholder="Enter project rules..."></textarea>
+              <label for="create-planner-rules">Project Rules (optional):</label>
+              <textarea
+                id="create-planner-rules"
+                rows="3"
+                placeholder="Enter project rules..."
+              ></textarea>
             </div>
             <div class="input-group">
-              <label for="planner-template">Reference Code (optional):</label>
+              <label for="create-planner-template">Reference Code (optional):</label>
               <textarea
-                id="planner-template"
+                id="create-planner-template"
                 rows="3"
                 placeholder="Enter starter template..."
               ></textarea>
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-planner" class="generate-copy-btn" disabled>
+            <button id="generate-copy-create-planner" class="generate-copy-btn" disabled>
               GET PROMPT
             </button>
           </div>
@@ -163,40 +169,48 @@
           </div>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="codegen-plan">Implementation Plan:</label>
+              <label for="create-codegen-plan">Implementation Plan:</label>
               <textarea
-                id="codegen-plan"
+                id="create-codegen-plan"
                 rows="3"
                 placeholder="Paste the implementation plan..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="codegen-spec">Technical Specification:</label>
+              <label for="create-codegen-spec">Technical Specification:</label>
               <textarea
-                id="codegen-spec"
+                id="create-codegen-spec"
                 rows="3"
                 placeholder="Paste the specification..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="codegen-request">Project Request:</label>
+              <label for="create-codegen-request">Project Request:</label>
               <textarea
-                id="codegen-request"
+                id="create-codegen-request"
                 rows="3"
                 placeholder="Paste the project request..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="codegen-rules">Project Rules (optional):</label>
-              <textarea id="codegen-rules" rows="3" placeholder="Enter project rules..."></textarea>
+              <label for="create-codegen-rules">Project Rules (optional):</label>
+              <textarea
+                id="create-codegen-rules"
+                rows="3"
+                placeholder="Enter project rules..."
+              ></textarea>
             </div>
             <div class="input-group">
-              <label for="codegen-code">Your Code (optional):</label>
-              <textarea id="codegen-code" rows="3" placeholder="Enter existing code..."></textarea>
+              <label for="create-codegen-code">Your Code (optional):</label>
+              <textarea
+                id="create-codegen-code"
+                rows="3"
+                placeholder="Enter existing code..."
+              ></textarea>
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-codegen" class="generate-copy-btn" disabled>
+            <button id="generate-copy-create-codegen" class="generate-copy-btn" disabled>
               GET PROMPT
             </button>
           </div>
@@ -216,44 +230,50 @@
           </div>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="review-code">Existing Code:</label>
+              <label for="create-review-code">Existing Code:</label>
               <textarea
-                id="review-code"
+                id="create-review-code"
                 rows="3"
                 placeholder="Paste the code to review..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="review-request">Project Request:</label>
+              <label for="create-review-request">Project Request:</label>
               <textarea
-                id="review-request"
+                id="create-review-request"
                 rows="3"
                 placeholder="Paste the project request..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="review-spec">Technical Specification:</label>
+              <label for="create-review-spec">Technical Specification:</label>
               <textarea
-                id="review-spec"
+                id="create-review-spec"
                 rows="3"
                 placeholder="Paste the specification..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="review-plan">Implementation Plan:</label>
+              <label for="create-review-plan">Implementation Plan:</label>
               <textarea
-                id="review-plan"
+                id="create-review-plan"
                 rows="3"
                 placeholder="Paste the implementation plan..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="review-rules">Project Rules (optional):</label>
-              <textarea id="review-rules" rows="3" placeholder="Enter project rules..."></textarea>
+              <label for="create-review-rules">Project Rules (optional):</label>
+              <textarea
+                id="create-review-rules"
+                rows="3"
+                placeholder="Enter project rules..."
+              ></textarea>
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-review" class="generate-copy-btn" disabled>GET PROMPT</button>
+            <button id="generate-copy-create-review" class="generate-copy-btn" disabled>
+              GET PROMPT
+            </button>
           </div>
           <div class="munky-tip">
             <p>
@@ -279,56 +299,56 @@
           </div>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="observe-bug">Bug Description:</label>
+              <label for="debug-observe-bug">Bug Description:</label>
               <textarea
-                id="observe-bug"
+                id="debug-observe-bug"
                 rows="3"
                 placeholder="Describe the issue you're experiencing..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="observe-error">Error Messages:</label>
+              <label for="debug-observe-error">Error Messages:</label>
               <textarea
-                id="observe-error"
+                id="debug-observe-error"
                 rows="3"
                 placeholder="Paste any errors or warnings..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="observe-repro">Reproduction Steps:</label>
+              <label for="debug-observe-repro">Reproduction Steps:</label>
               <textarea
-                id="observe-repro"
+                id="debug-observe-repro"
                 rows="3"
                 placeholder="Steps to reproduce the issue..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="observe-env">Environment Details:</label>
+              <label for="debug-observe-env">Environment Details:</label>
               <textarea
-                id="observe-env"
+                id="debug-observe-env"
                 rows="3"
                 placeholder="OS, browser version, etc..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="observe-feedback">User Feedback (optional):</label>
+              <label for="debug-observe-feedback">User Feedback (optional):</label>
               <textarea
-                id="observe-feedback"
+                id="debug-observe-feedback"
                 rows="3"
                 placeholder="User reports or feedback..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="observe-evidence">Additional Evidence (optional):</label>
+              <label for="debug-observe-evidence">Additional Evidence (optional):</label>
               <textarea
-                id="observe-evidence"
+                id="debug-observe-evidence"
                 rows="3"
                 placeholder="Screenshots, logs, etc..."
               ></textarea>
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-observe" class="generate-copy-btn" disabled>
+            <button id="generate-copy-debug-observe" class="generate-copy-btn" disabled>
               GET PROMPT
             </button>
           </div>
@@ -348,24 +368,26 @@
           </div>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="orient-summary">Analysis Summary:</label>
+              <label for="debug-orient-summary">Analysis Summary:</label>
               <textarea
-                id="orient-summary"
+                id="debug-orient-summary"
                 rows="3"
                 placeholder="Summarize what you've observed..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="orient-clarifications">Updated Clarifications (optional):</label>
+              <label for="debug-orient-clarifications">Updated Clarifications (optional):</label>
               <textarea
-                id="orient-clarifications"
+                id="debug-orient-clarifications"
                 rows="3"
                 placeholder="Any new information or clarifications..."
               ></textarea>
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-orient" class="generate-copy-btn" disabled>GET PROMPT</button>
+            <button id="generate-copy-debug-orient" class="generate-copy-btn" disabled>
+              GET PROMPT
+            </button>
           </div>
           <div class="munky-tip">
             <p>
@@ -383,24 +405,26 @@
           </div>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="decide-analysis">Analysis Summary:</label>
+              <label for="debug-decide-analysis">Analysis Summary:</label>
               <textarea
-                id="decide-analysis"
+                id="debug-decide-analysis"
                 rows="3"
                 placeholder="Summarize the analysis from Orient step..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="decide-constraints">Constraints or Risks (optional):</label>
+              <label for="debug-decide-constraints">Constraints or Risks (optional):</label>
               <textarea
-                id="decide-constraints"
+                id="debug-decide-constraints"
                 rows="3"
                 placeholder="Any constraints or risks to consider..."
               ></textarea>
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-decide" class="generate-copy-btn" disabled>GET PROMPT</button>
+            <button id="generate-copy-debug-decide" class="generate-copy-btn" disabled>
+              GET PROMPT
+            </button>
           </div>
           <div class="munky-tip">
             <p>
@@ -418,32 +442,34 @@
           </div>
           <div class="multi-input-container">
             <div class="input-group">
-              <label for="act-actions">Chosen Actions:</label>
+              <label for="debug-act-actions">Chosen Actions:</label>
               <textarea
-                id="act-actions"
+                id="debug-act-actions"
                 rows="3"
                 placeholder="The actions you've decided to take..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="act-implementation">Implementation Plan:</label>
+              <label for="debug-act-implementation">Implementation Plan:</label>
               <textarea
-                id="act-implementation"
+                id="debug-act-implementation"
                 rows="3"
                 placeholder="How you plan to implement the fix..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="act-success">Success Criteria:</label>
+              <label for="debug-act-success">Success Criteria:</label>
               <textarea
-                id="act-success"
+                id="debug-act-success"
                 rows="3"
                 placeholder="How you'll verify the fix worked..."
               ></textarea>
             </div>
           </div>
           <div class="button-group">
-            <button id="generate-copy-act" class="generate-copy-btn" disabled>GET PROMPT</button>
+            <button id="generate-copy-debug-act" class="generate-copy-btn" disabled>
+              GET PROMPT
+            </button>
           </div>
           <div class="munky-tip">
             <p>
@@ -465,7 +491,10 @@
           <!-- Security Button -->
           <div class="input-group">
             <div class="button-group audit-button-group">
-              <button id="generate-copy-security" class="generate-copy-btn">GET PROMPT</button>
+              <button id="generate-copy-audit-security" class="generate-copy-btn">
+                GET PROMPT
+              </button>
+              <!-- Renamed ID -->
             </div>
           </div>
           <div class="step-title">
@@ -476,7 +505,8 @@
           <div class="input-group">
             <!-- Removed Label and Textarea for a11y-code -->
             <div class="button-group audit-button-group">
-              <button id="generate-copy-a11y" class="generate-copy-btn">GET PROMPT</button>
+              <button id="generate-copy-audit-a11y" class="generate-copy-btn">GET PROMPT</button>
+              <!-- Renamed ID -->
             </div>
           </div>
           <div class="munky-tip">

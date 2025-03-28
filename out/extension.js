@@ -71,10 +71,10 @@ function activate(context) {
         return await (0, browsePrompts_1.browsePrompts)();
     });
     // Register generate prompt command
-    const generatePromptCmd = vscode.commands.registerCommand('kornelius.generatePrompt', async (step, userInputs) => {
-        debugLogger_1.DebugLogger.log('Command kornelius.generatePrompt called', { step, userInputsKeys: Object.keys(userInputs || {}) });
+    const generatePromptCmd = vscode.commands.registerCommand('kornelius.generatePrompt', async (step, mode, userInputs) => {
+        debugLogger_1.DebugLogger.log('Command kornelius.generatePrompt called', { step, mode, userInputsKeys: Object.keys(userInputs || {}) });
         try {
-            const result = await (0, generatePrompt_1.generatePrompt)(step, userInputs);
+            const result = await (0, generatePrompt_1.generatePrompt)(step, mode, userInputs);
             debugLogger_1.DebugLogger.log('Command kornelius.generatePrompt succeeded', { resultLength: result.length });
             return result;
         }

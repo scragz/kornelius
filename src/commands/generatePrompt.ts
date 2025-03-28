@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
 import { PromptManager } from '../utils/promptManager';
 import { DebugLogger } from '../utils/debugLogger';
 
@@ -20,10 +18,11 @@ export interface PromptUserInputs {
 }
 
 /**
- * Command to generate a prompt for a specific step from a template and user inputs
+ * Command to generate a prompt for a specific step and mode from a template and user inputs
  */
 export async function generatePrompt(
-  step: string,
+  step: string, // e.g., 'request', 'spec', 'observe', 'security', 'a11y'
+  mode: 'create' | 'debug' | 'audit' | 'unknown', // The current mode
   userInputs: PromptUserInputs
 ): Promise<string> {
   try {
@@ -35,34 +34,25 @@ export async function generatePrompt(
     // Show message to user for debugging
     // vscode.window.showInformationMessage(`Generating prompt for: ${step}`);
 
-    // Create prompt manager - no need to calculate paths manually now
+    // Create prompt manager
     const promptManager = new PromptManager();
 
-    // Get all templates
+    // Get all templates (now includes mode)
     const templates = await promptManager.getPromptTemplates();
-    const matchingTemplate = templates.find(template => template.type === step);
+
+    // Find the template matching both the step type and the current mode
+    DebugLogger.log(`Searching for template with type: ${step} and mode: ${mode}`);
+    const matchingTemplate = templates.find(template => template.type === step && template.mode === mode);
 
     if (!matchingTemplate) {
-      // Try a more direct approach to find the prompt file
-      const promptsDirectory = path.join(vscode.extensions.getExtension('kornelius')?.extensionPath || '', 'prompts');
-      const directPromptPath = path.join(promptsDirectory, `${step}.prompt`);
-      DebugLogger.log(`No template found for step: ${step}. Trying direct path: ${directPromptPath}`);
-
-      if (fs.existsSync(directPromptPath)) {
-        DebugLogger.log(`Found prompt file directly at: ${directPromptPath}`);
-        // Create an ad-hoc template
-        const templateContent = fs.readFileSync(directPromptPath, 'utf-8');
-        DebugLogger.log(`Loaded template content directly, length: ${templateContent.length} characters`);
-
-        // Generate the prompt using our placeholder values
-        return processPromptWithPlaceholders(step, templateContent, userInputs);
-      } else {
-        DebugLogger.error(`No template found for step: ${step}. Available: ${templates.map(t => t.name).join(', ')}`);
-        throw new Error(`No template found for step: ${step}. Available templates: ${templates.map(t => t.name).join(', ')}`);
-      }
+      // Log available templates for debugging
+      const availableTemplatesInfo = templates.map(t => `(${t.mode}/${t.type})`).join(', ');
+      DebugLogger.error(`No template found for step: ${step} in mode: ${mode}. Available: ${availableTemplatesInfo}`);
+      // Provide a more informative error message
+      throw new Error(`No template found for step '${step}' in mode '${mode}'. Available templates: ${availableTemplatesInfo}`);
     }
 
-    DebugLogger.log(`Found matching template: ${matchingTemplate.name} at ${matchingTemplate.fullPath}`);
+    DebugLogger.log(`Found matching template: ${matchingTemplate.name} (mode: ${matchingTemplate.mode}) at ${matchingTemplate.fullPath}`);
 
     // Get the template content
     const templateContent = await promptManager.getPromptContent(matchingTemplate.fullPath);
@@ -132,16 +122,43 @@ function processPromptWithPlaceholders(
       placeholderMap['EXISTING_CODE'] = userInputs.existingCode || '';
       break;
 
-    case 'audit-security':
-    case 'audit-a11y':
-      // For audit steps, use codeToAudit
-      placeholderMap['CODE_TO_AUDIT'] = userInputs.codeToAudit || '';
+    // Handle specific audit steps which might have different placeholder needs
+    case 'security': // Assuming step is 'security' when mode is 'audit'
+      // Placeholder for security audit - adjust if needed
+      placeholderMap['CODE_TO_AUDIT'] = userInputs.codeToAudit || ''; // Example placeholder
+      break;
+    case 'a11y': // Assuming step is 'a11y' when mode is 'audit'
+      // Placeholder for accessibility audit - adjust if needed
+      placeholderMap['CODE_TO_AUDIT'] = userInputs.codeToAudit || ''; // Example placeholder
+      break;
+
+    // Debug mode steps
+    case 'observe':
+      placeholderMap['BUG_DESCRIPTION'] = userInputs.bugDescription || '';
+      placeholderMap['ERROR_MESSAGES'] = userInputs.errorMessages || '';
+      placeholderMap['REPRO_STEPS'] = userInputs.reproSteps || '';
+      placeholderMap['ENV_DETAILS'] = userInputs.envDetails || '';
+      placeholderMap['USER_FEEDBACK'] = userInputs.userFeedback || '';
+      placeholderMap['ADDITIONAL_EVIDENCE'] = userInputs.additionalEvidence || '';
+      break;
+    case 'orient':
+      placeholderMap['ANALYSIS_SUMMARY'] = userInputs.analysisSummary || '';
+      placeholderMap['UPDATED_CLARIFICATIONS'] = userInputs.updatedClarifications || '';
+      break;
+    case 'decide':
+      placeholderMap['ANALYSIS_SUMMARY'] = userInputs.analysisSummary || '';
+      placeholderMap['CONSTRAINTS_OR_RISKS'] = userInputs.constraintsOrRisks || '';
+      break;
+    case 'act':
+      placeholderMap['CHOSEN_ACTIONS'] = userInputs.chosenActions || '';
+      placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.implementationPlan || '';
+      placeholderMap['SUCCESS_CRITERIA'] = userInputs.successCriteria || '';
       break;
 
     default:
-      // Fallback for any steps not explicitly handled (should ideally not happen for known steps)
-      DebugLogger.log(`[Warning] Unhandled step in processPromptWithPlaceholders: ${step}. Using direct input mapping.`); // Changed warn to log
-      // Attempt to map camelCase keys from userInputs to SCREAMING_SNAKE_CASE for placeholders
+      // Fallback for any steps not explicitly handled
+      DebugLogger.log(`[Warning] Unhandled step in processPromptWithPlaceholders: ${step}. Attempting direct input mapping.`);
+      // Attempt to map camelCase keys from userInputs to SCREAMING_SNAKE_CASE
       Object.keys(userInputs).forEach(key => {
         // Convert camelCase key to SCREAMING_SNAKE_CASE for the placeholder map
         const placeholderKey = key.replace(/([A-Z])/g, '_$1').toUpperCase();

@@ -4,9 +4,10 @@ import * as vscode from 'vscode';
 import { DebugLogger } from './debugLogger';
 
 export interface PromptTemplate {
-  name: string;
-  fullPath: string;
-  type: string; // 'request', 'spec', 'planner', 'codegen', 'review'
+  name: string; // e.g., 'request.prompt'
+  fullPath: string; // Full path to the prompt file
+  type: string; // e.g., 'request', 'spec', 'observe', 'security', 'a11y'
+  mode: 'create' | 'debug' | 'audit' | 'unknown'; // Mode associated with the prompt
 }
 
 export class PromptManager {
@@ -62,25 +63,64 @@ export class PromptManager {
         return [];
       }
 
-      // Read all files in the prompts directory
-      const files = fs.readdirSync(this._promptsDirectory);
-      DebugLogger.log(`Found ${files.length} files in prompts directory:`, files);
-
-      // Filter for .prompt files and create template objects
+      // Define the mode subdirectories
+      const modes: Array<'create' | 'debug' | 'audit'> = ['create', 'debug', 'audit'];
       const templates: PromptTemplate[] = [];
-      for (const file of files) {
-        if (file.endsWith('.prompt')) {
-          const fullPath = path.join(this._promptsDirectory, file);
-          const type = file.split('.')[0]; // Assuming filename format is 'type.prompt'
-          templates.push({
-            name: file,
-            fullPath,
-            type
-          });
+
+      // Iterate through each mode subdirectory
+      for (const mode of modes) {
+        const modeDirectory = path.join(this._promptsDirectory, mode);
+        DebugLogger.log(`Checking mode directory: ${modeDirectory}`);
+
+        if (fs.existsSync(modeDirectory)) {
+          try {
+            const files = fs.readdirSync(modeDirectory);
+            DebugLogger.log(`Found ${files.length} files in ${mode} directory:`, files);
+
+            // Filter for .prompt files and create template objects
+            for (const file of files) {
+              if (file.endsWith('.prompt')) {
+                const fullPath = path.join(modeDirectory, file);
+                const type = file.replace('.prompt', ''); // Get type from filename without extension
+                templates.push({
+                  name: file, // Keep original filename
+                  fullPath,
+                  type,
+                  mode // Add the mode
+                });
+              }
+            }
+          } catch (modeError) {
+            DebugLogger.error(`Error reading mode directory ${modeDirectory}:`, modeError);
+          }
+        } else {
+          DebugLogger.log(`Mode directory does not exist: ${modeDirectory}`); // Changed warn to log
         }
       }
 
-      DebugLogger.log(`Returning ${templates.length} prompt templates`);
+      // Also check the root prompts directory for any files that weren't moved (optional, for robustness)
+      try {
+        const rootFiles = fs.readdirSync(this._promptsDirectory);
+        for (const file of rootFiles) {
+            // Check if it's a file and ends with .prompt, and hasn't already been added
+            const fullPath = path.join(this._promptsDirectory, file);
+            if (fs.statSync(fullPath).isFile() && file.endsWith('.prompt') && !templates.some(t => t.fullPath === fullPath)) {
+                const type = file.replace('.prompt', '');
+                DebugLogger.log(`Found prompt file in root directory: ${file}. Adding with mode 'unknown'.`); // Changed warn to log
+                templates.push({
+                    name: file,
+                    fullPath,
+                    type,
+                    mode: 'unknown' // Assign 'unknown' mode if found in root
+                });
+            }
+        }
+      } catch (rootError) {
+         DebugLogger.error(`Error reading root prompts directory ${this._promptsDirectory}:`, rootError);
+      }
+
+
+      DebugLogger.log(`Returning ${templates.length} prompt templates from all scanned directories.`);
       return templates;
     } catch (error) {
       DebugLogger.error('Error reading prompt templates:', error);
