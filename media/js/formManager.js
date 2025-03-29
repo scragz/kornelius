@@ -1,7 +1,7 @@
 import vscode from './vscodeApi.js';
 import { logToExtension } from './sidebarUtils.js';
 
-const MODE_STORAGE_KEY = 'kornelius_mode'; // Keep for global mode preference
+// Removed MODE_STORAGE_KEY as mode will be saved in workspaceState
 
 export class FormManager {
     constructor() {
@@ -9,13 +9,11 @@ export class FormManager {
         this.debugStepTypes = ['observe', 'orient', 'decide', 'act'];
         this.auditStepTypes = ['audit']; // Single step type for audit mode
 
-        // Default to CREATE mode unless saved mode exists
-        const savedMode = localStorage.getItem(MODE_STORAGE_KEY) || 'create';
-        // Set the initial mode property, but don't call switchMode here yet.
-        this.currentMode = savedMode;
-        this.currentStep = 1; // Always start at step 1
+        // Default values, will be potentially overwritten by loaded state
+        this.currentMode = 'create';
+        this.currentStep = 1;
 
-        // Initialize properties based on the determined mode (needed for step counts etc.)
+        // Initialize properties based on the default mode initially
         this.updateModeProperties(this.currentMode);
 
 
@@ -122,6 +120,16 @@ export class FormManager {
         }
         // --- End special handling ---
 
+        // --- Special handling for Cat/Jina buttons ---
+        // These should always be enabled, regardless of form input
+        if (buttonId === 'catFilesBtn' || buttonId === 'fetchJinaBtn') {
+            button.disabled = false;
+            // logToExtension(`Button ${buttonId} explicitly enabled (Cat/Jina).`);
+            return; // Skip standard validation below
+        }
+        // --- End special handling ---
+
+
         // Now check textContent for the button
         const buttonText = button.textContent.trim(); // Trim whitespace
         // Only validate if the button is in the initial 'GET PROMPT' state
@@ -144,86 +152,6 @@ export class FormManager {
         // logToExtension(`Button ${buttonId} validation result: ${isValid}`);
         button.disabled = !isValid;
     }
-
-
-    updateStep(newStep) {
-        // If Audit mode is active, this function should ideally not be called for step changes (as there's only 1 step).
-        // However, it IS called by switchMode and DOMContentLoaded to set the initial view.
-        if (this.currentMode === 'audit') {
-            logToExtension('updateStep called in Audit mode (likely for initial view). Ensuring step 1 is visible.');
-            const stepsContainer = document.getElementById('audit-mode-steps');
-            if (stepsContainer) {
-                const auditStep = stepsContainer.querySelector('.step[data-step="1"]'); // Target step 1 specifically
-                if (auditStep) {
-                    // Hide any other potentially visible steps (though there shouldn't be any)
-                    stepsContainer.querySelectorAll('.step').forEach(step => {
-                        if (step !== auditStep) {
-                            step.style.display = 'none';
-                            step.classList.remove('step-visible');
-                        }
-                    });
-                    // Ensure the target step is visible
-                    auditStep.style.display = 'block';
-                    auditStep.classList.add('step-visible');
-                    logToExtension('Ensured single audit step is visible.');
-                } else {
-                     logToExtension('Audit step element (data-step="1") not found inside container.', 'error');
-                }
-            } else {
-                 logToExtension('Audit steps container not found.', 'error');
-            }
-            this.validateAllButtons(); // Validate buttons for audit mode
-            return; // Prevent further execution for audit mode
-        }
-
-        // Logic for Create and Debug modes
-        try {
-            logToExtension('Updating step to: ' + newStep + ' in mode: ' + this.currentMode);
-
-            // Get the correct step container based on current mode
-            const stepsContainer = document.getElementById(this.currentMode + '-mode-steps');
-            if (!stepsContainer) {
-                logToExtension('Steps container not found for mode: ' + this.currentMode + ' in updateStep', 'error');
-                return;
-            }
-
-            // Remove the 'step-visible' class from all steps in the current container
-            // Also ensure display is none
-            stepsContainer.querySelectorAll('.step').forEach(step => {
-                step.classList.remove('step-visible');
-                step.style.display = 'none';
-            });
-
-            // Add the 'step-visible' class to the target step and set display block
-            const targetStepElement = stepsContainer.querySelector('[data-step="' + newStep + '"]');
-            if (targetStepElement) {
-                // Set display: block directly
-                targetStepElement.style.display = 'block';
-                // Add the animation class directly
-                targetStepElement.classList.add('step-visible');
-            } else {
-                logToExtension('Step element not found: ' + newStep + ' in mode: ' + this.currentMode, 'error');
-                return; // Added return here
-            }
-
-            // Update navigation button states if they exist for this mode
-            const prevButton = stepsContainer.querySelector('#prev-step');
-            const nextButton = stepsContainer.querySelector('#next-step');
-            if (prevButton) prevButton.disabled = newStep === 1;
-            if (nextButton) nextButton.disabled = newStep === this.totalSteps;
-
-            this.currentStep = newStep;
-
-            // Validate all potentially relevant buttons for the newly displayed step
-            // This is broader but ensures buttons are correctly enabled/disabled on step change
-            this.validateAllButtons();
-
-
-            vscode.postMessage({ command: 'stepChange', step: this.currentStep, mode: this.currentMode });
-        } catch (error) { // This catch corresponds to the try block starting around line 133
-            logToExtension('Error updating step: ' + error, 'error');
-        }
-    } // End of updateStep method - Confirmed brace is present
 
     switchMode(mode) {
         try {
@@ -276,24 +204,115 @@ export class FormManager {
                 logToExtension('Audit mode selected, skipping navigation re-initialization.');
             }
 
-            // Save mode preference
-            localStorage.setItem(MODE_STORAGE_KEY, mode);
+            // Save mode preference - REMOVED localStorage
+            // localStorage.setItem(MODE_STORAGE_KEY, mode);
 
             // Notify extension of mode change
             vscode.postMessage({ command: 'modeChange', mode: this.currentMode });
+
+            // Save the updated state (including the new mode and reset step)
+            this.saveStateToExtensionHost();
 
             // Validate buttons in the new mode
             this.validateAllButtons();
 
             // Explicitly update to step 1 (or the only step for audit) to make it visible after mode switch
             // No delay needed here, as the container is already visible.
+            // updateStep will trigger its own saveStateToExtensionHost call
             this.updateStep(1); // For create/debug, this shows step 1. For audit, it ensures the single step is shown.
             logToExtension(`Explicitly updated to step 1 after switching to mode: ${mode}`);
+
 
         } catch (error) {
             logToExtension('Error switching mode: ' + error, 'error');
         }
     }
+
+    // Overload updateStep to also save state
+    updateStep(newStep) {
+        // If Audit mode is active, this function should ideally not be called for step changes (as there's only 1 step).
+        // However, it IS called by switchMode and DOMContentLoaded to set the initial view.
+        if (this.currentMode === 'audit') {
+            logToExtension('updateStep called in Audit mode (likely for initial view). Ensuring step 1 is visible.');
+            const stepsContainer = document.getElementById('audit-mode-steps');
+            if (stepsContainer) {
+                const auditStep = stepsContainer.querySelector('.step[data-step="1"]'); // Target step 1 specifically
+                if (auditStep) {
+                    // Hide any other potentially visible steps (though there shouldn't be any)
+                    stepsContainer.querySelectorAll('.step').forEach(step => {
+                        if (step !== auditStep) {
+                            step.style.display = 'none';
+                            step.classList.remove('step-visible');
+                        }
+                    });
+                    // Ensure the target step is visible
+                    auditStep.style.display = 'block';
+                    auditStep.classList.add('step-visible');
+                    logToExtension('Ensured single audit step is visible.');
+                } else {
+                     logToExtension('Audit step element (data-step="1") not found inside container.', 'error');
+                }
+            } else {
+                 logToExtension('Audit steps container not found.', 'error');
+            }
+            this.validateAllButtons(); // Validate buttons for audit mode
+            // Save state even for audit mode initial view setting
+            this.saveStateToExtensionHost();
+            return; // Prevent further execution for audit mode
+        }
+
+        // Logic for Create and Debug modes
+        try {
+            logToExtension('Updating step to: ' + newStep + ' in mode: ' + this.currentMode);
+
+            // Get the correct step container based on current mode
+            const stepsContainer = document.getElementById(this.currentMode + '-mode-steps');
+            if (!stepsContainer) {
+                logToExtension('Steps container not found for mode: ' + this.currentMode + ' in updateStep', 'error');
+                return;
+            }
+
+            // Remove the 'step-visible' class from all steps in the current container
+            // Also ensure display is none
+            stepsContainer.querySelectorAll('.step').forEach(step => {
+                step.classList.remove('step-visible');
+                step.style.display = 'none';
+            });
+
+            // Add the 'step-visible' class to the target step and set display block
+            const targetStepElement = stepsContainer.querySelector('[data-step="' + newStep + '"]');
+            if (targetStepElement) {
+                // Set display: block directly
+                targetStepElement.style.display = 'block';
+                // Add the animation class directly
+                targetStepElement.classList.add('step-visible');
+            } else {
+                logToExtension('Step element not found: ' + newStep + ' in mode: ' + this.currentMode, 'error');
+                return; // Added return here
+            }
+
+            // Update navigation button states if they exist for this mode
+            const prevButton = stepsContainer.querySelector('#prev-step');
+            const nextButton = stepsContainer.querySelector('#next-step');
+            if (prevButton) prevButton.disabled = newStep === 1;
+            if (nextButton) nextButton.disabled = newStep === this.totalSteps;
+
+            this.currentStep = newStep;
+
+            // Validate all potentially relevant buttons for the newly displayed step
+            // This is broader but ensures buttons are correctly enabled/disabled on step change
+            this.validateAllButtons();
+
+
+            vscode.postMessage({ command: 'stepChange', step: this.currentStep, mode: this.currentMode });
+
+            // Save the updated state (including the new step)
+            this.saveStateToExtensionHost();
+
+        } catch (error) { // This catch corresponds to the try block starting around line 133
+            logToExtension('Error updating step: ' + error, 'error');
+        }
+    } // End of updateStep method - Confirmed brace is present
 
     initializeModeToggle() {
         try {
@@ -323,9 +342,9 @@ export class FormManager {
 
             // Determine initial mode but DO NOT call switchMode here.
             // Let DOMContentLoaded handle the initial setup.
-            const savedMode = localStorage.getItem(MODE_STORAGE_KEY) || 'create';
-            this.currentMode = savedMode;
-            logToExtension(`Initial mode from storage/default: ${this.currentMode}`);
+            // Mode is now loaded via loadStateFromExtensionHost, so no need to check localStorage here.
+            // this.currentMode is initialized to 'create' by default in the constructor.
+            logToExtension(`Initial mode before potential load: ${this.currentMode}`);
             // Update properties based on this initial mode determination
             this.updateModeProperties(this.currentMode);
 
@@ -408,6 +427,11 @@ export class FormManager {
         Object.keys(this.buttonRequirements).forEach(buttonId => {
             this.validateButton(buttonId);
         });
+        // Explicitly ensure Cat and Jina are enabled after any validation run
+        const catBtn = document.getElementById('catFilesBtn');
+        const jinaBtn = document.getElementById('fetchJinaBtn');
+        if (catBtn) catBtn.disabled = false;
+        if (jinaBtn) jinaBtn.disabled = false;
     }
 
     initializeSync() {
@@ -457,20 +481,24 @@ export class FormManager {
 
                 // Reset all generate buttons to their initial state
                 document.querySelectorAll('.generate-copy-btn').forEach(btn => {
-                    // Reset text consistently, except for special buttons
+                    // Reset text and disabled state based on button ID
                     if (btn.id === 'catFilesBtn') {
-                        btn.textContent = 'CAT FILES'; // Keep CAT FILES button text
+                        btn.textContent = 'CAT FILES';
+                        btn.disabled = false; // Keep enabled
                     } else if (btn.id === 'fetchJinaBtn') {
-                        btn.textContent = 'FETCH MARKDOWN'; // Keep Jina button text
+                        btn.textContent = 'FETCH MARKDOWN';
+                        btn.disabled = false; // Keep enabled
                     } else {
-                        // All other generate buttons reset to 'GET PROMPT'
+                        // All other generate buttons
                         btn.textContent = 'GET PROMPT';
+                        btn.disabled = true; // Disable initially
                     }
-                    btn.disabled = true; // Disable all initially
                     btn.classList.remove('pulse');
                 });
 
                 // Revalidate all buttons after clearing
+                // This will correctly disable 'GET PROMPT' buttons if fields are empty
+                // and ensure Cat/Jina remain enabled via the logic in validateAllButtons
                 this.validateAllButtons();
 
                 vscode.postMessage({ command: 'resetForm', mode: this.currentMode });
@@ -484,23 +512,30 @@ export class FormManager {
             textarea.addEventListener('input', () => this.saveStateToExtensionHost());
         });
 
-        // Restore saved mode (still uses localStorage) - Handled in initializeModeToggle now
-        // Note: Field values are loaded via 'loadState' message handled in MessageHandler
+        // Restore saved mode - Handled by loadStateFromExtensionHost now
     }
 
     saveStateToExtensionHost(state = null) {
         try {
-            if (state === null) {
-                // Collect current values if state is not explicitly provided (e.g., on input)
-                state = {};
+            let stateToSave = {};
+            if (state !== null) {
+                // If state is explicitly provided (like {} from reset), use it directly for textareas
+                stateToSave = { ...state };
+            } else {
+                // Collect current textarea values if state is not explicitly provided
                 document.querySelectorAll('textarea').forEach(textarea => {
                     if (textarea.id) {
-                        state[textarea.id] = textarea.value;
+                        stateToSave[textarea.id] = textarea.value;
                     }
                 });
             }
-            vscode.postMessage({ command: 'saveState', state: state });
-            logToExtension('Sent state update to extension host');
+
+            // Always include currentMode and currentStep
+            stateToSave['__currentMode__'] = this.currentMode;
+            stateToSave['__currentStep__'] = this.currentStep;
+
+            vscode.postMessage({ command: 'saveState', state: stateToSave });
+            logToExtension('Sent state update to extension host:', stateToSave);
         } catch (error) {
             logToExtension('Error sending state to extension host: ' + error, 'error');
         }
@@ -508,8 +543,23 @@ export class FormManager {
 
     loadStateFromExtensionHost(state) {
         try {
-            if (state) {
+            if (state && typeof state === 'object') {
+                logToExtension('Loading state from extension host:', state);
+
+                // Load mode and step first
+                const loadedMode = state['__currentMode__'] || 'create'; // Default to create if not found
+                const loadedStep = state['__currentStep__'] || 1;       // Default to 1 if not found
+
+                // Update internal state BEFORE updating UI
+                this.currentMode = loadedMode;
+                this.currentStep = loadedStep;
+                logToExtension(`Internal state updated: mode=${this.currentMode}, step=${this.currentStep}`);
+
+                // Load textarea values
                 for (const [id, value] of Object.entries(state)) {
+                    // Skip our internal keys
+                    if (id === '__currentMode__' || id === '__currentStep__') continue;
+
                     const element = document.getElementById(id);
                     if (element && element.tagName === 'TEXTAREA') {
                         element.value = value;
@@ -517,8 +567,33 @@ export class FormManager {
                 }
                 logToExtension('Restored form values from extension host state');
 
-                // Validate all buttons after loading state
+                // --- Update UI based on loaded state ---
+                // 1. Update mode properties (step count etc.) based on loaded mode
+                this.updateModeProperties(this.currentMode);
+
+                // 2. Visually switch the mode in the UI (hides/shows containers, updates buttons)
+                // This will also call updateStep(1) internally, which is fine, we'll correct it next.
+                this.switchMode(this.currentMode); // Use the loaded mode
+
+                // 3. Explicitly set the correct step *after* switchMode has potentially reset it to 1
+                // Ensure the step is valid for the loaded mode
+                const validStep = Math.max(1, Math.min(loadedStep, this.totalSteps || 1));
+                if (validStep !== this.currentStep) {
+                     logToExtension(`Correcting step after mode switch. Loaded: ${loadedStep}, Validated/Final: ${validStep}`);
+                     this.currentStep = validStep; // Update internal state again if corrected
+                }
+                this.updateStep(this.currentStep); // Update UI to the correct loaded/validated step
+
+                // 4. Validate all buttons after loading state and setting mode/step
                 this.validateAllButtons();
+                logToExtension('UI updated and buttons validated after loading state.');
+
+            } else {
+                 logToExtension('No valid state received from extension host or state is not an object.');
+                 // Ensure initial UI setup happens even without saved state
+                 this.switchMode(this.currentMode); // Use default mode
+                 this.updateStep(this.currentStep); // Use default step
+                 this.validateAllButtons();
             }
         } catch (error) {
             logToExtension('Error loading state from extension host: ' + error, 'error');
