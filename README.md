@@ -2,7 +2,7 @@
 
 # KoЯnelius
 
-Kornelius is an extension for Visual Studio Code designed to streamline AI prompt creation and context management for various development workflows.
+Kornelius is a Visual Studio Code extension for this vibe coding era designed to streamline AI prompt creation and context management.
 
 ## Features
 
