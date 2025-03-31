@@ -95,6 +95,7 @@
     "vscode-test": "^1.5.2"
   },
   "dependencies": {
-    "ignore": "^7.0.3"
+    "ignore": "^7.0.3",
+    "ipaddr.js": "^2.2.0"
   }
 }

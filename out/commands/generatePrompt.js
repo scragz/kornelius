@@ -69,6 +69,31 @@ userInputs) {
     }
 }
 exports.generatePrompt = generatePrompt;
+// Basic sanitization: remove control characters except common whitespace (\n, \r, \t)
+function sanitizeInput(input) {
+    if (!input)
+        return '';
+    let result = '';
+    for (let i = 0; i < input.length; i++) {
+        const charCode = input.charCodeAt(i);
+        // Allow common whitespace: HT (\x09), LF (\x0A), CR (\x0D)
+        if (charCode === 9 || charCode === 10 || charCode === 13) {
+            result += input[i];
+            continue;
+        }
+        // Block C0 controls (0-31) excluding the allowed whitespace above
+        if (charCode >= 0 && charCode <= 31) {
+            continue; // Skip this character
+        }
+        // Block DEL (127) and C1 controls (128-159)
+        if (charCode >= 127 && charCode <= 159) {
+            continue; // Skip this character
+        }
+        // Allow all other characters
+        result += input[i];
+    }
+    return result;
+}
 /**
  * Process the template content with the appropriate placeholders based on the step
  */
@@ -76,83 +101,71 @@ function processPromptWithPlaceholders(step, templateContent, userInputs) {
     // Convert the structured user inputs to a flat record of key-value pairs
     const placeholderMap = {};
     debugLogger_1.DebugLogger.log(`Processing template for step: ${step}`);
-    // Map appropriate values based on the current step
+    // Map appropriate values based on the current step, applying sanitization
     switch (step) {
         case 'request':
-            // For request step, use initialIdea
-            placeholderMap['PROJECT_REQUEST'] = userInputs.initialIdea || '';
+            placeholderMap['PROJECT_REQUEST'] = sanitizeInput(userInputs.initialIdea);
             break;
         case 'spec':
-            // For spec step, use projectRequest, projectRules, referenceCode
-            placeholderMap['PROJECT_REQUEST'] = userInputs.projectRequest || '';
-            placeholderMap['PROJECT_RULES'] = userInputs.projectRules || '';
-            placeholderMap['REFERENCE_CODE'] = userInputs.referenceCode || '';
+            placeholderMap['PROJECT_REQUEST'] = sanitizeInput(userInputs.projectRequest);
+            placeholderMap['PROJECT_RULES'] = sanitizeInput(userInputs.projectRules);
+            placeholderMap['REFERENCE_CODE'] = sanitizeInput(userInputs.referenceCode);
             break;
         case 'planner':
-            // For planner step, use projectRequest, projectRules, technicalSpecification, referenceCode
-            placeholderMap['PROJECT_REQUEST'] = userInputs.projectRequest || '';
-            placeholderMap['PROJECT_RULES'] = userInputs.projectRules || '';
-            placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.technicalSpecification || '';
-            placeholderMap['REFERENCE_CODE'] = userInputs.referenceCode || '';
+            placeholderMap['PROJECT_REQUEST'] = sanitizeInput(userInputs.projectRequest);
+            placeholderMap['PROJECT_RULES'] = sanitizeInput(userInputs.projectRules);
+            placeholderMap['TECHNICAL_SPECIFICATION'] = sanitizeInput(userInputs.technicalSpecification);
+            placeholderMap['REFERENCE_CODE'] = sanitizeInput(userInputs.referenceCode);
             break;
         case 'codegen':
-            // For codegen step, use projectRequest, projectRules, technicalSpecification, implementationPlan, existingCode
-            placeholderMap['PROJECT_REQUEST'] = userInputs.projectRequest || '';
-            placeholderMap['PROJECT_RULES'] = userInputs.projectRules || '';
-            placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.technicalSpecification || '';
-            placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.implementationPlan || '';
-            placeholderMap['EXISTING_CODE'] = userInputs.existingCode || '';
+            placeholderMap['PROJECT_REQUEST'] = sanitizeInput(userInputs.projectRequest);
+            placeholderMap['PROJECT_RULES'] = sanitizeInput(userInputs.projectRules);
+            placeholderMap['TECHNICAL_SPECIFICATION'] = sanitizeInput(userInputs.technicalSpecification);
+            placeholderMap['IMPLEMENTATION_PLAN'] = sanitizeInput(userInputs.implementationPlan);
+            placeholderMap['EXISTING_CODE'] = sanitizeInput(userInputs.existingCode);
             break;
         case 'review':
-            // For review step, use projectRequest, projectRules, technicalSpecification, implementationPlan, existingCode
-            placeholderMap['PROJECT_REQUEST'] = userInputs.projectRequest || '';
-            placeholderMap['PROJECT_RULES'] = userInputs.projectRules || '';
-            placeholderMap['TECHNICAL_SPECIFICATION'] = userInputs.technicalSpecification || '';
-            placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.implementationPlan || '';
-            placeholderMap['EXISTING_CODE'] = userInputs.existingCode || '';
+            placeholderMap['PROJECT_REQUEST'] = sanitizeInput(userInputs.projectRequest);
+            placeholderMap['PROJECT_RULES'] = sanitizeInput(userInputs.projectRules);
+            placeholderMap['TECHNICAL_SPECIFICATION'] = sanitizeInput(userInputs.technicalSpecification);
+            placeholderMap['IMPLEMENTATION_PLAN'] = sanitizeInput(userInputs.implementationPlan);
+            placeholderMap['EXISTING_CODE'] = sanitizeInput(userInputs.existingCode);
             break;
-        // Handle specific audit steps which might have different placeholder needs
-        case 'security': // Assuming step is 'security' when mode is 'audit'
-            // Placeholder for security audit - adjust if needed
-            placeholderMap['CODE_TO_AUDIT'] = userInputs.codeToAudit || ''; // Example placeholder
+        case 'security':
+            placeholderMap['CODE_TO_AUDIT'] = sanitizeInput(userInputs.codeToAudit);
             break;
-        case 'a11y': // Assuming step is 'a11y' when mode is 'audit'
-            // Placeholder for accessibility audit - adjust if needed
-            placeholderMap['CODE_TO_AUDIT'] = userInputs.codeToAudit || ''; // Example placeholder
+        case 'a11y':
+            placeholderMap['CODE_TO_AUDIT'] = sanitizeInput(userInputs.codeToAudit);
             break;
-        // Debug mode steps
         case 'observe':
-            placeholderMap['BUG_DESCRIPTION'] = userInputs.bugDescription || '';
-            placeholderMap['ERROR_MESSAGES'] = userInputs.errorMessages || '';
-            placeholderMap['REPRO_STEPS'] = userInputs.reproSteps || '';
-            placeholderMap['ENV_DETAILS'] = userInputs.envDetails || '';
-            placeholderMap['USER_FEEDBACK'] = userInputs.userFeedback || '';
-            placeholderMap['ADDITIONAL_EVIDENCE'] = userInputs.additionalEvidence || '';
+            placeholderMap['BUG_DESCRIPTION'] = sanitizeInput(userInputs.bugDescription);
+            placeholderMap['ERROR_MESSAGES'] = sanitizeInput(userInputs.errorMessages);
+            placeholderMap['REPRO_STEPS'] = sanitizeInput(userInputs.reproSteps);
+            placeholderMap['ENV_DETAILS'] = sanitizeInput(userInputs.envDetails);
+            placeholderMap['USER_FEEDBACK'] = sanitizeInput(userInputs.userFeedback);
+            placeholderMap['ADDITIONAL_EVIDENCE'] = sanitizeInput(userInputs.additionalEvidence);
             break;
         case 'orient':
-            placeholderMap['ANALYSIS_SUMMARY'] = userInputs.analysisSummary || '';
-            placeholderMap['UPDATED_CLARIFICATIONS'] = userInputs.updatedClarifications || '';
+            placeholderMap['ANALYSIS_SUMMARY'] = sanitizeInput(userInputs.analysisSummary);
+            placeholderMap['UPDATED_CLARIFICATIONS'] = sanitizeInput(userInputs.updatedClarifications);
             break;
         case 'decide':
-            placeholderMap['ANALYSIS_SUMMARY'] = userInputs.analysisSummary || '';
-            placeholderMap['CONSTRAINTS_OR_RISKS'] = userInputs.constraintsOrRisks || '';
+            placeholderMap['ANALYSIS_SUMMARY'] = sanitizeInput(userInputs.analysisSummary);
+            placeholderMap['CONSTRAINTS_OR_RISKS'] = sanitizeInput(userInputs.constraintsOrRisks);
             break;
         case 'act':
-            placeholderMap['CHOSEN_ACTIONS'] = userInputs.chosenActions || '';
-            placeholderMap['IMPLEMENTATION_PLAN'] = userInputs.implementationPlan || '';
-            placeholderMap['SUCCESS_CRITERIA'] = userInputs.successCriteria || '';
+            placeholderMap['CHOSEN_ACTIONS'] = sanitizeInput(userInputs.chosenActions);
+            placeholderMap['IMPLEMENTATION_PLAN'] = sanitizeInput(userInputs.implementationPlan);
+            placeholderMap['SUCCESS_CRITERIA'] = sanitizeInput(userInputs.successCriteria);
             break;
         default:
-            // Fallback for any steps not explicitly handled
-            debugLogger_1.DebugLogger.log(`[Warning] Unhandled step in processPromptWithPlaceholders: ${step}. Attempting direct input mapping.`);
-            // Attempt to map camelCase keys from userInputs to SCREAMING_SNAKE_CASE
+            debugLogger_1.DebugLogger.log(`[Warning] Unhandled step in processPromptWithPlaceholders: ${step}. Attempting direct input mapping with sanitization.`);
             Object.keys(userInputs).forEach(key => {
-                // Convert camelCase key to SCREAMING_SNAKE_CASE for the placeholder map
                 const placeholderKey = key.replace(/([A-Z])/g, '_$1').toUpperCase();
-                placeholderMap[placeholderKey] = userInputs[key] || '';
+                placeholderMap[placeholderKey] = sanitizeInput(userInputs[key]); // Apply sanitization here too
             });
     }
-    debugLogger_1.DebugLogger.log('Placeholder map:', placeholderMap);
+    debugLogger_1.DebugLogger.log('Sanitized placeholder map:', placeholderMap);
     // Create a new prompt manager to generate the prompt
     const promptManager = new promptManager_1.PromptManager();
     const generatedPrompt = promptManager.generatePrompt(templateContent, placeholderMap);
