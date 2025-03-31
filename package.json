@@ -4,6 +4,8 @@
   "description": "Your vibe coding companion",
   "version": "0.1.11",
   "publisher": "scragz",
+  "homepage": "https://www.kornelius.dev/",
+  "license": "MIT",
   "icon": "media/barbed-wire-color.png",
   "repository": {
     "type": "git",
