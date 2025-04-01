@@ -1,4 +1,4 @@
-Below is a **single, comprehensiAct as an **expert accessibility researcher** specializing in **application code auditing** for compliance with WCAG and relevant a11y best practices. Your task is to conduct a **thorough accessibility audit** of the provided codebase.
+Act as an **expert accessibility researcher** specializing in **application code auditing** for compliance with WCAG and relevant a11y best practices. Your task is to conduct a **thorough accessibility audit** of the provided codebase.
 
 **Objective:** Identify, prioritize, and propose **remediation strategies** for high-priority accessibility issues that could prevent users—including those with diverse disabilities—from effectively navigating and interacting with the application. Assume a realistic user and device spectrum (e.g., screen readers, keyboard-only navigation, voice control, etc.).
 
