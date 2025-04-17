@@ -14,8 +14,6 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
-    _context: vscode.WebviewViewResolveContext,
-    _token: vscode.CancellationToken
   ): void {
     webviewView.webview.options = {
       enableScripts: true,
@@ -79,6 +77,31 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
           case 'stepChange':
             DebugLogger.log(`Changed to step: ${message.step}`);
             break;
+          // Add new case for handling log messages from webview
+          case 'log': // Handle the 'log' command for backward compatibility
+          case 'logMessage': {
+            const logMessage = message.message;
+            const logLevel = message.level || 'log'; // Default to 'log' if level is missing
+            switch (logLevel) {
+              case 'warn':
+                DebugLogger.log(`Webview log: ${logMessage}`);
+                break;
+              case 'error':
+                DebugLogger.error(`Webview log: ${logMessage}`);
+                // Optionally show errors in VS Code UI
+                if (String(logMessage).startsWith('Error')) { // Basic check if it looks like an error
+                  vscode.window.showErrorMessage(`Webview error: ${logMessage}`);
+                }
+                break;
+              default:
+                DebugLogger.log(`Webview log: ${logMessage}`);
+                break;
+            }
+            break;
+          }
+          case 'modeChange': // Add handler for mode change messages
+            DebugLogger.log(`Changed to mode: ${message.mode}`);
+            break;
           case 'generatePrompt':
             try {
               // Log the received message including mode and buttonId
@@ -110,18 +133,26 @@ export class SidebarViewProvider implements vscode.WebviewViewProvider {
           case 'copyToClipboard':
             vscode.env.clipboard.writeText(message.text);
             break;
-          case 'logError':
-            DebugLogger.error(`Error in webview: ${message.message}`);
-            if (message.message.startsWith('Error posting message') ||
-                message.message.startsWith('Error preparing inputs')) {
-              vscode.window.showErrorMessage(`Webview error: ${message.message}`);
-            }
-            break;
-          case 'log':
-            DebugLogger.log(`Webview log: ${message.message}`);
-            break;
           default:
-            DebugLogger.log(`Unknown message command: ${message.command}`);
+            // Improved handling for malformed messages
+            if (typeof message.command !== 'string') {
+              // This happens when an object is sent directly as the message
+              if (message.state && typeof message.state === 'object') {
+                // If it has a state property, treat it as a saveState command
+                DebugLogger.log('Received malformed state update (missing command), treating as saveState');
+                await this._context.workspaceState.update(stateKey, message.state);
+              } else if (typeof message.command === 'object' &&
+                         (message.message === 'Sent state update to extension host:' ||
+                          message.message === 'Loading state from extension host:')) {
+                // Handle these specific malformed message formats
+                DebugLogger.log('Received legacy state notification message format');
+                // No action needed as these are just notification messages
+              } else {
+                DebugLogger.error(`Malformed message received:`, message);
+              }
+            } else {
+              DebugLogger.log(`Unknown message command: ${message.command}`);
+            }
         }
       } catch (error) {
         DebugLogger.error('Error handling webview message:', error);

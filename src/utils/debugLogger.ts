@@ -6,6 +6,7 @@ export class DebugLogger {
   private static logEnabled = true;
   private static logToFile = true; // Changed to true to enable file logging by default
   private static logQueue: string[] = [];
+  private static maxQueueSize = 1000; // Limit log queue size to prevent memory issues
 
   /**
    * Initialize the logger with default settings
@@ -20,7 +21,7 @@ export class DebugLogger {
   /**
    * Log messages with optional data objects
    */
-  public static log(message: string, ...data: any[]): void {
+  public static log(message: string, ...data: unknown[]): void {
     if (!this.logEnabled) {
       return;
     }
@@ -33,8 +34,13 @@ export class DebugLogger {
       console.log(...data);
     }
 
-    // Store in log queue for file output
+    // Store in log queue for file output but maintain the max queue size
     this.logQueue.push(formattedMessage + (data.length > 0 ? ' ' + JSON.stringify(data) : ''));
+
+    // Maintain the maximum queue size by removing the oldest entries
+    if (this.logQueue.length > this.maxQueueSize) {
+      this.logQueue = this.logQueue.slice(-this.maxQueueSize);
+    }
 
     // Optionally write to file
     if (this.logToFile) {
@@ -45,7 +51,7 @@ export class DebugLogger {
   /**
    * Log error messages with optional data objects
    */
-  public static error(message: string, ...data: any[]): void {
+  public static error(message: string, ...data: unknown[]): void {
     if (!this.logEnabled) {
       return;
     }
@@ -58,8 +64,13 @@ export class DebugLogger {
       console.error(...data);
     }
 
-    // Store in log queue for file output
+    // Store in log queue for file output but maintain the max queue size
     this.logQueue.push(formattedMessage + (data.length > 0 ? ' ' + JSON.stringify(data) : ''));
+
+    // Maintain the maximum queue size by removing the oldest entries
+    if (this.logQueue.length > this.maxQueueSize) {
+      this.logQueue = this.logQueue.slice(-this.maxQueueSize);
+    }
 
     // Optionally write to file
     if (this.logToFile) {

@@ -534,8 +534,30 @@ export class FormManager {
             stateToSave['__currentMode__'] = this.currentMode;
             stateToSave['__currentStep__'] = this.currentStep;
 
-            vscode.postMessage({ command: 'saveState', state: stateToSave });
-            logToExtension('Sent state update to extension host:', stateToSave);
+            // Use VS Code's built-in state API first
+            // This ensures state is preserved even if webview is destroyed and recreated
+            vscode.setState(stateToSave);
+
+            // Wait a tiny bit before sending the message to the extension host
+            // This separates the setState and postMessage operations to prevent interference
+            setTimeout(() => {
+                try {
+                    // Send to extension host for cross-session persistence
+                    // Ensure we send a proper command structure, not just an object
+                    const message = {
+                        command: 'saveState',
+                        state: stateToSave
+                    };
+
+                    vscode.postMessage(message);
+
+                    // Use logToExtension but don't send notifications about state updates to reduce noise
+                    // This was causing a malformed message error in the logs
+                    console.log('[WebView] State saved to extension host');
+                } catch (error) {
+                    logToExtension('[WebView] Error sending state to extension host: ' + error, 'error');
+                }
+            }, 5); // 5ms delay should be enough to prevent race conditions
         } catch (error) {
             logToExtension('Error sending state to extension host: ' + error, 'error');
         }
@@ -543,12 +565,25 @@ export class FormManager {
 
     loadStateFromExtensionHost(state) {
         try {
-            if (state && typeof state === 'object') {
-                logToExtension('Loading state from extension host:', state);
+            // First try to use the state passed in from the extension host
+            let stateToLoad = state;
+
+            // If no valid state received from extension host, try the built-in webview state API
+            if (!stateToLoad || typeof stateToLoad !== 'object') {
+                const vsCodeState = vscode.getState();
+                if (vsCodeState && typeof vsCodeState === 'object') {
+                    logToExtension('No valid state from extension host, using VS Code webview state instead');
+                    stateToLoad = vsCodeState;
+                }
+            }
+
+            if (stateToLoad && typeof stateToLoad === 'object') {
+                // Use direct console.log to avoid generating more notification messages
+                console.log('Loading state from extension host:', stateToLoad);
 
                 // Load mode and step first
-                const loadedMode = state['__currentMode__'] || 'create'; // Default to create if not found
-                const loadedStep = state['__currentStep__'] || 1;       // Default to 1 if not found
+                const loadedMode = stateToLoad['__currentMode__'] || 'create'; // Default to create if not found
+                const loadedStep = stateToLoad['__currentStep__'] || 1;       // Default to 1 if not found
 
                 // Update internal state BEFORE updating UI
                 this.currentMode = loadedMode;
@@ -556,7 +591,7 @@ export class FormManager {
                 logToExtension(`Internal state updated: mode=${this.currentMode}, step=${this.currentStep}`);
 
                 // Load textarea values
-                for (const [id, value] of Object.entries(state)) {
+                for (const [id, value] of Object.entries(stateToLoad)) {
                     // Skip our internal keys
                     if (id === '__currentMode__' || id === '__currentStep__') continue;
 

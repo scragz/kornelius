@@ -27,8 +27,12 @@ class DebugLogger {
         if (data.length > 0) {
             console.log(...data);
         }
-        // Store in log queue for file output
+        // Store in log queue for file output but maintain the max queue size
         this.logQueue.push(formattedMessage + (data.length > 0 ? ' ' + JSON.stringify(data) : ''));
+        // Maintain the maximum queue size by removing the oldest entries
+        if (this.logQueue.length > this.maxQueueSize) {
+            this.logQueue = this.logQueue.slice(-this.maxQueueSize);
+        }
         // Optionally write to file
         if (this.logToFile) {
             this.writeLogsToFile();
@@ -47,8 +51,12 @@ class DebugLogger {
         if (data.length > 0) {
             console.error(...data);
         }
-        // Store in log queue for file output
+        // Store in log queue for file output but maintain the max queue size
         this.logQueue.push(formattedMessage + (data.length > 0 ? ' ' + JSON.stringify(data) : ''));
+        // Maintain the maximum queue size by removing the oldest entries
+        if (this.logQueue.length > this.maxQueueSize) {
+            this.logQueue = this.logQueue.slice(-this.maxQueueSize);
+        }
         // Optionally write to file
         if (this.logToFile) {
             this.writeLogsToFile();
@@ -99,4 +107,5 @@ exports.DebugLogger = DebugLogger;
 DebugLogger.logEnabled = true;
 DebugLogger.logToFile = true; // Changed to true to enable file logging by default
 DebugLogger.logQueue = [];
+DebugLogger.maxQueueSize = 1000; // Limit log queue size to prevent memory issues
 //# sourceMappingURL=debugLogger.js.map

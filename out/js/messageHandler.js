@@ -14,9 +14,22 @@ export class MessageHandler {
     initializeMessageHandling() {
         window.addEventListener('message', event => {
             const message = event.data;
-            // console.log('Received message:', message); // Replaced with logToExtension or removed if redundant
-            logToExtension('Received message from extension host: ' + JSON.stringify(message));
-            this.handleMessage(message);
+
+            if (!message || typeof message !== 'object') {
+                logToExtension('Received invalid message from extension host', 'error');
+                return;
+            }
+
+            try {
+                const messageString = typeof message === 'object' ?
+                    JSON.stringify(message, (k, v) => v && typeof v === 'object' && Object.keys(v).length > 10 ? '[Object]' : v) :
+                    String(message);
+
+                logToExtension('Received message from extension host: ' + messageString);
+                this.handleMessage(message);
+            } catch (error) {
+                logToExtension('Error processing message: ' + error, 'error');
+            }
         });
     }
 
