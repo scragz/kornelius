@@ -44,6 +44,20 @@ class SidebarViewProvider {
             ], // Removed duplicate property
         };
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        // Add visibility change listener to save state when view is hidden
+        webviewView.onDidChangeVisibility(() => {
+            if (!webviewView.visible) {
+                // View became hidden, state should already be saved via message system
+                debugLogger_1.DebugLogger.log('Webview visibility changed to hidden');
+            }
+            else {
+                // View became visible, ensure we send the latest state
+                const stateKey = `${SidebarViewProvider.viewType}.state`;
+                const savedState = this._context.workspaceState.get(stateKey) || {};
+                debugLogger_1.DebugLogger.log('Webview became visible, sending saved state:', savedState);
+                webviewView.webview.postMessage({ command: 'loadState', state: savedState });
+            }
+        });
         // Send initial state to the webview using workspaceState
         const stateKey = `${SidebarViewProvider.viewType}.state`;
         const initialState = this._context.workspaceState.get(stateKey) || {};
