@@ -18,6 +18,15 @@ export async function runConcatenation() {
 
     // Load .gitignore if present
     const ig = ignore();
+    // Add default patterns for common directories to ignore
+    ig.add([
+      '**/__pycache__/**',
+      '**/node_modules/**',
+      '**/.git/**',
+      '**/.DS_Store',
+      '**/dist/**',
+      '**/build/**'
+    ]);
     const gitignorePath = path.join(directoryPath, '.gitignore');
     try {
       await fsPromises.access(gitignorePath);
@@ -52,7 +61,7 @@ export async function runConcatenation() {
   }
 }
 
-export async function catFiles() {
+export async function catFiles(): Promise<void> {
   return runConcatenation();
 }
 
@@ -62,12 +71,19 @@ async function getAllFiles(dir: string, ig: ignore.Ignore, baseDir: string): Pro
     const entries = await fsPromises.readdir(dir, { withFileTypes: true });
     for (const entry of entries) {
       const fullPath = path.join(dir, entry.name);
-      const relative = path.relative(baseDir, fullPath);
+      // Use forward slashes for consistent path format across platforms
+      const relative = path.relative(baseDir, fullPath).split(path.sep).join('/');
+
       // Skip if .gitignore rules say so
       if (ig.ignores(relative)) {
         continue;
       }
+
       if (entry.isDirectory()) {
+        // Check directory name directly for common patterns
+        if (entry.name === '__pycache__' || entry.name === 'node_modules' || entry.name === '.git') {
+          continue;
+        }
         const subFiles = await getAllFiles(fullPath, ig, baseDir);
         results = results.concat(subFiles);
       } else if (entry.isFile()) {
