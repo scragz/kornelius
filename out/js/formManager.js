@@ -509,10 +509,34 @@ export class FormManager {
     initializeStateHandling() {
         // Listen for input changes to save state
         document.querySelectorAll('textarea').forEach(textarea => {
-            textarea.addEventListener('input', () => this.saveStateToExtensionHost());
+            // Use both input and blur events to ensure state is saved
+            // Input event fires as you type, blur ensures we catch the final state when leaving the field
+            textarea.addEventListener('input', () => this.debounceStateUpdate());
+            textarea.addEventListener('blur', () => this.saveStateToExtensionHost());
         });
 
-        // Restore saved mode - Handled by loadStateFromExtensionHost now
+        // Add window unload event to ensure state is saved when the webview is hidden/closed
+        window.addEventListener('beforeunload', () => {
+            this.saveStateToExtensionHost();
+        });
+
+        // Save state on mode changes
+        document.querySelectorAll('.mode-toggle button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Delayed save to ensure state includes new mode
+                setTimeout(() => this.saveStateToExtensionHost(), 50);
+            });
+        });
+    }
+
+    // Use a debounce to prevent too many save calls while typing
+    debounceStateUpdate() {
+        if (this._saveStateTimeout) {
+            clearTimeout(this._saveStateTimeout);
+        }
+        this._saveStateTimeout = setTimeout(() => {
+            this.saveStateToExtensionHost();
+        }, 300); // Save after 300ms of inactivity
     }
 
     saveStateToExtensionHost(state = null) {
