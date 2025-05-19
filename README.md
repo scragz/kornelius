@@ -23,7 +23,3 @@ Kornelius is a Visual Studio Code extension for this vibe coding era designed to
 
 - `kornelius.enableJinaIntegration`: Enable/disable the Jina.ai integration
 - `kornelius.jinaApiKey`: API key for Jina.ai integration (if enabled)
-
-## 🥁 Known Issues
-
-- Initial dev version - getting ready to shred, but some features might hit a wrong note

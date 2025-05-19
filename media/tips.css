@@ -41,6 +41,7 @@
   color: var(--keyword-color);
   font-weight: bold;
   letter-spacing: 0.5px;
+  text-wrap: nowrap;
 }
 
 .munky-tip em {
