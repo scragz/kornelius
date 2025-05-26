@@ -79,10 +79,12 @@ Below is an example of how your output should look once you **implement** the ne
 
 ```markdown
 STEP X COMPLETE. Here's what I did and why:
+
 - [Summarize the changes made across all files.]
 - [Note any crucial details or known issues.]
 
 USER INSTRUCTIONS: Please do the following:
+
 1. [Manual task #1, e.g., install library or environment variable config]
 2. [Manual task #2, e.g., run migration or set up .env file]
 ```
@@ -93,13 +95,14 @@ If you updated the implementation plan, record it here:
 # Updated Implementation Plan
 
 ## [Section Name]
+
 - [x] Step 1: [Completed or updated step with notes]
 - [ ] Step 2: [Still pending]
 ```
 
 ---
 
-## Appendix: Design Principles
+## **Appendix: Design Principles**
 
 ### Context-Driven Design Philosophy
 
@@ -138,7 +141,8 @@ For landing pages, marketing sites, and presentational content, the goal shifts 
 
 #### Contemporary Aesthetics
 
-**Trend Anticipation**
+##### Trend Anticipation
+
 Rather than following trends, aim to **anticipate and set them**:
 
 - Study emerging design patterns from leading agencies and startups
@@ -146,7 +150,8 @@ Rather than following trends, aim to **anticipate and set them**:
 - Incorporate elements from other design disciplines (architecture, fashion, industrial design)
 - Balance innovation with usability principles
 
-**Visual Sophistication**
+##### Visual Sophistication
+
 - Use advanced CSS features like custom properties, grid, and container queries
 - Implement complex animations using CSS transforms and keyframes
 - Create custom SVG illustrations that align with brand identity
@@ -163,7 +168,8 @@ Animations should serve **functional and emotional purposes** simultaneously:
 
 #### Interactive Elements
 
-**Hover State Philosophy**
+##### Hover State Philosophy
+
 Every interactive element should provide **clear feedback** about its functionality:
 
 - Subtle scale or color changes for clickable elements
@@ -171,7 +177,8 @@ Every interactive element should provide **clear feedback** about its functional
 - Smooth transitions that feel natural and responsive
 - Consistent behavior patterns across similar elements
 
-**Touch and Mobile Considerations**
+##### Touch and Mobile Considerations
+
 - Design for finger-friendly touch targets (minimum 44px)
 - Implement appropriate touch gestures for different actions
 - Consider haptic feedback where available
@@ -181,19 +188,22 @@ Every interactive element should provide **clear feedback** about its functional
 
 #### Advanced CSS
 
-**Modern Layout Systems**
+##### Modern Layout Systems
+
 - CSS Grid for complex, two-dimensional layouts
 - Flexbox for one-dimensional alignment and distribution
 - Container queries for truly responsive component design
 - CSS custom properties for dynamic theming and state management
 
-**Visual Effects Innovation**
+##### Visual Effects Innovation
+
 - CSS filters and backdrop-filter for sophisticated visual effects
 - Transform3d for hardware-accelerated animations
 - CSS shapes for non-rectangular layouts
 - Blend modes for creative color and texture combinations
 
-**Cutting-Edge Features**
+##### Cutting-Edge Features
+
 - CSS scroll-snap for controlled scrolling experiences
 - CSS logical properties for internationalization
 - CSS aspect-ratio for consistent proportions
@@ -201,13 +211,15 @@ Every interactive element should provide **clear feedback** about its functional
 
 #### JavaScript Interaction
 
-**Event Handling Sophistication**
+##### Event Handling Sophistication
+
 - Implement gesture recognition for touch interfaces
 - Use Intersection Observer for scroll-based animations
 - Create custom event systems for component communication
 - Implement keyboard navigation patterns for accessibility
 
-**State Management**
+##### State Management
+
 - Design reactive systems that update UI based on data changes
 - Implement efficient re-rendering strategies
 - Use debouncing and throttling for performance optimization
