@@ -39,6 +39,7 @@ When this prompt runs, you will:
 3. **Generate** all the code required to fulfill that step.
    - Each **modified or created file** must be shown in **full**, wrapped in a code block.
    - Precede each file with “Here’s what I did and why:” to explain your changes.
+   - Use the design guidelines in the appendix wh
 4. **Apply** thorough documentation:
    - File-level doc comments describing purpose and scope.
    - Function-level doc comments detailing inputs, outputs, and logic flow.
@@ -98,56 +99,84 @@ If you updated the implementation plan, record it here:
 
 ---
 
-## **File Changes**
+## Appendix: Comprehensive Design Principles
 
-Example of a new Typescript file: src/path/to/FileExample.ts
+### Context-Driven Design Philosophy
 
-```typescript
-/**
-- @description
-- Explains the file purpose, responsibilities, and any additional info.
--
-- Key features:
-- - Feature A
-- - Feature B
--
-- @dependencies
-- - [List relevant libraries or modules]
--
-- @notes
-- - Implementation detail or limitation
- */
+Design decisions must align with a project’s purpose and constraints—no one-size-fits-all solutions.
 
-// Complete TypeScript code with inline comments...
-```
+### Complex Applications: Function-First Design
 
----
+#### Performance-Centric Architecture
 
-Example of a new Python file: src/path/to/another_file.py
+* **Target 60 fps:** `requestAnimationFrame`, object pooling, LOD, and regular profiling.
+* **Memory:** dispose of unused assets, choose lean data structures, off-load heavy work to Web Workers.
+* **Rendering:** batch draws, instanced geometry, frustum culling, lightweight shaders/textures.
 
-```python
-"""
-- @description
-- Explains the file purpose, responsibilities, and any additional info.
--
-- Key features:
-- - Feature A: Describe feature A.
-- - Feature B: Describe feature B.
--
-- @dependencies
-- - [List relevant libraries or modules]
--
-- @notes
-- - Implementation detail or limitation
-"""
+#### User Experience Clarity
 
-def main():
-    # TODO: Implement the main functionality of this module
-    print("Hello from FileExample.py")
+* Clear hierarchies, progressive disclosure, consistent spacing.
+* Instant feedback, accessible controls, debounced rapid inputs.
+* Error-proof defaults, undo/redo, descriptive messages.
 
-if __name__ == "__main__":
-    main()
-```
+#### Functional Design Language
+
+* Neutral palettes, legible type, supportive icons.
+* Responsive, space-efficient layouts; collapsible panels; multi-monitor awareness.
+
+### Presentational Content: Emotion-First Design
+
+#### Psychological Impact
+
+* **3-second hook:** bold visuals, smooth entry motion.
+* Story-driven flow with strategic “delight” moments.
+* Hierarchies and CTAs tested for conversion.
+
+#### Contemporary Aesthetics
+
+* Track emerging patterns; experiment with new CSS.
+* Use custom properties, grid, container queries, bespoke SVG, and advanced animations for a signature look.
+
+### Interactive Design
+
+#### Animation as Communication
+
+* Motion clarifies loading, transitions, and hovers; micro-interactions add personality.
+* Prefer transform-based animations, judicious `will-change`, and “reduce motion” support.
+
+#### Interactive Elements
+
+* Consistent hover/touch feedback (scale, color, reveals).
+* 44 px touch targets, keyboard navigation, logical focus order.
+
+### Technology Boundary Pushing
+
+#### Advanced CSS
+
+Grid, Flexbox, container queries, custom properties, filters, 3-D transforms, blend modes, scroll-snap, logical props, `aspect-ratio`, `clamp()`.
+
+#### JavaScript Interaction
+
+Gesture recognition, Intersection Observer, custom events, predictable debounced state updates.
+
+### Accessibility Integration
+
+#### Universal Design
+
+WCAG-AA contrast, multi-cue interactivity, visible focus, keyboard paths, skip links, minimal cognitive load.
+
+#### Semantic Structure & Progressive Enhancement
+
+Semantic HTML headings, ARIA where needed, labeled forms.
+Base experience works without JS; enhancements layered and tested with assistive tech.
+
+### Quality, Scalability & Future-Proofing
+
+* Clean, documented code; descriptive commits; version control.
+* Cross-browser/device testing and analytics-driven iteration.
+* Modular architecture, design tokens, readiness for new standards with graceful degradation.
+
+This comprehensive approach to design principles creates a framework for making informed decisions that serve both users and business objectives while pushing the boundaries of what's possible in web design and development.
 
 ---
 
