@@ -99,69 +99,125 @@ If you updated the implementation plan, record it here:
 
 ---
 
-## Appendix: Comprehensive Design Principles
+## Appendix: Design Principles
 
 ### Context-Driven Design Philosophy
 
-Design decisions must align with a project’s purpose and constraints—no one-size-fits-all solutions.
+The fundamental principle underlying these guidelines is **context-driven design differentiation**. Rather than applying a one-size-fits-all approach, the design strategy adapts to the specific purpose and constraints of each project type. This creates optimal user experiences by aligning visual choices with functional requirements and user expectations.
 
 ### Complex Applications: Function-First Design
 
-#### Performance-Centric Architecture
+For complex applications like Three.js scenes, games, and simulations, performance isn't just a consideration—it's the foundation upon which all other decisions rest. This means:
 
-* **Target 60 fps:** `requestAnimationFrame`, object pooling, LOD, and regular profiling.
-* **Memory:** dispose of unused assets, choose lean data structures, off-load heavy work to Web Workers.
-* **Rendering:** batch draws, instanced geometry, frustum culling, lightweight shaders/textures.
+- **Target 60 fps:** `requestAnimationFrame`, object pooling, LOD, and regular profiling.
+- **Memory:** dispose of unused assets, choose lean data structures, off-load heavy work to Web Workers.
+- **Rendering:** batch draws, instanced geometry, frustum culling, lightweight shaders/textures.
 
 #### User Experience Clarity
 
-* Clear hierarchies, progressive disclosure, consistent spacing.
-* Instant feedback, accessible controls, debounced rapid inputs.
-* Error-proof defaults, undo/redo, descriptive messages.
+Complex applications require **cognitive load reduction** through thoughtful interface design:
+
+- Clear hierarchies, progressive disclosure, consistent spacing.
+- Instant feedback, accessible controls, debounced rapid inputs.
+- Error-proof defaults, undo/redo, descriptive messages.
 
 #### Functional Design Language
 
-* Neutral palettes, legible type, supportive icons.
-* Responsive, space-efficient layouts; collapsible panels; multi-monitor awareness.
+The visual design should **support rather than compete** with functionality:
+
+- Neutral palettes, legible type, supportive icons.
+- Responsive, space-efficient layouts; collapsible panels; multi-monitor awareness.
 
 ### Presentational Content: Emotion-First Design
 
-#### Psychological Impact
+For landing pages, marketing sites, and presentational content, the goal shifts to **emotional engagement and memorability**:
 
-* **3-second hook:** bold visuals, smooth entry motion.
-* Story-driven flow with strategic “delight” moments.
-* Hierarchies and CTAs tested for conversion.
+- **3-second hook:** bold visuals, smooth entry motion.
+- Story-driven flow with strategic “delight” moments.
+- Hierarchies and CTAs tested for conversion.
 
 #### Contemporary Aesthetics
 
-* Track emerging patterns; experiment with new CSS.
-* Use custom properties, grid, container queries, bespoke SVG, and advanced animations for a signature look.
+**Trend Anticipation**
+Rather than following trends, aim to **anticipate and set them**:
+
+- Study emerging design patterns from leading agencies and startups
+- Experiment with new CSS features as they become available
+- Incorporate elements from other design disciplines (architecture, fashion, industrial design)
+- Balance innovation with usability principles
+
+**Visual Sophistication**
+- Use advanced CSS features like custom properties, grid, and container queries
+- Implement complex animations using CSS transforms and keyframes
+- Create custom SVG illustrations that align with brand identity
+- Develop unique color palettes that evoke specific emotions
 
 ### Interactive Design
 
 #### Animation as Communication
 
-* Motion clarifies loading, transitions, and hovers; micro-interactions add personality.
-* Prefer transform-based animations, judicious `will-change`, and “reduce motion” support.
+Animations should serve **functional and emotional purposes** simultaneously:
+
+- Motion clarifies loading, transitions, and hovers; micro-interactions add personality.
+- Prefer transform-based animations, judicious `will-change`, and “reduce motion” support.
 
 #### Interactive Elements
 
-* Consistent hover/touch feedback (scale, color, reveals).
-* 44 px touch targets, keyboard navigation, logical focus order.
+**Hover State Philosophy**
+Every interactive element should provide **clear feedback** about its functionality:
+
+- Subtle scale or color changes for clickable elements
+- Revealing additional information on hover
+- Smooth transitions that feel natural and responsive
+- Consistent behavior patterns across similar elements
+
+**Touch and Mobile Considerations**
+- Design for finger-friendly touch targets (minimum 44px)
+- Implement appropriate touch gestures for different actions
+- Consider haptic feedback where available
+- Ensure hover effects translate meaningfully to touch interfaces
 
 ### Technology Boundary Pushing
 
 #### Advanced CSS
 
-Grid, Flexbox, container queries, custom properties, filters, 3-D transforms, blend modes, scroll-snap, logical props, `aspect-ratio`, `clamp()`.
+**Modern Layout Systems**
+- CSS Grid for complex, two-dimensional layouts
+- Flexbox for one-dimensional alignment and distribution
+- Container queries for truly responsive component design
+- CSS custom properties for dynamic theming and state management
+
+**Visual Effects Innovation**
+- CSS filters and backdrop-filter for sophisticated visual effects
+- Transform3d for hardware-accelerated animations
+- CSS shapes for non-rectangular layouts
+- Blend modes for creative color and texture combinations
+
+**Cutting-Edge Features**
+- CSS scroll-snap for controlled scrolling experiences
+- CSS logical properties for internationalization
+- CSS aspect-ratio for consistent proportions
+- CSS clamp() for fluid typography and spacing
 
 #### JavaScript Interaction
 
-Gesture recognition, Intersection Observer, custom events, predictable debounced state updates.
+**Event Handling Sophistication**
+- Implement gesture recognition for touch interfaces
+- Use Intersection Observer for scroll-based animations
+- Create custom event systems for component communication
+- Implement keyboard navigation patterns for accessibility
+
+**State Management**
+- Design reactive systems that update UI based on data changes
+- Implement efficient re-rendering strategies
+- Use debouncing and throttling for performance optimization
+- Create predictable state transitions for complex interactions
 
 ### Accessibility Integration
 
 #### Universal Design
+
+Accessibility shouldn't be an afterthought but **integrated into the design process** from the beginning:
 
 WCAG-AA contrast, multi-cue interactivity, visible focus, keyboard paths, skip links, minimal cognitive load.
 
@@ -172,9 +228,9 @@ Base experience works without JS; enhancements layered and tested with assistive
 
 ### Quality, Scalability & Future-Proofing
 
-* Clean, documented code; descriptive commits; version control.
-* Cross-browser/device testing and analytics-driven iteration.
-* Modular architecture, design tokens, readiness for new standards with graceful degradation.
+- Clean, documented code; descriptive commits; version control.
+- Cross-browser/device testing and analytics-driven iteration.
+- Modular architecture, design tokens, readiness for new standards with graceful degradation.
 
 This comprehensive approach to design principles creates a framework for making informed decisions that serve both users and business objectives while pushing the boundaries of what's possible in web design and development.
 
