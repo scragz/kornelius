@@ -417,6 +417,16 @@ export class FormManager {
         // }
       }
     }
+
+    // Add change listeners to all checkboxes for state saving
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      if (checkbox.id) {
+        checkbox.addEventListener('change', () => {
+          this.debounceStateUpdate();
+        });
+      }
+    });
+
     // Initial validation run for all buttons (will be called again in DOMContentLoaded)
     // this.validateAllButtons();
   }
@@ -474,6 +484,11 @@ export class FormManager {
         // Clear all textareas across all modes
         document.querySelectorAll('textarea').forEach(textarea => {
           textarea.value = '';
+        });
+
+        // Clear all checkboxes across all modes
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+          checkbox.checked = false;
         });
 
         // Send empty state to extension host
@@ -552,6 +567,13 @@ export class FormManager {
             stateToSave[textarea.id] = textarea.value;
           }
         });
+
+        // Collect current checkbox states
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+          if (checkbox.id) {
+            stateToSave[checkbox.id] = checkbox.checked;
+          }
+        });
       }
 
       // Always include currentMode and currentStep
@@ -614,7 +636,7 @@ export class FormManager {
         this.currentStep = loadedStep;
         logToExtension(`Internal state updated: mode=${this.currentMode}, step=${this.currentStep}`);
 
-        // Load textarea values
+        // Load textarea values and checkbox states
         for (const [id, value] of Object.entries(stateToLoad)) {
           // Skip our internal keys
           if (id === '__currentMode__' || id === '__currentStep__') continue;
@@ -622,9 +644,11 @@ export class FormManager {
           const element = document.getElementById(id);
           if (element && element.tagName === 'TEXTAREA') {
             element.value = value;
+          } else if (element && element.type === 'checkbox') {
+            element.checked = Boolean(value);
           }
         }
-        logToExtension('Restored form values from extension host state');
+        logToExtension('Restored form values and checkbox states from extension host state');
 
         // --- Update UI based on loaded state ---
         // 1. Update mode properties (step count etc.) based on loaded mode

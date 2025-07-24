@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import { PromptManager } from '../utils/promptManager';
 import { DebugLogger } from '../utils/debugLogger';
 
@@ -13,8 +15,9 @@ export interface PromptUserInputs {
   implementationPlan?: string;
   referenceCode?: string;
   existingCode?: string;
+  includeFrontendAppendix?: boolean; // Checkbox for including frontend appendix
   codeToAudit?: string; // Added for security/a11y audit steps
-  [key: string]: string | undefined; // Add index signature to allow dynamic access
+  [key: string]: string | boolean | undefined; // Add index signature to allow dynamic access
 }
 
 /**
@@ -94,6 +97,14 @@ function sanitizeInput(input: string | undefined): string {
   return result;
 }
 
+// Helper function to safely convert any input type to string for placeholder replacement
+function sanitizeAnyInput(input: string | boolean | undefined): string {
+  if (typeof input === 'boolean') {
+    return input.toString();
+  }
+  return sanitizeInput(input);
+}
+
 /**
  * Process the template content with the appropriate placeholders based on the step
  */
@@ -126,13 +137,30 @@ function processPromptWithPlaceholders(
       placeholderMap['REFERENCE_CODE'] = sanitizeInput(userInputs.referenceCode);
       break;
 
-    case 'codegen':
+    case 'codegen': {
       placeholderMap['PROJECT_REQUEST'] = sanitizeInput(userInputs.projectRequest);
       placeholderMap['PROJECT_RULES'] = sanitizeInput(userInputs.projectRules);
       placeholderMap['TECHNICAL_SPECIFICATION'] = sanitizeInput(userInputs.technicalSpecification);
       placeholderMap['IMPLEMENTATION_PLAN'] = sanitizeInput(userInputs.implementationPlan);
       placeholderMap['EXISTING_CODE'] = sanitizeInput(userInputs.existingCode);
+
+      // Handle appendices based on checkboxes
+      let appendicesContent = '';
+      if (userInputs.includeFrontendAppendix) {
+        try {
+          const extension = vscode.extensions.getExtension('scragz.kornelius');
+          if (extension) {
+            const frontendAppendixPath = path.join(extension.extensionPath, 'prompts', 'create', 'appendices', 'frontend.prompt');
+            const frontendContent = fs.readFileSync(frontendAppendixPath, 'utf-8');
+            appendicesContent += frontendContent + '\n\n';
+          }
+        } catch (error) {
+          DebugLogger.error('Failed to load frontend appendix:', error);
+        }
+      }
+      placeholderMap['APPENDICES'] = appendicesContent;
       break;
+    }
 
     case 'review':
       placeholderMap['PROJECT_REQUEST'] = sanitizeInput(userInputs.projectRequest);
@@ -150,32 +178,32 @@ function processPromptWithPlaceholders(
       break;
 
     case 'observe':
-      placeholderMap['BUG_DESCRIPTION'] = sanitizeInput(userInputs.bugDescription);
-      placeholderMap['ERROR_MESSAGES'] = sanitizeInput(userInputs.errorMessages);
-      placeholderMap['REPRO_STEPS'] = sanitizeInput(userInputs.reproSteps);
-      placeholderMap['ENV_DETAILS'] = sanitizeInput(userInputs.envDetails);
-      placeholderMap['USER_FEEDBACK'] = sanitizeInput(userInputs.userFeedback);
-      placeholderMap['ADDITIONAL_EVIDENCE'] = sanitizeInput(userInputs.additionalEvidence);
+      placeholderMap['BUG_DESCRIPTION'] = sanitizeAnyInput(userInputs.bugDescription);
+      placeholderMap['ERROR_MESSAGES'] = sanitizeAnyInput(userInputs.errorMessages);
+      placeholderMap['REPRO_STEPS'] = sanitizeAnyInput(userInputs.reproSteps);
+      placeholderMap['ENV_DETAILS'] = sanitizeAnyInput(userInputs.envDetails);
+      placeholderMap['USER_FEEDBACK'] = sanitizeAnyInput(userInputs.userFeedback);
+      placeholderMap['ADDITIONAL_EVIDENCE'] = sanitizeAnyInput(userInputs.additionalEvidence);
       break;
     case 'orient':
-      placeholderMap['ANALYSIS_SUMMARY'] = sanitizeInput(userInputs.analysisSummary);
-      placeholderMap['UPDATED_CLARIFICATIONS'] = sanitizeInput(userInputs.updatedClarifications);
+      placeholderMap['ANALYSIS_SUMMARY'] = sanitizeAnyInput(userInputs.analysisSummary);
+      placeholderMap['UPDATED_CLARIFICATIONS'] = sanitizeAnyInput(userInputs.updatedClarifications);
       break;
     case 'decide':
-      placeholderMap['ANALYSIS_SUMMARY'] = sanitizeInput(userInputs.analysisSummary);
-      placeholderMap['CONSTRAINTS_OR_RISKS'] = sanitizeInput(userInputs.constraintsOrRisks);
+      placeholderMap['ANALYSIS_SUMMARY'] = sanitizeAnyInput(userInputs.analysisSummary);
+      placeholderMap['CONSTRAINTS_OR_RISKS'] = sanitizeAnyInput(userInputs.constraintsOrRisks);
       break;
     case 'act':
-      placeholderMap['CHOSEN_ACTIONS'] = sanitizeInput(userInputs.chosenActions);
-      placeholderMap['IMPLEMENTATION_PLAN'] = sanitizeInput(userInputs.implementationPlan);
-      placeholderMap['SUCCESS_CRITERIA'] = sanitizeInput(userInputs.successCriteria);
+      placeholderMap['CHOSEN_ACTIONS'] = sanitizeAnyInput(userInputs.chosenActions);
+      placeholderMap['IMPLEMENTATION_PLAN'] = sanitizeAnyInput(userInputs.implementationPlan);
+      placeholderMap['SUCCESS_CRITERIA'] = sanitizeAnyInput(userInputs.successCriteria);
       break;
 
     default:
       DebugLogger.log(`[Warning] Unhandled step in processPromptWithPlaceholders: ${step}. Attempting direct input mapping with sanitization.`);
       Object.keys(userInputs).forEach(key => {
         const placeholderKey = key.replace(/([A-Z])/g, '_$1').toUpperCase();
-        placeholderMap[placeholderKey] = sanitizeInput(userInputs[key]); // Apply sanitization here too
+        placeholderMap[placeholderKey] = sanitizeAnyInput(userInputs[key]); // Apply sanitization here too
       });
   }
 

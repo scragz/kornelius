@@ -102,30 +102,30 @@ If you updated the implementation plan, record it here:
 
 ---
 
-{{APPENDICES}}
+
 
 ---
 
 ## **Context**
 
 <implementation_plan>
-{{IMPLEMENTATION_PLAN}}
+plan
 </implementation_plan>
 
 <technical_specification>
-{{TECHNICAL_SPECIFICATION}}
+spec
 </technical_specification>
 
 <project_request>
-{{PROJECT_REQUEST}}
+
 </project_request>
 
 <project_rules>
-{{PROJECT_RULES}}
+
 </project_rules>
 
 <existing_code>
-{{EXISTING_CODE}}
+
 </existing_code>
 
 ---
