@@ -174,7 +174,7 @@ export class MessageHandler {
           fieldMapping = {
             'create-spec-request': 'projectRequest',
             'create-spec-rules': 'projectRules',
-            'create-spec-template': 'referenceCode'
+            'create-spec-context': 'referenceCode'
           };
           break;
         case 'planner':
@@ -182,7 +182,7 @@ export class MessageHandler {
             'create-planner-request': 'projectRequest',
             'create-planner-spec': 'technicalSpecification',
             'create-planner-rules': 'projectRules',
-            'create-planner-template': 'referenceCode'
+            'create-planner-context': 'referenceCode'
           };
           break;
         case 'codegen':
@@ -191,7 +191,7 @@ export class MessageHandler {
             'create-codegen-spec': 'technicalSpecification',
             'create-codegen-plan': 'implementationPlan',
             'create-codegen-rules': 'projectRules',
-            'create-codegen-code': 'existingCode'
+            'create-codegen-context': 'existingCode'
           };
           // Define checkbox mapping for codegen step
           checkboxMapping = {

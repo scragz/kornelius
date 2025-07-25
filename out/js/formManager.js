@@ -448,7 +448,7 @@ export class FormManager {
     // Create mode sync fields
     this.syncValueAcrossSteps('create-spec-request', ['create-planner-request', 'create-codegen-request', 'create-review-request']);
     this.syncValueAcrossSteps('create-spec-rules', ['create-planner-rules', 'create-codegen-rules', 'create-review-rules']);
-    this.syncValueAcrossSteps('create-spec-template', ['create-planner-template']);
+    this.syncValueAcrossSteps('create-spec-context', ['create-planner-context']);
     this.syncValueAcrossSteps('create-planner-spec', ['create-codegen-spec', 'create-review-spec']);
     this.syncValueAcrossSteps('create-codegen-plan', ['create-review-plan']);
 

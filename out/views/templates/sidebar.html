@@ -46,7 +46,7 @@
                 id="create-request-idea"
                 class="main-input"
                 rows="8"
-                placeholder="Enter your initial idea here..."
+                placeholder="Enter your initial idea..."
               ></textarea>
             </div>
           </div>
@@ -56,6 +56,9 @@
             </button>
           </div>
           <div class="munky-tip">
+            <p>
+              This one has a lot of back-and-forth to get your idea ready. Use <span class="mode-badge planning-mode">planning mode</span> in the IDE or just iterate with chat in the browser.
+            </p>
             <p>
               Use a <span class="model-badge reasoning-model">reasoning model</span> like
               <strong>OpenAI o3</strong>, <strong>Gemini 2.5 Pro</strong>, or
@@ -84,15 +87,15 @@
               <textarea
                 id="create-spec-rules"
                 rows="3"
-                placeholder="Enter any project rules..."
+                placeholder="Enter project rules..."
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="create-spec-template">Reference Code (optional):</label>
+              <label for="create-spec-context">Context (optional):</label>
               <textarea
-                id="create-spec-template"
+                id="create-spec-context"
                 rows="3"
-                placeholder="Enter any reference code..."
+                placeholder="Include docs or existing code..."
               ></textarea>
             </div>
           </div>
@@ -102,6 +105,9 @@
             </button>
           </div>
           <div class="munky-tip">
+            <p>
+              Use <span class="mode-badge planning-mode">planning mode</span> in the IDE or just use chat in the browser.
+            </p>
             <p>
               Use a <span class="model-badge reasoning-model">reasoning model</span> like
               <strong>OpenAI o3</strong>, <strong>Gemini 2.5 Pro</strong>, or
@@ -142,11 +148,19 @@
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="create-planner-template">Reference Code (optional):</label>
+              <label for="create-planner-context">Reference Code (optional):</label>
               <textarea
-                id="create-planner-template"
+                id="create-planner-context"
                 rows="3"
                 placeholder="Enter starter template..."
+              ></textarea>
+            </div>
+            <div class="input-group">
+              <label for="create-planner-context">Context (optional):</label>
+              <textarea
+                id="create-planner-context"
+                rows="3"
+                placeholder="Include docs or existing code..."
               ></textarea>
             </div>
           </div>
@@ -156,6 +170,9 @@
             </button>
           </div>
           <div class="munky-tip">
+            <p>
+              Use <span class="mode-badge planning-mode">planning mode</span> in the IDE or just use chat in the browser.
+            </p>
             <p>
               Use a <span class="model-badge reasoning-model">reasoning model</span> like
               <strong>OpenAI o3</strong>, <strong>Gemini 2.5 Pro</strong>, or
@@ -192,7 +209,7 @@
               <textarea
                 id="create-codegen-request"
                 rows="3"
-                placeholder="Paste the project request..."
+                placeholder="Paste the original project request..."
               ></textarea>
             </div>
             <div class="input-group">
@@ -204,11 +221,11 @@
               ></textarea>
             </div>
             <div class="input-group">
-              <label for="create-codegen-code">Your Code (optional):</label>
+              <label for="create-codegen-context">Context (optional):</label>
               <textarea
-                id="create-codegen-code"
+                id="create-codegen-context"
                 rows="3"
-                placeholder="Enter existing code..."
+                placeholder="Include docs or existing code..."
               ></textarea>
             </div>
             <div class="input-group">
@@ -228,9 +245,15 @@
           </div>
           <div class="munky-tip">
             <p>
+              Make sure to toggle <span class="mode-badge agent-mode">agent mode</span>.
+            </p>
+            <p>
               Use a <span class="model-badge coding-model">strong coding model</span> like
               <strong>Sonnet 4</strong>, <strong>Gemini 2.5 Pro</strong>, <strong>OpenAI 4.1</strong>, or
               <strong>Kimi k2</strong> for best results with this prompt.
+            </p>
+            <p>
+              This would also be a good time to use a browser agent like <span class="model-badge">Codex</span> or <span class="model-badge">Jules</span>.
             </p>
           </div>
         </div>
@@ -290,8 +313,11 @@
           </div>
           <div class="munky-tip">
             <p>
-              Use a <span class="model-badge coding-model">strong coding model</span> like
-              <strong>Gemini 2.5 Pro</strong>, <strong>Sonnet 4</strong>, or
+              Use <span class="mode-badge planning-mode">planning mode</span> to get the review then toggle <span class="mode-badge agent-mode">agent mode</span> so it can fix what it found.
+            </p>
+            <p>
+              Use a <span class="model-badge coding-model">coding model</span> like
+              <strong>Sonnet 4</strong>, <strong>Gemini 2.5 Pro</strong>, or
               <strong>GPT-4.1</strong> for best results with this prompt.
             </p>
           </div>
@@ -512,7 +538,6 @@
               <button id="generate-copy-audit-security" class="generate-copy-btn">
                 GET PROMPT
               </button>
-              <!-- Renamed ID -->
             </div>
           </div>
           <div class="step-title">
@@ -521,13 +546,14 @@
           </div>
           <!-- Accessibility Button -->
           <div class="input-group">
-            <!-- Removed Label and Textarea for a11y-code -->
             <div class="button-group audit-button-group">
               <button id="generate-copy-audit-a11y" class="generate-copy-btn">GET PROMPT</button>
-              <!-- Renamed ID -->
             </div>
           </div>
           <div class="munky-tip">
+            <p>
+              Use <span class="mode-badge planning-mode">planning mode</span> to get the audit then toggle <span class="mode-badge agent-mode">agent mode</span> so it can fix what it found.
+            </p>
             <p>
               Use a <span class="model-badge large-context-model">large context model</span> like
               <strong>Gemini 2.5 Pro</strong> or <strong>GTP-4.1</strong> for best results with

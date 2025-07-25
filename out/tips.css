@@ -49,11 +49,41 @@
   font-style: italic;
 }
 
-/* Model recommendation badges */
+/* recommendation badges */
+.mode-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  margin: 0 2px;
+  font-family: 'Permanent Marker', cursive;
+  font-size: 0.85em;
+  transform: rotate(2deg);
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.5);
+  letter-spacing: 0.5px;
+  position: relative;
+  animation: pulse 3s infinite alternate;
+}
+
+.planning-mode {
+  background: linear-gradient(to bottom right, #ff6600, #cc0066);
+  border: 2px dashed #ffaa66;
+  border-radius: 8px 2px 8px 2px;
+  color: white;
+  transform: rotate(-1deg) skew(2deg);
+}
+
+.agent-mode {
+  background: linear-gradient(to bottom right, #6600ff, #0066cc);
+  border: 2px dashed #aa66ff;
+  border-radius: 2px 8px 2px 8px;
+  color: white;
+  transform: rotate(2deg) skew(-2deg);
+}
+
 .model-badge {
   display: inline-block;
-  padding: 3px 8px;
-  margin: 0 3px;
+  padding: 2px 6px;
+  margin: 0 2px;
   font-family: 'Permanent Marker', cursive;
   font-size: 0.85em;
   transform: rotate(-2deg);
@@ -81,14 +111,18 @@
 }
 
 .large-context-model {
-  background: linear-gradient(to bottom right, #ff9900, #cc3300); /* Orange/Red gradient */
+  background: linear-gradient(to bottom right, #ff9900, #cc3300);
+  /* Orange/Red gradient */
   border: 2px dashed #ffcc99;
-  border-radius: 5px 5px 5px 5px; /* More standard shape */
+  border-radius: 5px 5px 5px 5px;
+  /* More standard shape */
   color: white;
-  transform: rotate(0deg) skew(0deg); /* No rotation/skew */
+  transform: rotate(0deg) skew(0deg);
+  /* No rotation/skew */
 }
 
 /* Spacing for buttons within Audit panel */
 .audit-button-group {
-  margin-top: 10px; /* Add some space above the audit buttons */
+  margin-top: 10px;
+  /* Add some space above the audit buttons */
 }
